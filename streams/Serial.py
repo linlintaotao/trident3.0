@@ -36,7 +36,11 @@ class SerialStream():
 
     def read(self):
         """
+<<<<<<< HEAD
         read nmea from serial Rx buffer into nmea buffer queue
+=======
+        read nmea from serial Rx buffer
+>>>>>>> d87451fcf0a6842a2aa30e6486ac0a09f4339c14
         :return:
         """
         while True:
@@ -45,7 +49,10 @@ class SerialStream():
             print(f"{data}")
 
     def write(self, dataq):
+<<<<<<< HEAD
 
+=======
+>>>>>>> d87451fcf0a6842a2aa30e6486ac0a09f4339c14
         """
         write rtcm into serial Tx buffer
         :return:
@@ -55,7 +62,10 @@ class SerialStream():
 
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     # usage example
+=======
+>>>>>>> d87451fcf0a6842a2aa30e6486ac0a09f4339c14
     usage = "Serial.py [porta] [baud] [portb]"
     parser = OptionParser(version=version, usage=usage)
     parser.add_option("-p", "--port", type="string", dest="port", default="COM20",
