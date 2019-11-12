@@ -9,16 +9,16 @@
 """
 
 import socket
-import base64
 import sys
-import datetime
-import time
+from queue import Queue
+from time import sleep
+from base64 import b64encode
+from datetime import datetime, timedelta
 from optparse import OptionParser
 
-
 version = 0.2
-useragent = "FMI NTRIP PythonClient/%.1f" % version
-highVer = True if sys.version_info.major>=3 else False
+useragent = "NTRIP FMIPythonClient/%.1f" % version
+highVer = True if sys.version_info.major >= 3 else False
 # reconnect parameter (fixed values):
 factor = 2  # How much the sleep time increases with each failed attempt
 maxReconnect = 1
@@ -28,30 +28,18 @@ maxConnectTime = 0
 
 
 class NtripClient(object):
-    def __init__(self,
-                 buffer=50,
-                 user="",
-                 out=sys.stdout,
-                 port=2101,
-                 caster="",
-                 mountpoint="",
-                 host=False,
-                 lat=46,
-                 lon=122,
-                 height=1212,
-                 ssl=False,
-                 verbose=False,
-                 UDP_Port=None,
-                 V2=False,
-                 headerFile=sys.stderr,
-                 headerOutput=False,
-                 maxConnectTime=1200
-                 ):
+    def __init__(self, buffer=2048, user="", out=None, port=2101, caster="", mountpoint="", passwd="", host=False,
+                 lat=40, lon=116, height=54.6, ssl=False, verbose=False, UDP_Port=None, V2=False, headerFile=sys.stderr,
+                 headerOutput=False, maxConnectTime=1200):
         self.buffer = buffer
-        self.user = base64.b64encode(user.encode('utf-8')) if highVer else base64.b64encode(user)
+        if user.find(":") == -1:
+            user = user + ":" + passwd
+        self.user = b64encode(user.encode('utf-8')).decode() if highVer else b64encode(user)
         self.out = out
         self.port = port
         self.caster = caster
+        if mountpoint.find("/") == -1:
+            mountpoint = "/" + mountpoint
         self.mountpoint = mountpoint
         self.setPosition(lat, lon)
         self.height = height
@@ -63,7 +51,7 @@ class NtripClient(object):
         self.headerFile = headerFile
         self.headerOutput = headerOutput
         self.maxConnectTime = maxConnectTime
-
+        self.data = Queue()
         self.socket = None
 
         if UDP_Port:
@@ -96,8 +84,9 @@ class NtripClient(object):
         self.latMin = (lat - self.latDeg) * 60
 
     def getMountPointString(self):
+
         mountPointString = "GET %s HTTP/1.1\r\nUser-Agent: %s\r\nAuthorization: Basic %s\r\n" % (
-        self.mountpoint, useragent, self.user)
+            self.mountpoint, useragent, self.user)
         #        mountPointString = "GET %s HTTP/1.1\r\nUser-Agent: %s\r\n" % (self.mountpoint, useragent)
         if self.host or self.V2:
             hostString = "Host: %s:%i\r\n" % (self.caster, self.port)
@@ -111,14 +100,15 @@ class NtripClient(object):
         return mountPointString.encode('utf-8') if highVer else mountPointString
 
     def getGGAString(self):
-        now = datetime.datetime.utcnow()
-        ggaString = "GPGGA,%02d%02d%04.2f,%02d%011.8f,%1s,%03d%011.8f,%1s,1,05,0.19,+00400,M,%5.3f,M,," % \
-                    (now.hour, now.minute, now.second, self.latDeg, self.latMin, self.flagN, self.lonDeg, self.lonMin,
-                     self.flagE, self.height)
+        now = datetime.utcnow()
+        ggaString = "GPGGA,%02d%02d%04.2f,%02d%011.8f,%1s,%03d%011.8f,%1s,1,05,0.19,+00400,M,%5.3f,M,," % (
+            now.hour, now.minute, now.second, self.latDeg, self.latMin, self.flagN, self.lonDeg, self.lonMin,
+            self.flagE, self.height)
         checksum = self.calcultateCheckSum(ggaString)
         if self.verbose:
             print("$%s*%s\r\n" % (ggaString, checksum))
-        return "$%s*%s\r\n" % (ggaString, checksum)
+        gga = "$%s*%s\r\n" % (ggaString, checksum)
+        return gga.encode()
 
     def calcultateCheckSum(self, stringToCheck):
         xsum_calc = 0
@@ -131,7 +121,7 @@ class NtripClient(object):
         sleepTime = 1
         reconnectTime = 0
         if self.maxConnectTime > 0:
-            EndConnect = datetime.timedelta(seconds=self.maxConnectTime)
+            EndConnect = timedelta(seconds=self.maxConnectTime)
         try:
             while reconnectTry <= maxReconnect:
                 found_header = False
@@ -145,12 +135,12 @@ class NtripClient(object):
                 error_indicator = self.socket.connect_ex((self.caster, self.port))
                 if error_indicator == 0:
                     sleepTime = 1
-                    connectTime = datetime.datetime.now()
+                    connectTime = datetime.now()
 
                     self.socket.settimeout(10)
                     self.socket.sendall(self.getMountPointString())
                     while not found_header:
-                        casterResponse = self.socket.recv(4096) # All the data
+                        casterResponse = self.socket.recv(4096)  # All the data
                         casterResponse = casterResponse.decode('utf-8') if highVer else casterResponse
                         header_lines = casterResponse.split("\r\n")
 
@@ -190,16 +180,17 @@ class NtripClient(object):
                     while data:
                         try:
                             data = self.socket.recv(self.buffer)
-                            self.out.write(data)
+                            self.data.put(data)
+                            if self.out:
+                                self.out.write(data)
                             if self.UDP_socket:
                                 self.UDP_socket.sendto(data, ('<broadcast>', self.UDP_Port))
-                            #                            print datetime.datetime.now()-connectTime
+                            # print datetime.datetime.now()-connectTime
                             if maxConnectTime:
-                                if datetime.datetime.now() > connectTime + EndConnect:
+                                if datetime.now() > connectTime + EndConnect:
                                     if self.verbose:
                                         sys.stderr.write("Connection Timed exceeded\n")
                                     sys.exit(0)
-
 
                         except socket.timeout:
                             if self.verbose:
@@ -217,8 +208,8 @@ class NtripClient(object):
 
                     if reconnectTry < maxReconnect:
                         sys.stderr.write("%s No Connection to NtripCaster.  Trying again in %i seconds\n" % (
-                        datetime.datetime.now(), sleepTime))
-                        time.sleep(sleepTime)
+                            datetime.now(), sleepTime))
+                        sleep(sleepTime)
                         sleepTime *= factor
 
                         if sleepTime > maxReconnectTime:
@@ -232,8 +223,8 @@ class NtripClient(object):
 
                     if reconnectTry < maxReconnect:
                         sys.stderr.write("%s No Connection to NtripCaster.  Trying again in %i seconds\n" % (
-                        datetime.datetime.now(), sleepTime))
-                        time.sleep(sleepTime)
+                            datetime.now(), sleepTime))
+                        sleep(sleepTime)
                         sleepTime *= factor
                         if sleepTime > maxReconnectTime:
                             sleepTime = maxReconnectTime
@@ -352,12 +343,12 @@ if __name__ == '__main__':
 
     fileOutput = False
     if options.outputFile:
-        f = open(options.outputFile, 'w')
+        f = open(options.outputFile, 'wb')
         ntripArgs['out'] = f
         fileOutput = True
 
     if options.headerFile:
-        h = open(options.headerFile, 'w')
+        h = open(options.headerFile, 'wb')
         ntripArgs['headerFile'] = h
         ntripArgs['headerOutput'] = True
 
