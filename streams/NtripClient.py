@@ -54,6 +54,7 @@ class NtripClient(object):
         self.data = Queue()
         self.socket = None
         self.nbytes = 0
+        self._running = True
 
         if UDP_Port:
             self.UDP_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -61,6 +62,9 @@ class NtripClient(object):
             self.UDP_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         else:
             self.UDP_socket = None
+
+    def terminate(self):
+        self._running = False
 
     def setPosition(self, lat, lon):
         self.flagN = "N"
@@ -178,7 +182,7 @@ class NtripClient(object):
                                 self.socket.sendall(self.getGGAString())
 
                     data = "Initial data"
-                    while data:
+                    while data and self._running:
                         try:
                             data = self.socket.recv(self.buffer)
                             self.nbytes += len(data)
