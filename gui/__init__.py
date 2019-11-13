@@ -7,3 +7,4 @@
 """
 from . import SerialSettingLayout
 from . import NmeaViewer
+from . import form

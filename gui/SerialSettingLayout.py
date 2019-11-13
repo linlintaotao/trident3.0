@@ -5,9 +5,6 @@
 @date: 11/12/2019
 @author: Chey
 """
-# !/user/bin/python3
-# -*- coding:utf-8 -*-
-
 
 import sys
 import os
@@ -304,3 +301,4 @@ if __name__ == '__main__':
     w = SerialSettingLayout()
     w.set_frame()
     sys.exit(app.exec_())
+

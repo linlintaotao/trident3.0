@@ -4,9 +4,7 @@
 @file: test.py
 @date: 11/12/2019
 @author: Chey
-"""  # !/user/bin/python3
-# -*- coding:utf-8 -*-
-
+"""
 
 import sys
 import threading
@@ -37,6 +35,7 @@ class SerialQtTool(QWidget):
         self.qt_test_button = QPushButton(u'start')  # 启动测试按钮,
         self.log_view_groupBox = QGroupBox("log view")  # 测试结果显示窗口组
         self.serial_setting_groupBox = QGroupBox("serial_setting")  # 串口设置界面组
+        self.serial_setting_groupBox2 = QGroupBox("serial_setting2")
 
         # 产测结果显示文本框设置
         self.log_view_textBrowser = QTextBrowser()  # 用于显示结果的文本框
@@ -45,7 +44,7 @@ class SerialQtTool(QWidget):
         # 串口工具界面布局
         self.serial_setting_layout = SSLayout.SerialSettingLayout(self.start_read_data,
                                                                   self.stop_read_data)  # 初始化串口设置界面布局,并绑定串口打开和关闭时的操作
-
+        self.serial_setting_layout2 = SSLayout.SerialSettingLayout(self.start_read_data, self.stop_read_data)
         # 初始化界面
         self.init_ui()
 
@@ -78,8 +77,11 @@ class SerialQtTool(QWidget):
         serial_setting_layout = self.serial_setting_layout.get_serial_setting_layout()  # 获取串口设置界面布局
         serial_setting_layout.addWidget(self.qt_test_button)  # 添加开始测试按钮到布局
 
+        serial_setting_layout2 = self.serial_setting_layout2.get_serial_setting_layout()  # 获取串口设置界面布局
+        serial_setting_layout2.addWidget(self.qt_test_button)  #
         # 添加布局到组
         self.serial_setting_groupBox.setLayout(serial_setting_layout)
+        self.serial_setting_groupBox2.setLayout(serial_setting_layout2)
 
     def init_ui(self):
         """
@@ -180,8 +182,9 @@ class SerialQtTool(QWidget):
         :return:
         """
         main_layout = QGridLayout()
-        main_layout.addWidget(self.log_view_groupBox, 0, 0, 1, 4)
+        main_layout.addWidget(self.log_view_groupBox, 0, 0, 4, 4)
         main_layout.addWidget(self.serial_setting_groupBox, 0, 5)
+        main_layout.addWidget(self.serial_setting_groupBox2, 1, 5)
 
         self.setLayout(main_layout)
         self.setWindowTitle('FST (FMI Serial Tool)')

@@ -53,6 +53,7 @@ class NtripClient(object):
         self.maxConnectTime = maxConnectTime
         self.data = Queue()
         self.socket = None
+        self.nbytes = 0
 
         if UDP_Port:
             self.UDP_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -180,6 +181,7 @@ class NtripClient(object):
                     while data:
                         try:
                             data = self.socket.recv(self.buffer)
+                            self.nbytes += len(data)
                             self.data.put(data)
                             if self.out:
                                 self.out.write(data)
