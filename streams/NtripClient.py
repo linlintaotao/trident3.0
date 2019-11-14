@@ -10,7 +10,7 @@
 
 import socket
 import sys
-from queue import Queue
+from collections import deque
 from time import sleep
 from base64 import b64encode
 from datetime import datetime, timedelta
@@ -21,8 +21,8 @@ useragent = "NTRIP FMIPythonClient/%.1f" % version
 highVer = True if sys.version_info.major >= 3 else False
 # reconnect parameter (fixed values):
 factor = 2  # How much the sleep time increases with each failed attempt
-maxReconnect = 1
-maxReconnectTime = 1200
+maxReconnect = 1000
+maxReconnectTime = 10
 sleepTime = 1  # So the first one is 1 second
 maxConnectTime = 0
 
@@ -51,8 +51,8 @@ class NtripClient(object):
         self.headerFile = headerFile
         self.headerOutput = headerOutput
         self.maxConnectTime = maxConnectTime
-        self.data = Queue()
-        self.socket = None
+        self.data = deque(maxlen=buffer)
+        self._socket = None
         self.nbytes = 0
         self._running = True
 
@@ -106,7 +106,7 @@ class NtripClient(object):
 
     def getGGAString(self):
         now = datetime.utcnow()
-        ggaString = "GPGGA,%02d%02d%04.2f,%02d%011.8f,%1s,%03d%011.8f,%1s,1,05,0.19,+00400,M,%5.3f,M,," % (
+        ggaString = "GPGGA,%02d%02d%04.2f,%02d%011.8f,%1s,%03d%011.8f,%1s,1,08,20,+00400,M,%5.3f,M,," % (
             now.hour, now.minute, now.second, self.latDeg, self.latMin, self.flagN, self.lonDeg, self.lonMin,
             self.flagE, self.height)
         checksum = self.calcultateCheckSum(ggaString)
@@ -121,6 +121,9 @@ class NtripClient(object):
             xsum_calc = xsum_calc ^ ord(char)
         return "%02X" % xsum_calc
 
+    def sendGGA2Ntrip(self, ggastr):
+        self._socket.sendall(ggastr)
+
     def readData(self):
         reconnectTry = 1
         sleepTime = 1
@@ -133,19 +136,21 @@ class NtripClient(object):
                 if self.verbose:
                     sys.stderr.write('Connection {0} of {1}\n'.format(reconnectTry, maxReconnect))
 
-                self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 if self.ssl:
-                    self.socket = ssl.wrap_socket(self.socket)
+                    self._socket = ssl.wrap_socket(self._socket)
 
-                error_indicator = self.socket.connect_ex((self.caster, self.port))
+
+                error_indicator = self._socket.connect_ex((self.caster, self.port))
+
                 if error_indicator == 0:
                     sleepTime = 1
                     connectTime = datetime.now()
 
-                    self.socket.settimeout(10)
-                    self.socket.sendall(self.getMountPointString())
+                    self._socket.settimeout(10)
+                    self._socket.sendall(self.getMountPointString())
                     while not found_header:
-                        casterResponse = self.socket.recv(4096)  # All the data
+                        casterResponse = self._socket.recv(4096)  # All the data
                         casterResponse = casterResponse.decode('utf-8') if highVer else casterResponse
                         header_lines = casterResponse.split("\r\n")
 
@@ -163,8 +168,8 @@ class NtripClient(object):
 
                         for line in header_lines:
                             if line.find("SOURCETABLE") >= 0:
-                                sys.stderr.write("Mount point does not exist")
-                                sys.exit(1)
+                                print(f"{line}")
+                                self._socket.sendall(self.getGGAString())
                             elif line.find("401 Unauthorized") >= 0:
                                 sys.stderr.write("Unauthorized request\n")
                                 sys.exit(1)
@@ -173,20 +178,24 @@ class NtripClient(object):
                                 sys.exit(2)
                             elif line.find("ICY 200 OK") >= 0:
                                 # Request was valid
-                                self.socket.sendall(self.getGGAString())
+                                self._socket.sendall(self.getGGAString())
                             elif line.find("HTTP/1.0 200 OK") >= 0:
                                 # Request was valid
-                                self.socket.sendall(self.getGGAString())
+                                self._socket.sendall(self.getGGAString())
                             elif line.find("HTTP/1.1 200 OK") >= 0:
                                 # Request was valid
-                                self.socket.sendall(self.getGGAString())
+                                self._socket.sendall(self.getGGAString())
 
                     data = "Initial data"
-                    while data and self._running:
+                    while self._running:
                         try:
-                            data = self.socket.recv(self.buffer)
+                            data = self._socket.recv(self.buffer)
                             self.nbytes += len(data)
-                            self.data.put(data)
+
+                            if len(self.data) >= int(0.8*self.data.maxlen):
+                                self.data.clear()
+                            self.data.append(data)
+
                             if self.out:
                                 self.out.write(data)
                             if self.UDP_socket:
@@ -201,44 +210,47 @@ class NtripClient(object):
                         except socket.timeout:
                             if self.verbose:
                                 sys.stderr.write('Connection TimedOut\n')
+                            print(f"socket timeout")
                             data = False
                         except socket.error:
                             if self.verbose:
                                 sys.stderr.write('Connection Error\n')
+                                print(f"socket error")
                             data = False
 
                     if self.verbose:
                         sys.stderr.write('Closing Connection\n')
-                    self.socket.close()
-                    self.socket = None
+                    self._socket.close()
+                    self._socket = None
 
-                    if reconnectTry < maxReconnect:
-                        sys.stderr.write("%s No Connection to NtripCaster.  Trying again in %i seconds\n" % (
-                            datetime.now(), sleepTime))
-                        sleep(sleepTime)
-                        sleepTime *= factor
-
-                        if sleepTime > maxReconnectTime:
-                            sleepTime = maxReconnectTime
+                    # if reconnectTry < maxReconnect:
+                    #     sys.stderr.write("%s No Connection to NtripCaster.  Trying again in %i seconds\n" % (
+                    #         datetime.now(), sleepTime))
+                    #     sleep(sleepTime)
+                    #     sleepTime *= factor
+                    #
+                    #     if sleepTime > maxReconnectTime:
+                    #         sleepTime = maxReconnectTime
 
                     reconnectTry += 1
                 else:
-                    self.socket = None
+                    print(f"socket connect return 0")
+                    self._socket = None
                     if self.verbose:
                         print("Error indicator: ", error_indicator)
 
-                    if reconnectTry < maxReconnect:
-                        sys.stderr.write("%s No Connection to NtripCaster.  Trying again in %i seconds\n" % (
-                            datetime.now(), sleepTime))
-                        sleep(sleepTime)
-                        sleepTime *= factor
-                        if sleepTime > maxReconnectTime:
-                            sleepTime = maxReconnectTime
+                    # if reconnectTry < maxReconnect:
+                    #     sys.stderr.write("%s No Connection to NtripCaster.  Trying again in %i seconds\n" % (
+                    #         datetime.now(), sleepTime))
+                    #     sleep(sleepTime)
+                    #     sleepTime *= factor
+                    #     if sleepTime > maxReconnectTime:
+                    #         sleepTime = maxReconnectTime
                     reconnectTry += 1
 
         except KeyboardInterrupt:
-            if self.socket:
-                self.socket.close()
+            if self._socket:
+                self._socket.close()
             sys.exit()
 
 
