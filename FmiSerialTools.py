@@ -7,11 +7,12 @@
 """
 
 import sys
+from time import sleep
 from base64 import b64encode
 from datetime import datetime
 from PyQt5.QtSerialPort import QSerialPort, QSerialPortInfo
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
-from PyQt5.QtGui import QTextCursor
+from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtCore import QTimer
 from PyQt5.QtNetwork import QTcpSocket
 from gui.form import Ui_Form
@@ -25,14 +26,18 @@ DISCONNECT = 'Disconnect'
 
 
 def gettstr():
-    return datetime.now().strftime("%Y%m%d%H%M%S")
+    return datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+
 
 class NtripSerialTool(QMainWindow, Ui_Form):
     """
     Ntrip serial tool for testing FMI P20 comb board
     """
+
     def __init__(self, parent=None):
         super(NtripSerialTool, self).__init__(parent)
+        self.setWindowTitle("Ntrip Serial Tool")
+        self.setWindowIcon(QIcon("./gui/fmi.png"))
         self.fh = None
         self.tmpggadata = ''
         self.tmprefdata = ''
@@ -125,6 +130,7 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         try:
             data = bytes(self.com.readAll())
         except Exception as e:
+            QMessageBox.critical(self, "Critial", "Serial read error")
             print(f"{sys._getframe().f_code.co_name}, {e}")
             # self.com.close()
         else:
@@ -141,6 +147,7 @@ class NtripSerialTool(QMainWindow, Ui_Form):
             self.textEdit_recv.insertPlainText(data)
             self.lineEdit_srx.setText(str(self.srxbs))
             self.DisplayGGA(data)
+
 
     def DisplayGGA(self, data):
         """
@@ -160,21 +167,24 @@ class NtripSerialTool(QMainWindow, Ui_Form):
             solstat, nsats, dop, hgt = seg[6:10]
             dire = seg[-2]
 
-            if self.checkBox_ggafmt.isChecked():
-                lat_deg = float(latdm)
-                lon_deg = float(londm)
-                a = int(lat_deg / 100) + (lat_deg % 100) / 60
-                o = int(lon_deg / 100) + (lon_deg % 100) / 60
-                latdm, londm = "%.7f" % a, "%.7f" % o
-            self.lineEdit_timenow.setText(now)
-            self.lineEdit_rovlat.setText(latdm)
-            self.lineEdit_rovlon.setText(londm)
-            self.lineEdit_rovhgt.setText(hgt)
+            if latdm != '' and londm != '':
+                if self.checkBox_ggafmt.isChecked():
+                    lat_deg = float(latdm)
+                    lon_deg = float(londm)
+                    a = int(lat_deg / 100) + (lat_deg % 100) / 60
+                    o = int(lon_deg / 100) + (lon_deg % 100) / 60
+                    latdm, londm = "%.7f" % a, "%.7f" % o
+                self.lineEdit_timenow.setText(now)
+                self.lineEdit_rovlat.setText(latdm)
+                self.lineEdit_rovlon.setText(londm)
+                self.lineEdit_rovhgt.setText(hgt)
 
-            self.lineEdit_solstat.setText(solstat)
-            self.lineEdit_nsat.setText(nsats)
-            self.lineEdit_dop.setText(dop)
-            self.lineEdit_dir.setText(dire)
+                self.lineEdit_solstat.setText(solstat)
+                self.lineEdit_nsat.setText(nsats)
+                self.lineEdit_dop.setText(dop)
+                self.lineEdit_dir.setText(dire)
+            else:
+                pass
             self.tmpggadata = ""
 
     def DisplayRef(self, data):
@@ -239,12 +249,11 @@ class NtripSerialTool(QMainWindow, Ui_Form):
     def AtCmdBtClick(self):
         if self.sock.isOpen():
             self._TerminateNtrip()
-
+        sleep(2)
         cmd = self.cbatcmd.currentText() + "\r\n"
         if not cmd.startswith('AT+'):
             QMessageBox.warning(self, "Warning", "AT command start with AT+ ")
         self.com.write(cmd.encode("utf-8", "ignore"))
-        print(f"AT cmd {cmd}")
 
     def setMountPointString(self, mnt, user):
         mountPointString = "GET /%s HTTP/1.1\r\nUser-Agent: %s\r\nAuthorization: Basic %s\r\n" % (
@@ -256,7 +265,6 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         self.sock.connectToHost(caster, port)
         if not self.sock.waitForConnected(5000):
             msg = self.sock.errorString()
-            print(f"{msg}")
             QMessageBox.critical(self, "Error", msg)
             return
 
@@ -265,7 +273,7 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         try:
             self.sock.write(self.getmnt)
         except Exception as e:
-            print(f"{e}")
+            QMessageBox.warning(self, "Warning", "Socket connect failed")
 
     # socket receive data
     def SockRecv(self):
@@ -289,7 +297,6 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         if self.sock.isOpen():
             if self.checkBox_sendgga.isChecked():
                 if self.curgga.decode("utf-8").startswith("$GNGGA"):
-                    print(f"Transit {self.curgga} to ntrip")
                     self.sock.write(bytes(self.curgga))
 
     # clear serial received data
@@ -328,14 +335,12 @@ class NtripSerialTool(QMainWindow, Ui_Form):
     def _TerminateNtrip(self):
         self.sock.flush()
         self.sock.close()
-        self.com.flush()
         self.SetNtripPara(True)
         self.pushButton_conn.setText(CONNECT)
-        print(f"Ntrip client terminating...")
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    myWin = NtripSerialTool()
-    myWin.show()
+    nst = NtripSerialTool()
+    nst.show()
     sys.exit(app.exec_())

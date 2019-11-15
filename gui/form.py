@@ -12,7 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_Form(object):
     def setupUi(self, Form):
-        Form.setObjectName("Form")
+        Form.setObjectName("Ntrip Serial Tool")
         Form.resize(918, 559)
         self.textEdit_recv = QtWidgets.QTextEdit(Form)
         self.textEdit_recv.setGeometry(QtCore.QRect(10, 10, 651, 391))
@@ -395,7 +395,7 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        Form.setWindowTitle(_translate("Form", "Ntrip Serial Tool v-0.1"))
         self.cbsbaud.setItemText(0, _translate("Form", "4800"))
         self.cbsbaud.setItemText(1, _translate("Form", "9600"))
         self.cbsbaud.setItemText(2, _translate("Form", "115200"))
