@@ -1,3 +1,4 @@
 .idea/*
+.NMEA/*
 streams/__pycache__
 gui/__pycache__
