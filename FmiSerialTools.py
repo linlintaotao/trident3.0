@@ -11,7 +11,6 @@ import serial
 import serial.tools.list_ports
 from os import makedirs, path, system
 from base64 import b64encode
-from threading import Thread, Timer
 from datetime import datetime
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt5.QtGui import QTextCursor, QIcon
@@ -37,25 +36,6 @@ COLOR_TAB = {'0': 'black', '1': 'red', '2': 'red', '3': 'black',
 def gettstr():
     return datetime.now().strftime("%Y%m%d_%H%M%S")
 
-
-class NtirpConnCheck():
-    def __init__(self, interval, hfunc):
-        self.intv = interval
-        self.func = hfunc
-        self.thread = Timer(self.intv, self.cycfunc)
-
-    def cycfunc(self):
-        self.func()
-        self.thread = Timer(self.intv, self.cycfunc)
-        self.thread.start()
-
-    def start(self):
-        self.thread.start()
-
-    def cancel(self):
-        self.thread.cancel()
-
-
 class NtripSerialTool(QMainWindow, Ui_Form):
     """
     Ntrip serial tool for testing FMI P20 comb board
@@ -69,7 +49,7 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         self._fn = ''
         self._dir = 'NMEA'
         self._getmnt = b''
-        self._curgga = ''
+        self._curgga = b''
         self._caster = ''
         self._port = 0
         self._srxbs = 0
@@ -98,8 +78,8 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         self.send_ggaTimer = QTimer(self)
         self.send_ggaTimer.timeout.connect(self.send_gga)
 
-        self.NtripCheck = NtirpConnCheck(10, self.ntp_reconn)
-        self.NtripCheck.start()
+        self.NtripReconTimer = QTimer(self)
+        self.NtripReconTimer.timeout.connect(self.ntp_reconn)
 
     def create_sigslots(self):
         """
@@ -142,12 +122,12 @@ class NtripSerialTool(QMainWindow, Ui_Form):
             self.com.stopbits = int(self.cbsstop.currentText())
             self.com.parity = self.cbsparity.currentText()
             self.com.timeout = 0
-            if self.com.isOpen():
-                self.com.close()
+
+            self.com.close()
             try:
                 self.com.open()
             except serial.SerialException as e:
-                print(f"{sys._getframe().f_code.co_name}, {e}")
+                QMessageBox.critical(self, "error", f"can not open serial {self.com.port}")
             else:
                 self.set_ser_params(False)
                 self.pushButton_open.setText(CLOSE)
@@ -173,7 +153,6 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         try:
             data = self.com.readline()
         except Exception as e:
-            QMessageBox.critical(self, "Critial", "Serial read error")
             print(f"{sys._getframe().f_code.co_name}, {e}")
 
         if data != b'':
@@ -184,11 +163,14 @@ class NtripSerialTool(QMainWindow, Ui_Form):
                 else:
                     self._fh.write(data)
             else:
+                if self._fh is not None:
+                    self._fh.flush()
                 self._fh = None
 
+        try:
             self._curgga = data
             self._srxbs += len(data)
-            data = data.decode()
+            data = data.decode("utf-8", "ignore")
             self.textEdit_recv.insertPlainText(data)
             self.lineEdit_srx.setText(str(self._srxbs))
             if data.startswith('$GNGGA') or data.startswith('$GPGGA'):
@@ -198,6 +180,9 @@ class NtripSerialTool(QMainWindow, Ui_Form):
             elif data.startswith('$GNZDA'):
                 self.disp_zda(data)
                 pass  # other nmea or user-defined msgs
+        except Exception as e:
+            print(f"{e}")
+
 
     def set_lebf_color(self, bg, fg):
         self.lineEdit_rovlat.setStyleSheet('background-color:' + bg + '; color:' + fg)
@@ -211,8 +196,11 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         :param data: gga string
         :return:
         """
-        if (data.startswith('$GNGGA') or data.startswith('$GPGGA')) and data.endswith("\r\n"):
+        if data.startswith(('$GNGGA', '$GPGGA')) and data.endswith("\r\n"):
             seg = data.strip("\r\n").split(",")
+            if len(seg) < 14:
+                return
+
             now, latdm = seg[1:3]
             londm = seg[4]
             solstat, nsats, dop, hgt = seg[6:10]
@@ -236,7 +224,7 @@ class NtripSerialTool(QMainWindow, Ui_Form):
                 self.lineEdit_dop.setText(dop)
                 self.lineEdit_dir.setText(dire)
             else:
-                pass
+                pass  # lat, lon not a float string
 
     def disp_ref(self, data):
         """
@@ -246,6 +234,8 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         """
         if data.startswith('$GEREF') and data.endswith("\r\n"):
             seg = data.strip("\r\n").split(",")
+            if len(seg) < 6:
+                return
             blat, blon, bhgt, bid = seg[1:5]
             self.lineEdit_baselat.setText(blat)
             self.lineEdit_baselon.setText(blon)
@@ -255,9 +245,10 @@ class NtripSerialTool(QMainWindow, Ui_Form):
     def disp_zda(self, data):
         if data.startswith('$GNZDA') and data.endswith("\r\n"):
             seg = data.strip("\r\n").split(",")
+            if len(seg) < 6:
+                return
             hms, day, month, year = seg[1:5]
-            self.lineEdit_timenow.setText(year+'/'+month+'/'+day+'-'+hms+' (GMT+8)')
-
+            self.lineEdit_timenow.setText(year + '/' + month + '/' + day + '-' + hms + ' (GMT+8)')
 
     def set_ser_params(self, enable):
         self.cbsport.setEnabled(enable)
@@ -286,20 +277,23 @@ class NtripSerialTool(QMainWindow, Ui_Form):
                 user = self.lineEdit_user.text()
                 passwd = self.lineEdit_pwd.text()
 
-            self._caster = caster
             self._port = port
-            if not self.sock.isOpen():
-                self.sock.open(QTcpSocket.ReadWrite)
+            self._caster = caster
+            self.sock.close()
+            self.sock.open(QTcpSocket.ReadWrite)
 
             # get mount point and try to connect caster
             user = b64encode((user + ":" + passwd).encode('utf-8')).decode()
             self.set_mntp_str(mount, user)
             self.ntp_conn(caster, port)
             self.set_ntrip_params(False)
+            self.NtripReconTimer.start(10000)
             self.pushButton_conn.setText(DISCONNECT)
 
         elif self.pushButton_conn.text() == DISCONNECT:
             self._term_ntrip()
+            self.set_ntrip_params(True)
+            self.pushButton_conn.setText(CONNECT)
 
     def atcmd_send_btclik(self):
         cmd = self.cbatcmd.currentText() + "\r\n"
@@ -323,53 +317,58 @@ class NtripSerialTool(QMainWindow, Ui_Form):
     # sock connect, write get mount point request
     def sock_conn(self):
         try:
+            print(f"try to connect to caster")
             self.sock.write(self._getmnt)
         except Exception as e:
-            QMessageBox.warning(self, "Warning", "Socket connect failed")
+            QMessageBox.warning(self, "Warning", f"Socket connect failed, {e}")
 
     # socket receive data
     def sock_recv(self):
-        rtcm = self.sock.readAll()
-        if self.com.isOpen():
-            try:
-                self.com.write(rtcm)
-            except Exception as e:
-                print(f"{e}")
+
+        try:
+            rtcm = self.sock.readAll()
+            if self.com.isOpen():
+                try:
+                    self.com.write(rtcm)
+                except serial.SerialTimeoutException as e:
+                    QMessageBox.critical(self, "error", f"{e}")
+                else:
+                    self._stxbs += len(rtcm)
+                    self._val += 5
+                    self._val = 0 if self._val > 100 else self._val
+                    self.progressBar.setValue(self._val)
+                    self.lineEdit_stx.setText(str(self._stxbs))
             else:
-                self._stxbs += len(rtcm)
-                self._val += 5
-                self._val = 0 if self._val > 100 else self._val
-                self.progressBar.setValue(self._val)
-                self.lineEdit_stx.setText(str(self._stxbs))
-        else:
-            print(f"Open serial first please")
+                print(f"Open serial first please")
+        except Exception as e:
+            print(f"{e}")
+
 
     # send gga to ntrip server
     def send_gga(self):
         self._flush_file()
         if self.sock.isOpen():
             if self.checkBox_sendgga.isChecked():
-                if self._curgga.decode("utf-8").startswith("$GNGGA"):
-                    self.sock.write(bytes(self._curgga))
+                if self._curgga.decode("utf-8", "ignore").startswith("$GNGGA"):
+                    self.sock.write(self._curgga)
 
     def ntp_reconn(self):
-        if self.sock.isOpen():
-            print(f"{self.sock.isValid()}")
-            try:
-                if not self.sock.waitForReadyRead(5000):
-                    self.sock.flush()
-                    self.sock.close()
-                    self.sock.open(QTcpSocket.ReadWrite)
-                    self.ntp_conn(self._caster, self._port)
-            except Exception as e:
-                print(f"{e}")
-        else:
-            pass  # socket not open yet!
+        try:
+            if self.sock.state() == QTcpSocket.UnconnectedState:
+                print(f"socket un-connected. Try to re-connect @ {datetime.now()}")
+                self.pushButton_conn.click()
+                self.pushButton_conn.click()
+        except Exception as e:
+            print(f"{e}")
+
 
     # clear serial received data
     def serecv_clear_btclik(self):
+        self._srxbs = 0
+        self._stxbs = 0
         self.textEdit_recv.clear()
         self._flush_file()
+
 
     # text cursor at end
     def text_recv_changed(self):
@@ -410,8 +409,7 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         self.sock.flush()
         self.sock.close()
         self.send_ggaTimer.stop()
-        self.set_ntrip_params(True)
-        self.pushButton_conn.setText(CONNECT)
+        self.NtripReconTimer.stop()
 
     def _flush_file(self):
         if self._fh is not None:
