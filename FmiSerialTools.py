@@ -5,9 +5,11 @@
  @author : chey
  
 """
-
+# TODO : nmea to kml
+# TODO : graph view
 import sys
 import serial
+import winsound
 import serial.tools.list_ports
 from time import sleep
 from os import path, makedirs
@@ -26,10 +28,11 @@ CONNECT = 'Connect'
 DISCONNECT = 'Disconnect'
 
 ###################################################################
+Freq = 2500
+DUR = 1000
 POS2KML = 'pos2kml.exe '
 COLOR_TAB = {'0': 'black', '1': 'red', '2': 'red', '3': 'black',
              '4': 'green', '5': 'blue', '6': 'yellow'}
-
 
 ###################################################################
 
@@ -49,6 +52,7 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         self._fh = None
         self._fn = ''
         self._dir = 'NMEA'
+        self.psol = '0'
         self._getmnt = b''
         self._curgga = b''
         self._caster = ''
@@ -206,11 +210,15 @@ class NtripSerialTool(QMainWindow, Ui_Form):
 
             if latdm != '' and londm != '':
                 if self.checkBox_ggafmt.isChecked():
-                    lat_deg = float(latdm)
-                    lon_deg = float(londm)
-                    a = int(lat_deg / 100) + (lat_deg % 100) / 60
-                    o = int(lon_deg / 100) + (lon_deg % 100) / 60
-                    latdm, londm = "%.7f" % a, "%.7f" % o
+                    try:
+                        lat_deg = float(latdm)
+                        lon_deg = float(londm)
+                    except TypeError as e:
+                        print(f"{e}")
+                    else:
+                        a = int(lat_deg / 100) + (lat_deg % 100) / 60
+                        o = int(lon_deg / 100) + (lon_deg % 100) / 60
+                        latdm, londm = "%.7f" % a, "%.7f" % o
 
                 self.set_lebf_color(COLOR_TAB[solstat], 'white')
                 self.lineEdit_rovlat.setText(latdm)
@@ -221,6 +229,10 @@ class NtripSerialTool(QMainWindow, Ui_Form):
                 self.lineEdit_nsat.setText(nsats)
                 self.lineEdit_dop.setText(dop)
                 self.lineEdit_dir.setText(dire)
+                if self.psol == '4' and solstat == '5':
+                    winsound.Beep(Freq, DUR)
+                    raise ValueError("rtkproc error")
+                self.psol = solstat
             else:
                 pass  # lat, lon not a float string
 
@@ -294,12 +306,14 @@ class NtripSerialTool(QMainWindow, Ui_Form):
             self.pushButton_conn.setText(CONNECT)
 
     def atcmd_send_btclik(self):
-        cmd = self.cbatcmd.currentText() + "\r\n"
-        if not cmd.startswith('AT+'):
-            QMessageBox.warning(self, "Warning", "AT command start with AT+ ")
+        if self.com.isOpen():
+            cmd = self.cbatcmd.currentText() + "\r\n"
+            if not cmd.startswith('AT+'):
+                QMessageBox.warning(self, "Warning", "AT command start with AT+ ")
 
-        self.com.write(cmd.encode("utf-8", "ignore"))
-
+            self.com.write(cmd.encode("utf-8", "ignore"))
+        else:
+            QMessageBox.warning(self, "Warning", "Open serial port first! ")
 
     def set_mntp_str(self, mnt, user):
         mountPointString = "GET /%s HTTP/1.1\r\nUser-Agent: %s\r\nAuthorization: Basic %s\r\n" % (
@@ -391,6 +405,7 @@ class NtripSerialTool(QMainWindow, Ui_Form):
 
         if self.sock.isOpen():
             self._term_ntrip()
+            self.pushButton_conn.setText(CONNECT)
 
         self._flush_file()
 
