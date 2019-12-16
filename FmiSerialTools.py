@@ -5,21 +5,19 @@
  @author : chey
  
 """
-# TODO : nmea to kml
-# TODO : graph view
+
 import sys
 import serial
-import winsound
 import serial.tools.list_ports
-from time import sleep
-from os import path, makedirs
+from threading import Thread
+from os import path, stat, makedirs
 from base64 import b64encode
 from datetime import datetime
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtCore import QTimer
 from PyQt5.QtNetwork import QTcpSocket
-from gui.form import Ui_Form
+from gui.form import Ui_widget
 
 ###################################################################
 OPEN = 'Open'
@@ -31,8 +29,8 @@ DISCONNECT = 'Disconnect'
 Freq = 2500
 DUR = 1000
 POS2KML = 'pos2kml.exe '
-COLOR_TAB = {'0': 'black', '1': 'red', '2': 'red', '3': 'black',
-             '4': 'green', '5': 'blue', '6': 'yellow'}
+COLOR_TAB = {'0': 'black', '1': 'red', '2': 'red', '3': 'black', '4': 'green', '5': 'blue', '6': 'yellow'}
+SERIAL_WRITE_MUTEX = False
 
 ###################################################################
 
@@ -40,7 +38,34 @@ COLOR_TAB = {'0': 'black', '1': 'red', '2': 'red', '3': 'black',
 def gettstr():
     return datetime.now().strftime("%Y%m%d_%H%M%S")
 
-class NtripSerialTool(QMainWindow, Ui_Form):
+def sendser(file, serhd, pbar):
+    global SERIAL_WRITE_MUTEX
+
+    if file is None or serhd is None:
+        return False
+
+    SERIAL_WRITE_MUTEX = True
+    cnts = 0
+    file_size = stat(file).st_size
+    pbar.setRange(0, file_size)
+    print(f"file name {file}, size {file_size} bytes, serial handler {serhd}")
+
+    with open(file, "rb") as f:
+        for line in f:
+            try:
+                serhd.write(line)
+                cnts += len(line)
+                pbar.setValue(cnts)
+            except Exception as e:
+                print(f"{e}")
+    serhd.flush()
+
+    print(f"Update image done !")
+    SERIAL_WRITE_MUTEX = False
+    return True
+
+
+class NtripSerialTool(QMainWindow, Ui_widget):
     """
     Ntrip serial tool for testing FMI P20 comb board
     """
@@ -48,8 +73,8 @@ class NtripSerialTool(QMainWindow, Ui_Form):
     def __init__(self, parent=None):
         super(NtripSerialTool, self).__init__(parent)
         self.setWindowIcon(QIcon("./gui/i.svg"))
-
         self._fh = None
+        self._imgfile = None
         self._fn = ''
         self._dir = 'NMEA'
         self.psol = '0'
@@ -62,6 +87,7 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         self._nrxbs = 0
         self._ntxbs = 0
         self._val = 0
+
         self.setupUi(self)
         self.create_items()
         self.create_sigslots()
@@ -99,6 +125,11 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         self.pushButton_close.clicked.connect(self.close_all)
         self.pushButton_stop.clicked.connect(self.stop_all)
 
+        # open image file and send it to P20 navi board
+        self.open_file.clicked.connect(self.open_filed)
+        self.trans_file.clicked.connect(self.trans_filed)
+
+        # ntrip client socket re-connection on disconnection
         self.sock.connected.connect(self.sock_conn)
         self.sock.readyRead.connect(self.sock_recv)
 
@@ -178,13 +209,12 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         self.lineEdit_srx.setText(str(self._srxbs))
         if data.startswith('$GNGGA') or data.startswith('$GPGGA'):
             self.disp_gga(data)
-        elif data.startswith('$GNREF'):
+        elif data.startswith('$GEREF'):
             self.disp_ref(data)
         elif data.startswith('$GNZDA'):
             self.disp_zda(data)
         else:
             pass  # other nmea msgs
-
 
     def set_lebf_color(self, bg, fg):
         self.lineEdit_rovlat.setStyleSheet('background-color:' + bg + '; color:' + fg)
@@ -229,9 +259,6 @@ class NtripSerialTool(QMainWindow, Ui_Form):
                 self.lineEdit_nsat.setText(nsats)
                 self.lineEdit_dop.setText(dop)
                 self.lineEdit_dir.setText(dire)
-                if self.psol == '4' and solstat == '5':
-                    winsound.Beep(Freq, DUR)
-                    raise ValueError("rtkproc error")
                 self.psol = solstat
             else:
                 pass  # lat, lon not a float string
@@ -244,13 +271,13 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         """
         if data.startswith('$GEREF') and data.endswith("\r\n"):
             seg = data.strip("\r\n").split(",")
-            if len(seg) < 6:
+            if len(seg) < 5:
                 return
             blat, blon, bhgt, bid = seg[1:5]
             self.lineEdit_baselat.setText(blat)
             self.lineEdit_baselon.setText(blon)
             self.lineEdit_basehgt.setText(bhgt)
-            self.lineEdit_baseid.setText(bid)
+            self.lineEdit_baseid.setText(bid[:-3])
 
     def disp_zda(self, data):
         if data.startswith('$GNZDA') and data.endswith("\r\n"):
@@ -306,14 +333,21 @@ class NtripSerialTool(QMainWindow, Ui_Form):
             self.pushButton_conn.setText(CONNECT)
 
     def atcmd_send_btclik(self):
-        if self.com.isOpen():
-            cmd = self.cbatcmd.currentText() + "\r\n"
-            if not cmd.startswith('AT+'):
-                QMessageBox.warning(self, "Warning", "AT command start with AT+ ")
+        if SERIAL_WRITE_MUTEX == False:
+            if self.com.isOpen():
+                cmd = self.cbatcmd.currentText() + "\r\n"
+                if not cmd.startswith('AT+'):
+                    QMessageBox.warning(self, "Warning", "AT command start with AT+ ")
 
-            self.com.write(cmd.encode("utf-8", "ignore"))
+                self.com.write(cmd.encode("utf-8", "ignore"))
+                if cmd == "AT+UPDATE_MODE\r\n":
+                    self._term_ntrip()
+                    self.set_ntrip_params(True)
+                    self.pushButton_conn.setText(CONNECT)
+            else:
+                QMessageBox.warning(self, "Warning", "Open serial port first! ")
         else:
-            QMessageBox.warning(self, "Warning", "Open serial port first! ")
+            QMessageBox.information(self, "Info", "Firmware updating......")
 
     def set_mntp_str(self, mnt, user):
         mountPointString = "GET /%s HTTP/1.1\r\nUser-Agent: %s\r\nAuthorization: Basic %s\r\n" % (
@@ -337,21 +371,23 @@ class NtripSerialTool(QMainWindow, Ui_Form):
 
     # socket receive data
     def sock_recv(self):
-
-        rtcm = self.sock.readAll()
-        if self.com.isOpen():
-            try:
-                self.com.write(rtcm)
-            except serial.SerialTimeoutException as e:
-                QMessageBox.critical(self, "error", f"{e}")
+        if SERIAL_WRITE_MUTEX == False:
+            rtcm = self.sock.readAll()
+            if self.com.isOpen():
+                try:
+                    self.com.write(rtcm)
+                except serial.SerialTimeoutException as e:
+                    QMessageBox.critical(self, "error", f"{e}")
+                else:
+                    self._stxbs += len(rtcm)
+                    self._val += 5
+                    self._val = 0 if self._val > 100 else self._val
+                    self.progressBar.setValue(self._val)
+                    self.lineEdit_stx.setText(str(self._stxbs))
             else:
-                self._stxbs += len(rtcm)
-                self._val += 5
-                self._val = 0 if self._val > 100 else self._val
-                self.progressBar.setValue(self._val)
-                self.lineEdit_stx.setText(str(self._stxbs))
+                print(f"Open serial first please")
         else:
-            print(f"Open serial first please")
+            pass
 
 
     # send gga to ntrip server
@@ -367,7 +403,6 @@ class NtripSerialTool(QMainWindow, Ui_Form):
             self.pushButton_conn.click()
             self.pushButton_conn.click()
 
-
     # clear serial received data
     def serecv_clear_btclik(self):
         self._srxbs = 0
@@ -375,10 +410,25 @@ class NtripSerialTool(QMainWindow, Ui_Form):
         self.textEdit_recv.clear()
         self._flush_file()
 
-
     # text cursor at end
     def text_recv_changed(self):
         self.textEdit_recv.moveCursor(QTextCursor.End)
+
+    def open_filed(self):
+        filename, filetype = QFileDialog.getOpenFileName(self, "Select file", "./", "All Files (*);;Text Files (*.txt)")
+        if filename is not None and not filename.endswith(".enc"):
+            QMessageBox.warning(self, "Warning", f"Please select proper .enc file")
+            return
+        else:
+            self.lineEdit_filename.setText(filename)
+            self._imgfile = filename
+
+    def trans_filed(self):
+        if self._imgfile is None:
+            QMessageBox.warning(self, "Warning", f".enc file first plz!")
+        else:
+            trans_file = Thread(target=sendser, args=(self._imgfile, self.com, self.file_transbar))
+            trans_file.start()
 
     # close window
     def close_all(self):
