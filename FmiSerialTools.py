@@ -6,9 +6,10 @@
  
 """
 
-import sys
+
 import serial
 import serial.tools.list_ports
+from sys import argv, exit
 from threading import Thread
 from os import path, stat, makedirs
 from base64 import b64encode
@@ -202,25 +203,25 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self._flush_file()
                 self._fh = None
 
-        self._curgga = data
-        self._srxbs += len(data)
-        data = data.decode("utf-8", "ignore")
-        self.textEdit_recv.insertPlainText(data)
-        self.lineEdit_srx.setText(str(self._srxbs))
-        if data.startswith('$GNGGA') or data.startswith('$GPGGA'):
-            self.disp_gga(data)
-        elif data.startswith('$GEREF'):
-            self.disp_ref(data)
-        elif data.startswith('$GNZDA'):
-            self.disp_zda(data)
-        else:
-            pass  # other nmea msgs
+            self._curgga = data
+            self._srxbs += len(data)
+            data = data.decode("utf-8", "ignore")
+            self.textEdit_recv.insertPlainText(data)
+            self.lineEdit_srx.setText(str(self._srxbs))
+            if data.startswith('$GNGGA') or data.startswith('$GPGGA'):
+                self.disp_gga(data)
+            elif data.startswith('$GEREF'):
+                self.disp_ref(data)
+            elif data.startswith('$GNZDA'):
+                self.disp_zda(data)
+            else:
+                pass  # other nmea msgs
 
     def set_lebf_color(self, bg, fg):
         self.lineEdit_rovlat.setStyleSheet('background-color:' + bg + '; color:' + fg)
         self.lineEdit_rovlon.setStyleSheet('background-color:' + bg + '; color:' + fg)
         self.lineEdit_rovhgt.setStyleSheet('background-color:' + bg + '; color:' + fg)
-        self.lineEdit_solstat.setStyleSheet('background-color:' + bg + '; color:' + fg)
+        self.lineEdit_solstat.setStyleSheet('background-color:'+ bg + '; color:' + fg)
 
     def disp_gga(self, data):
         """
@@ -392,16 +393,18 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     # send gga to ntrip server
     def send_gga(self):
-        self._flush_file()
-        if self.sock.isOpen():
-            if self.checkBox_sendgga.isChecked():
-                if self._curgga.decode("utf-8", "ignore").startswith("$GNGGA"):
-                    self.sock.write(self._curgga)
+        if SERIAL_WRITE_MUTEX == False:
+            self._flush_file()
+            if self.sock.isOpen():
+                if self.checkBox_sendgga.isChecked():
+                    if self._curgga.decode("utf-8", "ignore").startswith("$GNGGA"):
+                        self.sock.write(self._curgga)
 
     def ntp_reconn(self):
-        if self.sock.state() == QTcpSocket.UnconnectedState:
-            self.pushButton_conn.click()
-            self.pushButton_conn.click()
+        if SERIAL_WRITE_MUTEX == False:
+            if self.sock.state() == QTcpSocket.UnconnectedState:
+                self.pushButton_conn.click()
+                self.pushButton_conn.click()
 
     # clear serial received data
     def serecv_clear_btclik(self):
@@ -413,6 +416,10 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     # text cursor at end
     def text_recv_changed(self):
         self.textEdit_recv.moveCursor(QTextCursor.End)
+
+    def text_recv_mouse(self):
+        print(f"serial receiver mouse event")
+        pass
 
     def open_filed(self):
         filename, filetype = QFileDialog.getOpenFileName(self, "Select file", "./", "All Files (*);;Text Files (*.txt)")
@@ -432,7 +439,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     # close window
     def close_all(self):
-
         if self.com.isOpen():
             self.ReadSerTimer.stop()
             self.com.flush()
@@ -472,7 +478,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
+    app = QApplication(argv)
     nst = NtripSerialTool()
     nst.show()
-    sys.exit(app.exec_())
+    exit(app.exec_())
