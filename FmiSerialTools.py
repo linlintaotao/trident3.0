@@ -27,6 +27,7 @@ CONNECT = 'Connect'
 DISCONNECT = 'Disconnect'
 
 ###################################################################
+SEND_BYTES = 0
 Freq = 2500
 DUR = 1000
 POS2KML = 'pos2kml.exe '
@@ -39,38 +40,26 @@ SERIAL_WRITE_MUTEX = False
 def gettstr():
     return datetime.now().strftime("%Y%m%d_%H%M%S")
 
-def sendser(file, serhd, pbar):
-    global SERIAL_WRITE_MUTEX
+def sendser(file, serhd):
+    global SERIAL_WRITE_MUTEX, SEND_BYTES
 
     if file is None or serhd is None:
         return False
 
     SERIAL_WRITE_MUTEX = True
-    cnts = 0
-    file_size = stat(file).st_size
-    pbar.setRange(0, file_size)
-    print(f"file name {file}, size {file_size} bytes, serial handler {serhd}")
-
     with open(file, "rb") as f:
         for line in f:
-            try:
-                serhd.write(line)
-                cnts += len(line)
-                pbar.setValue(cnts)
-            except Exception as e:
-                print(f"{e}")
-    serhd.flush()
+            serhd.write(line)
+            SEND_BYTES += len(line)
 
-    print(f"Update image done !")
     SERIAL_WRITE_MUTEX = False
-    return True
 
 
 class NtripSerialTool(QMainWindow, Ui_widget):
     """
     Ntrip serial tool for testing FMI P20 comb board
     """
-
+    global SERIAL_WRITE_MUTEX
     def __init__(self, parent=None):
         super(NtripSerialTool, self).__init__(parent)
         self.setWindowIcon(QIcon("./gui/i.svg"))
@@ -112,6 +101,9 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
         self.NtripReconTimer = QTimer(self)
         self.NtripReconTimer.timeout.connect(self.ntp_reconn)
+
+        self.FileTrans = QTimer(self)
+        self.FileTrans.timeout.connect(self.ShowFilepBarr)
 
     def create_sigslots(self):
         """
@@ -339,6 +331,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 cmd = self.cbatcmd.currentText() + "\r\n"
                 if not cmd.startswith('AT+'):
                     QMessageBox.warning(self, "Warning", "AT command start with AT+ ")
+                    return
 
                 self.com.write(cmd.encode("utf-8", "ignore"))
                 if cmd == "AT+UPDATE_MODE\r\n":
@@ -415,27 +408,41 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     # text cursor at end
     def text_recv_changed(self):
-        self.textEdit_recv.moveCursor(QTextCursor.End)
+        if self.checkBox_autoScoll.isChecked():
+            self.textEdit_recv.moveCursor(QTextCursor.End)
 
     def text_recv_mouse(self):
         print(f"serial receiver mouse event")
         pass
 
     def open_filed(self):
+        QMessageBox.information(self, "Info", f"Please confirm P20 is in the update mode!", QMessageBox.Ok)
+
         filename, filetype = QFileDialog.getOpenFileName(self, "Select file", "./", "All Files (*);;Text Files (*.txt)")
         if filename is not None and not filename.endswith(".enc"):
-            QMessageBox.warning(self, "Warning", f"Please select proper .enc file")
+            QMessageBox.warning(self, "Warning", f"Please select proper .enc file", QMessageBox.Ok)
             return
         else:
             self.lineEdit_filename.setText(filename)
             self._imgfile = filename
 
     def trans_filed(self):
+        global SEND_BYTES
         if self._imgfile is None:
             QMessageBox.warning(self, "Warning", f".enc file first plz!")
         else:
-            trans_file = Thread(target=sendser, args=(self._imgfile, self.com, self.file_transbar))
+            file_size = stat(self._imgfile).st_size
+            self.file_transbar.setRange(0, file_size)
+            trans_file = Thread(target=sendser, args=(self._imgfile, self.com))
             trans_file.start()
+            self.FileTrans.start(1200)
+
+    def ShowFilepBarr(self):
+        if SERIAL_WRITE_MUTEX is True:
+            self.file_transbar.setValue(SEND_BYTES)
+        else:
+            self.file_transbar.setValue(SEND_BYTES)
+            self.FileTrans.stop()
 
     # close window
     def close_all(self):
