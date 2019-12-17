@@ -435,7 +435,9 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.file_transbar.setRange(0, file_size)
             trans_file = Thread(target=sendser, args=(self._imgfile, self.com))
             trans_file.start()
+
             self.FileTrans.start(1200)
+            self.file_transbar.setValue(0)
 
     def ShowFilepBarr(self):
         if SERIAL_WRITE_MUTEX is True:
