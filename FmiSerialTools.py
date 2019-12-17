@@ -5,7 +5,7 @@
  @author : chey
  
 """
-
+#TODO: nmea to kml process
 
 import serial
 import serial.tools.list_ports
