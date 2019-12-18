@@ -5,19 +5,21 @@
  @author : chey
  
 """
-#TODO: nmea to kml process
+
+from base64 import b64encode
+from datetime import datetime
+from os import path, stat, makedirs
+from sys import argv, exit
+from threading import Thread
 
 import serial
 import serial.tools.list_ports
-from sys import argv, exit
-from threading import Thread
-from os import path, stat, makedirs
-from base64 import b64encode
-from datetime import datetime
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
-from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtCore import QTimer
+from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtNetwork import QTcpSocket
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
+
+from extools.nmea2kml import nmeaFileToCoords, KML_TEMPLATE, KML_EXT
 from gui.form import Ui_widget
 
 ###################################################################
@@ -30,7 +32,6 @@ DISCONNECT = 'Disconnect'
 SEND_BYTES = 0
 Freq = 2500
 DUR = 1000
-POS2KML = 'pos2kml.exe '
 COLOR_TAB = {'0': 'black', '1': 'red', '2': 'red', '3': 'black', '4': 'green', '5': 'blue', '6': 'yellow'}
 SERIAL_WRITE_MUTEX = False
 
@@ -193,6 +194,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                     self._fh.write(data)
             else:
                 self._flush_file()
+                self._fh.close()
+                self.tokml()
                 self._fh = None
 
             self._curgga = data
@@ -411,15 +414,11 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         if self.checkBox_autoScoll.isChecked():
             self.textEdit_recv.moveCursor(QTextCursor.End)
 
-    def text_recv_mouse(self):
-        print(f"serial receiver mouse event")
-        pass
-
     def open_filed(self):
         QMessageBox.information(self, "Info", f"Please confirm P20 is in the update mode!", QMessageBox.Ok)
 
         filename, filetype = QFileDialog.getOpenFileName(self, "Select file", "./", "All Files (*);;Text Files (*.txt)")
-        if filename is not None and not filename.endswith(".enc"):
+        if filename != "" and not filename.endswith(".enc"):
             QMessageBox.warning(self, "Warning", f"Please select proper .enc file", QMessageBox.Ok)
             return
         else:
@@ -428,6 +427,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     def trans_filed(self):
         global SEND_BYTES
+        SEND_BYTES = 0
         if self._imgfile is None:
             QMessageBox.warning(self, "Warning", f".enc file first plz!")
         else:
@@ -440,6 +440,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.file_transbar.setValue(0)
 
     def ShowFilepBarr(self):
+        print(f"update file transfer process bar, {SERIAL_WRITE_MUTEX}, bytes {SEND_BYTES}")
         if SERIAL_WRITE_MUTEX is True:
             self.file_transbar.setValue(SEND_BYTES)
         else:
@@ -459,6 +460,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         if self._fh is not None:
             self._fh.flush()
             self._fh.close()
+            if not path.exists(self._fn+KML_EXT):
+                self.tokml()
         exit(0)
 
     # stop all stream
@@ -484,6 +487,13 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     def _flush_file(self):
         if self._fh is not None:
             self._fh.flush()
+
+    def tokml(self):
+        fo = open(self._fn + KML_EXT, 'w')
+        fi = open(self._fn, 'rb')
+        fo.write(KML_TEMPLATE % (self._fn, self._fn, nmeaFileToCoords(fi)))
+        fi.close()
+        fo.close()
 
 
 if __name__ == '__main__':
