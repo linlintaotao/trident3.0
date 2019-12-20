@@ -18,7 +18,8 @@ def toDecimalDegrees(ddmm):
     if not isinstance(ddmm, str):
         raise("A string type expected")
     splitat = ddmm.find('.') - 2
-    return _float(ddmm[:splitat]) + _float(ddmm[splitat:]) / 60.0
+    res = _float(ddmm[:splitat]) + _float(ddmm[splitat:]) / 60.0
+    return float('%.8f' % res)
 
 
 def _float(s):
@@ -257,7 +258,7 @@ def parseVTG(fields):
     data['VtgMode'] = fields[9]
 
 
-def parseLine(line):
+def parseLine(line, check=False):
     """
     Parses an NMEA sentence, sets fields in the global structure.
     Raises an AssertionError if the checksum does not validate.
@@ -268,7 +269,8 @@ def parseLine(line):
     line = line.rstrip()
 
     # Validate the sentence using the checksum
-    assert calcCheckSum(line) == int(line[-2:], 16)
+    if check == True:
+        assert calcCheckSum(line) == int(line[-2:], 16)
 
     # Pick the proper parsing function
     parseFunc = {
@@ -282,7 +284,7 @@ def parseLine(line):
 
     # Call the parser with fields split and the tail chars removed.
     # The characters removed are the asterisk, the checksum (2 bytes) and \n\r.
-    parseFunc(line[-3].split(','))
+    parseFunc(line[:-3].split(','))
     # Return the type of sentence that was parsed
     return line[3:6]
 

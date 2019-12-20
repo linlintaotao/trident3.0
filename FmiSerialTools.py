@@ -19,7 +19,7 @@ from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 
-from extools.nmea2kml import nmeaFileToCoords, KML_TEMPLATE, KML_EXT
+from extools.nmea2kml import nmeaFileToCoords, genKmlStr
 from gui.form import Ui_widget
 
 ###################################################################
@@ -29,9 +29,10 @@ CONNECT = 'Connect'
 DISCONNECT = 'Disconnect'
 
 ###################################################################
-SEND_BYTES = 0
+
 Freq = 2500
 DUR = 1000
+SEND_BYTES = 0
 COLOR_TAB = {'0': 'black', '1': 'red', '2': 'red', '3': 'black', '4': 'green', '5': 'blue', '6': 'yellow'}
 SERIAL_WRITE_MUTEX = False
 
@@ -195,8 +196,9 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             else:
                 self._flush_file()
                 self._fh.close()
-                self.tokml()
                 self._fh = None
+                if self.checkBox_kml.isChecked():
+                    self.tokml()
 
             self._curgga = data
             self._srxbs += len(data)
@@ -382,10 +384,9 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                     self.progressBar.setValue(self._val)
                     self.lineEdit_stx.setText(str(self._stxbs))
             else:
-                print(f"Open serial first please")
+                pass
         else:
             pass
-
 
     # send gga to ntrip server
     def send_gga(self):
@@ -440,7 +441,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.file_transbar.setValue(0)
 
     def ShowFilepBarr(self):
-        print(f"update file transfer process bar, {SERIAL_WRITE_MUTEX}, bytes {SEND_BYTES}")
         if SERIAL_WRITE_MUTEX is True:
             self.file_transbar.setValue(SEND_BYTES)
         else:
@@ -460,7 +460,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         if self._fh is not None:
             self._fh.flush()
             self._fh.close()
-            if not path.exists(self._fn+KML_EXT):
+            if self.checkBox_kml.isChecked():
                 self.tokml()
         exit(0)
 
@@ -489,11 +489,14 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self._fh.flush()
 
     def tokml(self):
-        fo = open(self._fn + KML_EXT, 'w')
-        fi = open(self._fn, 'rb')
-        fo.write(KML_TEMPLATE % (self._fn, self._fn, nmeaFileToCoords(fi)))
-        fi.close()
-        fo.close()
+        if not path.exists(self._fn + '.kml'):
+            fo = open(self._fn + '.kml', 'w')
+            with open(self._fn, 'r', encoding='utf-8') as f:
+                coords = nmeaFileToCoords(f)
+                kml_str = genKmlStr(coords)
+            fo.write(kml_str)
+            fo.close()
+
 
 
 if __name__ == '__main__':
