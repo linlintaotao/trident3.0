@@ -67,6 +67,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.setWindowIcon(QIcon("./gui/i.svg"))
         self._fh = None
         self._imgfile = None
+        self._nmeaf = None
         self._fn = ''
         self._dir = 'NMEA'
         self.psol = '0'
@@ -123,6 +124,10 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         # open image file and send it to P20 navi board
         self.open_file.clicked.connect(self.open_filed)
         self.trans_file.clicked.connect(self.trans_filed)
+
+        # generate kml file
+        self.open_nmea_file.clicked.connect(self.open_nmeaf)
+        self.gen_kml.clicked.connect(self.write_kml)
 
         # ntrip client socket re-connection on disconnection
         self.sock.connected.connect(self.sock_conn)
@@ -197,8 +202,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self._flush_file()
                 self._fh.close()
                 self._fh = None
-                if self.checkBox_kml.isChecked():
-                    self.tokml()
 
             self._curgga = data
             self._srxbs += len(data)
@@ -447,6 +450,15 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.file_transbar.setValue(SEND_BYTES)
             self.FileTrans.stop()
 
+    def open_nmeaf(self):
+        filename, filetype = QFileDialog.getOpenFileName(self, "Select file", "./", "All Files (*);;Text Files (*.txt)")
+        if filename != "" :
+            self.nmea_file.setText(filename)
+            self._nmeaf = filename
+
+    def write_kml(self):
+        self.tokml(self._nmeaf)
+
     # close window
     def close_all(self):
         if self.com.isOpen():
@@ -460,8 +472,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         if self._fh is not None:
             self._fh.flush()
             self._fh.close()
-            if self.checkBox_kml.isChecked():
-                self.tokml()
+
         exit(0)
 
     # stop all stream
@@ -488,10 +499,10 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         if self._fh is not None:
             self._fh.flush()
 
-    def tokml(self):
-        if not path.exists(self._fn + '.kml'):
-            fo = open(self._fn + '.kml', 'w')
-            with open(self._fn, 'r', encoding='utf-8') as f:
+    def tokml(self, fn):
+        if not path.exists(fn + '.kml'):
+            fo = open(fn + '.kml', 'w')
+            with open(fn, 'r', encoding='utf-8') as f:
                 coords = nmeaFileToCoords(f)
                 kml_str = genKmlStr(coords)
             fo.write(kml_str)
