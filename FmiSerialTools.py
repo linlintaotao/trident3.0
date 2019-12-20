@@ -36,11 +36,13 @@ SEND_BYTES = 0
 COLOR_TAB = {'0': 'black', '1': 'red', '2': 'red', '3': 'black', '4': 'green', '5': 'blue', '6': 'yellow'}
 SERIAL_WRITE_MUTEX = False
 
+
 ###################################################################
 
 
 def gettstr():
     return datetime.now().strftime("%Y%m%d_%H%M%S")
+
 
 def sendser(file, serhd):
     global SERIAL_WRITE_MUTEX, SEND_BYTES
@@ -62,6 +64,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     Ntrip serial tool for testing FMI P20 comb board
     """
     global SERIAL_WRITE_MUTEX
+
     def __init__(self, parent=None):
         super(NtripSerialTool, self).__init__(parent)
         self.setWindowIcon(QIcon("./gui/i.svg"))
@@ -221,7 +224,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.lineEdit_rovlat.setStyleSheet('background-color:' + bg + '; color:' + fg)
         self.lineEdit_rovlon.setStyleSheet('background-color:' + bg + '; color:' + fg)
         self.lineEdit_rovhgt.setStyleSheet('background-color:' + bg + '; color:' + fg)
-        self.lineEdit_solstat.setStyleSheet('background-color:'+ bg + '; color:' + fg)
+        self.lineEdit_solstat.setStyleSheet('background-color:' + bg + '; color:' + fg)
 
     def disp_gga(self, data):
         """
@@ -452,7 +455,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     def open_nmeaf(self):
         filename, filetype = QFileDialog.getOpenFileName(self, "Select file", "./", "All Files (*);;Text Files (*.txt)")
-        if filename != "" :
+        if filename != "":
             self.nmea_file.setText(filename)
             self._nmeaf = filename
 
@@ -502,16 +505,18 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     def tokml(self, fn):
         fnkml = fn + '.kml'
         if path.exists(fnkml):
-            QMessageBox.warning(self, "Warning", f"Over write {fnkml} ?", QMessageBox.Yes)
+            over_write = QMessageBox.warning(self, "Warning", f"Over write {fnkml} ?", QMessageBox.No, QMessageBox.Yes)
+        else:
+            over_write = QMessageBox.Yes
 
-        fo = open(fnkml, 'w')
-        with open(fn, 'r', encoding='utf-8') as f:
-            coords = nmeaFileToCoords(f)
-            kml_str = genKmlStr(coords)
-        fo.write(kml_str)
-        fo.close()
-        QMessageBox.information(self, "Info", f"file {fn} done")
-
+        if over_write == QMessageBox.Yes:
+            fo = open(fnkml, 'w')
+            with open(fn, 'r', encoding='utf-8') as f:
+                coords = nmeaFileToCoords(f)
+                kml_str = genKmlStr(coords)
+            fo.write(kml_str)
+            fo.close()
+            QMessageBox.information(self, "Info", f"file {fn} done")
 
 
 if __name__ == '__main__':
