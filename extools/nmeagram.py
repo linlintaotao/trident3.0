@@ -6,9 +6,9 @@
 @author: Chey
 """
 
-
 # This dict holds the global parsed data
 data = {}
+
 
 def toDecimalDegrees(ddmm):
     """
@@ -16,7 +16,7 @@ def toDecimalDegrees(ddmm):
     to a float in dd.dddddd format
     """
     if not isinstance(ddmm, str):
-        raise("A string type expected")
+        raise ("A string type expected")
     splitat = ddmm.find('.') - 2
     res = _float(ddmm[:splitat]) + _float(ddmm[splitat:]) / 60.0
     return float('%.8f' % res)
@@ -273,15 +273,7 @@ def parseLine(line, check=False):
         assert calcCheckSum(line) == int(line[-2:], 16)
 
     # Pick the proper parsing function
-    parseFunc = {
-        "$GNGGA": parseGGA,
-        "$GPGGA": parseGGA,
-        "$GNGLL": parseGLL,
-        "$GNGSA": parseGSA,
-        "$GNGSV": parseGSV,
-        "$GNRMC": parseRMC,
-        "$GNVTG": parseVTG,
-        }[line[:6]]
+    parseFunc = {"$GNGGA": parseGGA, "$GPGGA": parseGGA, "$GNGLL": parseGLL, "$GNGSA": parseGSA, "$GNGSV": parseGSV, "$GNRMC": parseRMC, "$GNVTG": parseVTG, }[line[:6]]
 
     # Call the parser with fields split and the tail chars removed.
     # The characters removed are the asterisk, the checksum (2 bytes) and \n\r.

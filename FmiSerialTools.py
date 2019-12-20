@@ -208,7 +208,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             data = data.decode("utf-8", "ignore")
             self.textEdit_recv.insertPlainText(data)
             self.lineEdit_srx.setText(str(self._srxbs))
-            if data.startswith('$GNGGA') or data.startswith('$GPGGA'):
+            if data.startswith(('$GNGGA', '$GPGGA')):
                 self.disp_gga(data)
             elif data.startswith('$GEREF'):
                 self.disp_ref(data)
@@ -397,7 +397,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self._flush_file()
             if self.sock.isOpen():
                 if self.checkBox_sendgga.isChecked():
-                    if self._curgga.decode("utf-8", "ignore").startswith("$GNGGA"):
+                    if self._curgga.decode("utf-8", "ignore").startswith(("$GNGGA", "$GPGGA")):
                         self.sock.write(self._curgga)
 
     def ntp_reconn(self):
@@ -500,15 +500,18 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self._fh.flush()
 
     def tokml(self, fn):
-        fn += '.kml'
-        if not path.exists(fn):
-            fo = open(fn, 'w')
-            with open(fn, 'r', encoding='utf-8') as f:
-                coords = nmeaFileToCoords(f)
-                kml_str = genKmlStr(coords)
-            fo.write(kml_str)
-            fo.close()
+        fnkml = fn + '.kml'
+        if path.exists(fnkml):
+            QMessageBox.warning(self, "Warning", f"Over write {fnkml} ?", QMessageBox.Yes)
+
+        fo = open(fnkml, 'w')
+        with open(fn, 'r', encoding='utf-8') as f:
+            coords = nmeaFileToCoords(f)
+            kml_str = genKmlStr(coords)
+        fo.write(kml_str)
+        fo.close()
         QMessageBox.information(self, "Info", f"file {fn} done")
+
 
 
 if __name__ == '__main__':

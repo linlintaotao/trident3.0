@@ -11,13 +11,24 @@
 """
 from extools import nmeagram
 
+###################################################################
 HEADKML1 = """<?xml version="1.0" encoding="UTF-8"?>"""
 HEADKML2 = """<kml xmlns="http://www.opengis.net/kml/2.2">"""
 MARKICNO = """http://maps.google.com/mapfiles/kml/pal5/icon13.png"""
+
 START = """http://maps.google.com/mapfiles/kml/paddle/S.png"""
 END = """http://maps.google.com/mapfiles/kml/paddle/E.png"""
-COLMAPKML = {0: "ff000000", 1: "ff000000", 3: "ff800080", 2: "ff00ff00", 4: "ffff0000", 5: "ff0000ff", 6: "ff00ffff", 8: "ffffffff", 9: "ffffffff"}
 
+COLMAPKML = {0: "ff000000", 1: "ff000000", 3: "ff800080", 2: "ff00ff00",
+             4: "ffff0000", 5: "ff0000ff", 6: "ff00ffff", 8: "ffffffff", 9: "ffffffff"}
+
+BRIEFDESP = {'0': "Sorry! invalid solution", '1': "Oops! single point solution",
+             '3': "What the f**k ?", '2': "Good! cors data valid at least",
+             '4': "Excellent! fixed solution", '5': "Nice! float solution",
+             '6': "Well! Aided provided solution"}
+
+
+###################################################################
 
 def genKmlHeader():
     s = ''
@@ -77,25 +88,25 @@ def genKmlPoint(llh):
     data_len = len(llh) // 7
     i = 0
     s += f"""<Placemark>\n"""
-    s += f"""<description>FMI nmea to kml extool enjoy it!\nStart Point {i}\nTime UTC: {llh[i*7+3]}\nLat: {llh[i*7+1]}\nLon: {llh[i*7]}\nHeight: {llh[i*7+2]}\nMode: {llh[i*7+4]}\nSats: {llh[i*7+5]}\nAod: {llh[i*7+6]}</description>\n"""
+    s += f"""<description>{BRIEFDESP[llh[i*7+4]]}\nStart Point {i}\nTime: {llh[i*7+3]}\nLat: {llh[i*7+1]}\nLon: {llh[i*7]}\nAlt: {llh[i*7+2]}\nMode: {llh[i*7+4]}\nSats: {llh[i*7+5]}\ndAge: {llh[i*7+6]}</description>\n"""
     s += f"""<styleUrl>#P{8}</styleUrl>\n"""
     s += f"""<Point>\n"""
     s += f"""<coordinates>{llh[i*7]},{llh[i*7+1]},{0}</coordinates>\n"""
     s += f"""</Point>\n"""
     s += f"""</Placemark>\n"""
 
-    for i in range(1, data_len-1):
+    for i in range(1, data_len - 1):
         s += f"""<Placemark>\n"""
-        s += f"""<description>FMI nmea to kml extool enjoy it!\nPoint {i}\nTime UTC: {llh[i*7+3]}\nLat: {llh[i*7+1]}\nLon: {llh[i*7]}\nHeight: {llh[i*7+2]}\nMode: {llh[i*7+4]}\nSats: {llh[i*7+5]}\nAod: {llh[i*7+6]}</description>\n"""
+        s += f"""<description>{BRIEFDESP[llh[i*7+4]]}\nPoint {i}\nTime: {llh[i*7+3]}\nLat: {llh[i*7+1]}\nLon: {llh[i*7]}\nAlt: {llh[i*7+2]}\nMode: {llh[i*7+4]}\nSats: {llh[i*7+5]}\ndAge: {llh[i*7+6]}</description>\n"""
         s += f"""<styleUrl>#P{int(llh[i*7+4])}</styleUrl>\n"""
         s += f"""<Point>\n"""
         s += f"""<coordinates>{llh[i*7]},{llh[i*7+1]},{0}</coordinates>\n"""
         s += f"""</Point>\n"""
         s += f"""</Placemark>\n"""
 
-    i = data_len-1
+    i = data_len - 1
     s += f"""<Placemark>\n"""
-    s += f"""<description>FMI nmea to kml extool enjoy it!\nEnd Point {i}\nTime UTC: {llh[i*7+3]}\nLat: {llh[i*7+1]}\nLon: {llh[i*7]}\nHeight: {llh[i*7+2]}\nMode: {llh[i*7+4]}\nSats: {llh[i*7+5]}\nAod: {llh[i*7+6]}</description>\n"""
+    s += f"""<description>{BRIEFDESP[llh[i*7+4]]}\nEnd Point {i}\nTime: {llh[i*7+3]}\nLat: {llh[i*7+1]}\nLon: {llh[i*7]}\nAlt: {llh[i*7+2]}\nMode: {llh[i*7+4]}\nSats: {llh[i*7+5]}\ndAge: {llh[i*7+6]}</description>\n"""
     s += f"""<styleUrl>#P{9}</styleUrl>\n"""
     s += f"""<Point>\n"""
     s += f"""<coordinates>{llh[i*7]},{llh[i*7+1]},{0}</coordinates>\n"""
@@ -112,7 +123,6 @@ def genKmlRear():
 
 
 def genKmlStr(points):
-    s = ''
     s = genKmlHeader()
     s += genKmlTrack(points)
     s += genKmlPoint(points)
@@ -139,6 +149,7 @@ def nmeaFileToCoords(f):
 
     return data
 
+
 def main():
     fn = "../NMEA/20191220.txt"
     fo = open(fn + '.kml', 'w')
@@ -150,6 +161,7 @@ def main():
     fo.write(kml_str)
     fi.close()
     fo.close()
+
 
 if __name__ == "__main__":
     main()
