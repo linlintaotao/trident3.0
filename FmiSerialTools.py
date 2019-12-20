@@ -379,7 +379,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 try:
                     self.com.write(rtcm)
                 except serial.SerialTimeoutException as e:
-                    QMessageBox.critical(self, "error", f"{e}")
+                    QMessageBox.critical(self, "Error", f"{e}")
                 else:
                     self._stxbs += len(rtcm)
                     self._val += 5
@@ -500,14 +500,15 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self._fh.flush()
 
     def tokml(self, fn):
-        if not path.exists(fn + '.kml'):
-            fo = open(fn + '.kml', 'w')
+        fn += '.kml'
+        if not path.exists(fn):
+            fo = open(fn, 'w')
             with open(fn, 'r', encoding='utf-8') as f:
                 coords = nmeaFileToCoords(f)
                 kml_str = genKmlStr(coords)
             fo.write(kml_str)
             fo.close()
-
+        QMessageBox.information(self, "Info", f"file {fn} done")
 
 
 if __name__ == '__main__':

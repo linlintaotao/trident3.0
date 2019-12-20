@@ -127,7 +127,7 @@ def nmeaFileToCoords(f):
     data = []
     data_append = data.append
     for line in f.readlines():
-        if line[:6] in ("$GNGGA"):
+        if line[:6] in ("$GNGGA", "$GPGGA"):
             nmeagram.parseLine(line)
             data_append(nmeagram.getField("Longitude"))
             data_append(nmeagram.getField("Latitude"))
@@ -138,7 +138,6 @@ def nmeaFileToCoords(f):
             data_append(nmeagram.getField("AgeOfDiffCorr"))
 
     return data
-
 
 def main():
     fn = "../NMEA/20191220.txt"

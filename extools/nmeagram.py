@@ -275,6 +275,7 @@ def parseLine(line, check=False):
     # Pick the proper parsing function
     parseFunc = {
         "$GNGGA": parseGGA,
+        "$GPGGA": parseGGA,
         "$GNGLL": parseGLL,
         "$GNGSA": parseGSA,
         "$GNGSV": parseGSV,
