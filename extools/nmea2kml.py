@@ -25,7 +25,7 @@ COLMAPKML = {0: "ff000000", 1: "ff000000", 3: "ff800080", 2: "ff00ff00",
 BRIEFDESP = {'0': "Sorry! invalid solution", '1': "Oops! single point solution",
              '3': "What the f**k ?", '2': "Good! cors data valid at least",
              '4': "Excellent! fixed solution", '5': "Nice! float solution",
-             '6': "Well! Aided provided solution"}
+             '6': "Well! Aided solution"}
 
 
 ###################################################################

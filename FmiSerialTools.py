@@ -38,7 +38,7 @@ SERIAL_WRITE_MUTEX = False
 
 
 ###################################################################
-
+#TODO   misc plots, compare with ground truth file
 
 def gettstr():
     return datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -345,7 +345,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                     return
 
                 self.com.write(cmd.encode("utf-8", "ignore"))
-                if cmd == "AT+UPDATE_MODE\r\n":
+                if cmd == "AT+UPDATE_MODE\r\n" or cmd == "AT+UPDATE_SHELL\r\n":
                     self._term_ntrip()
                     self.set_ntrip_params(True)
                     self.pushButton_conn.setText(CONNECT)

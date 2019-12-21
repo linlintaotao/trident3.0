@@ -1,4 +1,4 @@
-# FMI Ntrip Serial Tool v1.1
+# FMI Ntrip Serial Tool v1.2
 
 A simple ntrip serial tool for FMI Px series comb board testing
 
