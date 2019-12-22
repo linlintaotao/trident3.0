@@ -149,6 +149,21 @@ def nmeaFileToCoords(f):
 
     return data
 
+def nmeaFileToll(f):
+    """Read a file full of NMEA sentences and return a string of lat/lon/z
+    coordinates.  'z' is often 0.
+    """
+    data = []
+    data_append = data.append
+    for line in f.readlines():
+        if line[:6] in ("$GNGGA", "$GPGGA"):
+            nmeagram.parseLine(line)
+            data_append(nmeagram.getField("Latitude"))
+            data_append(nmeagram.getField("Longitude"))
+
+    return data
+
+
 
 def main():
     fn = "../NMEA/20191220.txt"

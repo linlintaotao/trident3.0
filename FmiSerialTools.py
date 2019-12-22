@@ -11,6 +11,7 @@ from datetime import datetime
 from os import path, stat, makedirs
 from sys import argv, exit
 from threading import Thread
+from matplotlib.pyplot import plot, title, xlabel, ylabel, show, grid
 
 import serial
 import serial.tools.list_ports
@@ -19,7 +20,7 @@ from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 
-from extools.nmea2kml import nmeaFileToCoords, genKmlStr
+from extools.nmea2kml import nmeaFileToCoords, nmeaFileToll, genKmlStr
 from gui.form import Ui_widget
 
 ###################################################################
@@ -456,11 +457,21 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     def open_nmeaf(self):
         filename, filetype = QFileDialog.getOpenFileName(self, "Select file", "./", "All Files (*);;Text Files (*.txt)")
         if filename != "":
-            self.nmea_file.setText(filename)
             self._nmeaf = filename
 
     def write_kml(self):
-        self.tokml(self._nmeaf)
+        select = self.comboBox_extools.currentText()
+        if select.startswith('1 - '):
+            QMessageBox.information(self, "Info", f"Convert to {self._nmeaf} kml")
+            self.tokml(self._nmeaf)
+        elif select.startswith('2 - '):
+            QMessageBox.information(self, "Info", f"Generate deviation map")
+            self.devmap(self._nmeaf)
+        elif select.startswith('3 - '):
+            QMessageBox.information(self, "Info", f"Ground truth compare")
+            self.gtcmp(self._nmeaf)
+        else:
+            QMessageBox.information(self, "Info", f"To be continued...")
 
     # close window
     def close_all(self):
@@ -517,6 +528,23 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             fo.write(kml_str)
             fo.close()
             QMessageBox.information(self, "Info", f"file {fn} done")
+
+    def devmap(self, fn):
+        with open(fn, 'r', encoding='utf-8') as f:
+            ll = nmeaFileToll(f)
+        plot(ll[::2], ll[1::2], c='b', marker='+', markersize=5)
+        title(f"{fn.split('/')[-1]} - Deviation map ")
+        xlabel("Lat / deg")
+        ylabel("Lon / deg")
+        grid(True)
+        show()
+
+    def gtcmp(self, fn):
+        with open(fn, 'r', encoding='utf-8') as t, open(self._fn, 'r', encoding='utf-8') as f:
+            truth = nmeaFileToCoords(t)
+            gga = nmeaFileToCoords(f)
+
+        #TODO compare nmea with ground truth file
 
 
 if __name__ == '__main__':
