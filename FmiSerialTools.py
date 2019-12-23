@@ -11,7 +11,7 @@ from datetime import datetime
 from os import path, stat, makedirs
 from sys import argv, exit
 from threading import Thread
-from matplotlib.pyplot import plot, title, xlabel, ylabel, show, grid
+from matplotlib.pyplot import figure, plot, title, xlabel, ylabel, show, grid, subplots, subplot, axhline
 
 import serial
 import serial.tools.list_ports
@@ -20,7 +20,8 @@ from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 
-from extools.nmea2kml import nmeaFileToCoords, nmeaFileToll, genKmlStr
+from extools.nmea2kml import nmeaFileToCoords, nmeaFileTodev, genKmlStr
+from extools.comp_gga_analysis import genComp
 from gui.form import Ui_widget
 
 ###################################################################
@@ -39,7 +40,7 @@ SERIAL_WRITE_MUTEX = False
 
 
 ###################################################################
-#TODO   misc plots, compare with ground truth file
+# TODO   misc plots, compare with ground truth file
 
 def gettstr():
     return datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -465,10 +466,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             QMessageBox.information(self, "Info", f"Convert to {self._nmeaf} kml")
             self.tokml(self._nmeaf)
         elif select.startswith('2 - '):
-            QMessageBox.information(self, "Info", f"Generate deviation map")
             self.devmap(self._nmeaf)
         elif select.startswith('3 - '):
-            QMessageBox.information(self, "Info", f"Ground truth compare")
             self.gtcmp(self._nmeaf)
         else:
             QMessageBox.information(self, "Info", f"To be continued...")
@@ -509,6 +508,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.send_ggaTimer.stop()
         self.NtripReconTimer.stop()
 
+    # flush record
     def _flush_file(self):
         if self._fh is not None:
             self._fh.flush()
@@ -530,21 +530,98 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             QMessageBox.information(self, "Info", f"file {fn} done")
 
     def devmap(self, fn):
+        if fn is None:
+            QMessageBox.critical(self, "Error", f"Invalid file {fn}, select a gga file first")
+            return
+
         with open(fn, 'r', encoding='utf-8') as f:
-            ll = nmeaFileToll(f)
-        plot(ll[::2], ll[1::2], c='b', marker='+', markersize=5)
-        title(f"{fn.split('/')[-1]} - Deviation map ")
+            ll = nmeaFileTodev(f)
+
+        figure("figure 1 deviation map")
+        plot(ll[::3], ll[1::3], c='b', marker='+', markersize=5)
+        title(f"{fn.split('/')[-1]} - deviation map ")
         xlabel("Lat / deg")
         ylabel("Lon / deg")
         grid(True)
         show()
 
-    def gtcmp(self, fn):
-        with open(fn, 'r', encoding='utf-8') as t, open(self._fn, 'r', encoding='utf-8') as f:
-            truth = nmeaFileToCoords(t)
-            gga = nmeaFileToCoords(f)
+        figure("figure 2 # of sats used")
+        plot(range(len(ll) // 3), ll[2::3], c='c')
+        title(f"{fn.split('/')[-1]} - # of sats used ")
+        ylabel("# of sats")
+        grid(True)
+        show()
 
-        #TODO compare nmea with ground truth file
+    def gtcmp(self, fn):
+        if fn is None or self._fn is None:
+            QMessageBox.critical(self, "Error", f"Compare {fn} with {self._fn}")
+            return
+
+        ymd = self._fn.split('/')[-1]
+        y = int(ymd[:4])
+        m = int(ymd[4:6])
+        d = int(ymd[6:8])
+        dts_total_diff, hz_diff,_ = genComp(fn, self._fn, [y, m, d])
+
+        fig = figure('Each direction info', figsize=(10, 8))
+        ax = fig.add_subplot(111)
+        ax1 = fig.add_subplot(311)
+        ax2 = fig.add_subplot(312)
+        ax3 = fig.add_subplot(313)
+
+        ax1.plot(dts_total_diff[0], c='b', label='north')
+        ax2.plot(dts_total_diff[1], c='g', label='east')
+        ax3.plot(dts_total_diff[2], c='r', label='zenith')
+
+        ax1.legend()
+        ax2.legend()
+        ax3.legend()
+
+        ax1.grid(True)
+        ax2.grid(True)
+        ax3.grid(True)
+
+        # Turn off axis lines and ticks of the big subplot
+        ax.spines['top'].set_color('none')
+        ax.spines['bottom'].set_color('none')
+        ax.spines['left'].set_color('none')
+        ax.spines['right'].set_color('none')
+        ax.tick_params(labelcolor='w', top=False, bottom=False, left=False, right=False)
+        ax.set_xlabel('Local time - 12/23/2019')
+        ax.set_ylabel('Difference / m')
+        ax.set_title("Each direction difference")
+
+        # plot horizontal errors
+        fig, axn = subplots('horizontal info')
+
+        hz_diff[0].plot(color='c', label='horizontal')
+        axhline(y=1, color='r', linestyle='-.', lw=1.2, label='1 m error line')
+        fig.text(0.75, 0.25, 'Powered by Feynman Innovation', fontsize=12, color='gray', ha='right', va='bottom',
+                 alpha=0.4)
+
+        axn.set_title("Horizontal difference plot")
+        axn.set_xlabel('Local time - 10/09/2019')
+        axn.set_ylabel('Difference / m')
+
+        axn.legend(fontsize='small', ncol=1)
+        axn.grid(True)
+
+        # plot horizontal cdf
+        fig, axh = subplots('horizontal cdf')
+        axh.set_title('Horizontal difference cdf plot')
+        hz_diff[0].hist(cumulative=True, density=True, bins=400, histtype='step', linewidth=2.0, label="Horizontal cdf")
+
+        axhline(y=.95, c='r', linestyle='-.', lw=1.2, label='95% prob line')
+        axhline(y=.68, c='g', linestyle='-.', lw=1.2, label='68% prob line')
+        fig.text(0.75, 0.25, 'Powered by Feynman Innovation', fontsize=12, color='gray', ha='right', va='bottom',
+                 alpha=0.4)
+
+        axh.set_xlabel('Error / m')
+        axh.set_ylabel('Likelihood of horizontal difference / m')
+        axh.legend(fontsize='small', ncol=1)
+        axh.grid(True)
+
+        show()
 
 
 if __name__ == '__main__':

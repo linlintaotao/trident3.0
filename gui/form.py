@@ -437,7 +437,7 @@ class Ui_widget(object):
         self.gen_kml.setObjectName("gen_kml")
         self.gridLayout_6.addWidget(self.gen_kml, 1, 1, 1, 1)
         self.comboBox_extools = QtWidgets.QComboBox(self.Extools)
-        self.comboBox_extools.setEditable(True)
+        self.comboBox_extools.setEditable(False)
         self.comboBox_extools.setObjectName("comboBox_extools")
         self.comboBox_extools.addItem("")
         self.comboBox_extools.addItem("")
@@ -456,7 +456,7 @@ class Ui_widget(object):
 
     def retranslateUi(self, widget):
         _translate = QtCore.QCoreApplication.translate
-        widget.setWindowTitle(_translate("widget", "FMI Ntrip Serial Tool v1.2"))
+        widget.setWindowTitle(_translate("widget", "FMI Ntrip Serial Tool v1.3 fmi@feyman.cn"))
         self.Serial.setTitle(_translate("widget", "Serial"))
         self.lsbaud.setText(_translate("widget", "Baud"))
         self.lsport.setText(_translate("widget", "Port"))

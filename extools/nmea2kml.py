@@ -149,7 +149,7 @@ def nmeaFileToCoords(f):
 
     return data
 
-def nmeaFileToll(f):
+def nmeaFileTodev(f):
     """Read a file full of NMEA sentences and return a string of lat/lon/z
     coordinates.  'z' is often 0.
     """
@@ -160,6 +160,7 @@ def nmeaFileToll(f):
             nmeagram.parseLine(line)
             data_append(nmeagram.getField("Latitude"))
             data_append(nmeagram.getField("Longitude"))
+            data_append(nmeagram.getField("SatellitesUsed"))
 
     return data
 
