@@ -11,7 +11,7 @@ from datetime import datetime
 from os import path, stat, makedirs
 from sys import argv, exit
 from threading import Thread
-from matplotlib.pyplot import figure, plot, title, xlabel, ylabel, show, grid, subplots, subplot, axhline
+from matplotlib.pyplot import figure, plot, title, xlabel, ylabel, show, grid, subplots, axhline
 
 import serial
 import serial.tools.list_ports
@@ -35,7 +35,8 @@ DISCONNECT = 'Disconnect'
 Freq = 2500
 DUR = 1000
 SEND_BYTES = 0
-COLOR_TAB = {'0': 'black', '1': 'red', '2': 'red', '3': 'black', '4': 'green', '5': 'blue', '6': 'yellow'}
+COLOR_TAB = {'0': 'black', '1': 'red', '2': 'red', '3': 'black',
+             '4': 'green', '5': 'blue', '6': 'yellow'}
 SERIAL_WRITE_MUTEX = False
 
 
@@ -173,7 +174,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self.set_ser_params(False)
                 self.pushButton_open.setText(CLOSE)
                 self.pushButton_refresh.setEnabled(False)
-                self.ReadSerTimer.start(50)
+                self.ReadSerTimer.start(20)
 
         elif self.pushButton_open.text() == CLOSE:
             self.ReadSerTimer.stop()
@@ -423,6 +424,9 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         if self.checkBox_autoScoll.isChecked():
             self.textEdit_recv.moveCursor(QTextCursor.End)
 
+    def text_mouse(self):
+        pass
+
     def open_filed(self):
         QMessageBox.information(self, "Info", f"Please confirm P20 is in the update mode!", QMessageBox.Ok)
 
@@ -522,11 +526,13 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
         if over_write == QMessageBox.Yes:
             fo = open(fnkml, 'w')
+
             with open(fn, 'r', encoding='utf-8') as f:
                 coords = nmeaFileToCoords(f)
                 kml_str = genKmlStr(coords)
             fo.write(kml_str)
             fo.close()
+
             QMessageBox.information(self, "Info", f"file {fn} done")
 
     def devmap(self, fn):

@@ -18,8 +18,11 @@ def toDecimalDegrees(ddmm):
     if not isinstance(ddmm, str):
         raise ("A string type expected")
     splitat = ddmm.find('.') - 2
-    res = _float(ddmm[:splitat]) + _float(ddmm[splitat:]) / 60.0
-    return float('%.8f' % res)
+    try:
+        res = _float(ddmm[:splitat]) + _float(ddmm[splitat:]) / 60.0
+        return float('%.8f' % res)
+    except Exception as e:
+        print(f"{e}")
 
 
 def _float(s):
@@ -62,7 +65,8 @@ def parseGGA(fields):
     """
 
     # GGA has 15 fields
-    assert len(fields) == 15
+    if len(fields) < 15:
+        return None
 
     # MsgId = fields[0]
     data['UtcTime'] = fields[1]
@@ -94,7 +98,8 @@ def parseGLL(fields):
     """
 
     # GLL has 8 fields
-    assert len(fields) == 7
+    if len(fields) < 7:
+        return None
 
     # MsgId = fields[0]
     data['Latitude'] = toDecimalDegrees(fields[1])
@@ -118,7 +123,8 @@ def parseGSA(fields):
     """
 
     # GSA has 18 fields
-    assert len(fields) == 18
+    if len(fields) < 18:
+        return None
 
     # MsgId = fields[0]
     data['Mode1'] = fields[1]
@@ -214,7 +220,8 @@ def parseRMC(fields):
     """
 
     # RMC has 13 fields
-    assert len(fields) == 13
+    if len(fields) < 13:
+        return None
 
     # MsgId = fields[0]
     data['UtcTime'] = fields[1]
@@ -244,7 +251,8 @@ def parseVTG(fields):
     """
 
     # VTG has 10 fields
-    assert len(fields) == 10
+    if len(fields) < 10:
+        return None
 
     # MsgId = fields[0]
     data['Course0'] = _float(fields[1])
@@ -273,7 +281,13 @@ def parseLine(line, check=False):
         assert calcCheckSum(line) == int(line[-2:], 16)
 
     # Pick the proper parsing function
-    parseFunc = {"$GNGGA": parseGGA, "$GPGGA": parseGGA, "$GNGLL": parseGLL, "$GNGSA": parseGSA, "$GNGSV": parseGSV, "$GNRMC": parseRMC, "$GNVTG": parseVTG, }[line[:6]]
+    parseFunc = {"$GNGGA": parseGGA,
+                 "$GPGGA": parseGGA,
+                 "$GNGLL": parseGLL,
+                 "$GNGSA": parseGSA,
+                 "$GNGSV": parseGSV,
+                 "$GNRMC": parseRMC,
+                 "$GNVTG": parseVTG}[line[:6]]
 
     # Call the parser with fields split and the tail chars removed.
     # The characters removed are the asterisk, the checksum (2 bytes) and \n\r.

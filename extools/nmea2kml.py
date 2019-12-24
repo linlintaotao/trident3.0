@@ -137,6 +137,7 @@ def nmeaFileToCoords(f):
     data = []
     data_append = data.append
     for line in f.readlines():
+
         if line[:6] in ("$GNGGA", "$GPGGA"):
             nmeagram.parseLine(line)
             data_append(nmeagram.getField("Longitude"))

@@ -31,7 +31,7 @@ def format_time(date):
 def nmeatime(date):
     ''' return NMEA time format '''
     micro = date.split('.')
-    if int(micro[1]) >= 50:  # return round of time
+    if int(micro[1]) >= 50:  # return round of .time
         date += '9999'
     return format_time(date)
 
