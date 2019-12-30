@@ -311,13 +311,13 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     # get ntrip caster params, invoke NtripClient thread
     def ntp_conn_btclik(self):
         if self.pushButton_conn.text() == CONNECT:
+            caster = self.comboBox_caster.currentText()
+            port = int(self.comboBox_port.currentText())
+            mount = self.comboBox_mount.currentText()
+
             if self.lineEdit_user.text() == '' or self.lineEdit_pwd.text() == '':
-                caster, port, mount = 'ntrips.feymani.cn', 2102, 'Obs'
-                user, passwd = 'feyman-user', '123456'
+                user, passwd = 'feyman', '123456'
             else:
-                caster = self.comboBox_caster.currentText()
-                port = int(self.comboBox_port.currentText())
-                mount = self.comboBox_mount.currentText()
                 user = self.lineEdit_user.text()
                 passwd = self.lineEdit_pwd.text()
 
@@ -336,8 +336,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
         elif self.pushButton_conn.text() == DISCONNECT:
             self._term_ntrip()
-            self.set_ntrip_params(True)
-            self.pushButton_conn.setText(CONNECT)
 
     def atcmd_send_btclik(self):
         if SERIAL_WRITE_MUTEX == False:
@@ -350,8 +348,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self.com.write(cmd.encode("utf-8", "ignore"))
                 if cmd == "AT+UPDATE_MODE\r\n" or cmd == "AT+UPDATE_SHELL\r\n":
                     self._term_ntrip()
-                    self.set_ntrip_params(True)
-                    self.pushButton_conn.setText(CONNECT)
             else:
                 QMessageBox.warning(self, "Warning", "Open serial port first! ")
         else:
@@ -381,6 +377,13 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     def sock_recv(self):
         if SERIAL_WRITE_MUTEX == False:
             rtcm = self.sock.readAll()
+
+            rtcm_str = str(rtcm)
+            if rtcm_str.find("Unauthorized") != -1:
+                s = rtcm_str.split('\\r\\n')
+                QMessageBox.critical(self, "Error", f"""{s[1]}""")
+                self._term_ntrip()
+
             if self.com.isOpen():
                 try:
                     self.com.write(rtcm)
@@ -501,7 +504,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
         if self.sock.isOpen():
             self._term_ntrip()
-            self.pushButton_conn.setText(CONNECT)
 
         self._flush_file()
 
@@ -511,6 +513,9 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.sock.close()
         self.send_ggaTimer.stop()
         self.NtripReconTimer.stop()
+        self.set_ntrip_params(True)
+        self.pushButton_conn.setText(CONNECT)
+
 
     # flush record
     def _flush_file(self):

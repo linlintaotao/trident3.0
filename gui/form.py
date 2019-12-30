@@ -443,6 +443,8 @@ class Ui_widget(object):
         self.comboBox_extools.addItem("")
         self.comboBox_extools.addItem("")
         self.comboBox_extools.addItem("")
+        self.comboBox_extools.addItem("")
+        self.comboBox_extools.addItem("")
         self.gridLayout_6.addWidget(self.comboBox_extools, 0, 0, 1, 2)
 
         self.retranslateUi(widget)
@@ -553,4 +555,6 @@ class Ui_widget(object):
         self.comboBox_extools.setItemText(0, _translate("widget", "1 - Convert nmea to .kml"))
         self.comboBox_extools.setItemText(1, _translate("widget", "2 - Deviation map view"))
         self.comboBox_extools.setItemText(2, _translate("widget", "3 - Ground truth compare"))
-        self.comboBox_extools.setItemText(3, _translate("widget", "4 - To be continued"))
+        self.comboBox_extools.setItemText(3, _translate("widget", "4 - Gnss logger to rinex"))
+        self.comboBox_extools.setItemText(4, _translate("widget", "5 - Fmiconv"))
+        self.comboBox_extools.setItemText(5, _translate("widget", "6 - To be continued"))
