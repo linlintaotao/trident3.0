@@ -114,6 +114,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.FileTrans = QTimer(self)
         self.FileTrans.timeout.connect(self.ShowFilepBarr)
 
+
     def create_sigslots(self):
         """
         connect signal with slots
@@ -126,6 +127,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.pushButton_clear.clicked.connect(self.serecv_clear_btclik)
         self.pushButton_close.clicked.connect(self.close_all)
         self.pushButton_stop.clicked.connect(self.stop_all)
+
+        # self.cbsport.mousePressEvent()
 
         # open image file and send it to P20 navi board
         self.open_file.clicked.connect(self.open_filed)
@@ -195,7 +198,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         try:
             data = self.com.readline()
         except Exception as e:
-            print(f"{sys._getframe().f_code.co_name}, {e}")
+            print(f"{e}")
 
         if data != b'':
             if self.checkBox_savenmea.isChecked():
