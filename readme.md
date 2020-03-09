@@ -1,19 +1,27 @@
-# FMI Ntrip Serial Tool v1.2
+# Trident v1.4 
 
-A simple ntrip serial tool for FMI Px series comb board testing
+A FMI ntrip serial tool for miscellaneous board testing
 
 ## Serial
 
-Common serial object
+- "Port" combo box will list current com port connected to the host, select or input proper 
+serial parameters then "Open" the serial port.
+- all messages serial port received will show up in the left blank text display area.
+ 
 
 ## Ntrip Caster
 
-Common Ntrip caster for CORS data feeding
+- fill ntrip parameters press "Connect" button, all valid mount point will list in "Mount" combo box
+- input user id and password press "Connect" button again to get cors data  
 
 ## AT command
 
-Serial AT command for Px board control
+- danger zone !
 
-## States display
+## Extools
 
-Some NMEA information display
+- currently only support convert NMEA to KML 
+
+## States
+
+- board info display

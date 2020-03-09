@@ -6,6 +6,9 @@
 @author: Chey
 """
 
+from datetime import datetime, timedelta
+
+GPS_EPOCH = datetime(1980, 1, 6)
 # This dict holds the global parsed data
 data = {}
 
@@ -57,6 +60,37 @@ def calcCheckSum(line):
         s = s ^ ord(c)
     return s
 
+def parseFMI(fields):
+    """
+    Parses the Global Positioning System Fix Data sentence fields.
+    Stores the results in the global data dict.
+    """
+
+    # FMI has 15 fields
+    if len(fields) < 15:
+        return None
+
+    # MsgId = fields[0]
+    week = _int(fields[1])
+    sow = _float(fields[2])
+
+    insec = int(sow)
+    secs = week*604800+insec-18
+    milsec = (sow-insec)*1e3
+    micsec = (sow-insec)*1e6-milsec*1e3
+    data['UtcTime'] = (GPS_EPOCH + timedelta(seconds=secs, milliseconds=milsec, microseconds=micsec)).strftime('%H%M%S.%f')[:-4]
+    data['yaw'] = _float(fields[3])
+    data['pitch'] = _float(fields[4])
+    data['roll'] = _float(fields[5])
+    data['Latitude'] = _float(fields[6])
+    data['Longitude'] = _float(fields[7])
+    data['MslAltitude'] = _float(fields[8])
+    data['ve'] = _float(fields[9])
+    data['vn'] = _float(fields[10])
+    data['vu'] = _float(fields[11])
+    data['bl'] = _float(fields[12])
+    data['SatellitesUsed'] = _float(fields[13])
+    data['PositionFix'] = fields[15]
 
 def parseGGA(fields):
     """
@@ -282,6 +316,7 @@ def parseLine(line, check=False):
 
     # Pick the proper parsing function
     parseFunc = {"$GNGGA": parseGGA,
+                 "$GPFMI": parseFMI,
                  "$GPGGA": parseGGA,
                  "$GNGLL": parseGLL,
                  "$GNGSA": parseGSA,
