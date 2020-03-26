@@ -261,8 +261,8 @@ def main ():
     fo = open (fn + '.kml', 'w')
 
     fi = open (fn, 'r', encoding='utf-8')
-    coords = nmeaFileToCoords (fi)
-    kml_str = genKmlStr (coords)
+    coords = nmeaFileToCoords (fi, 'GGA')
+    kml_str = genKmlStr (coords, 'GGA')
 
     fo.write (kml_str)
     fi.close ()

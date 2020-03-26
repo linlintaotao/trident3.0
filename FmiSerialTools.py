@@ -36,11 +36,15 @@ CLOSE = 'Close'
 CONNECT = 'Connect'
 DISCONNECT = 'Disconnect'
 
+SWITCH_ON = [0xA0, 0x01, 0x01, 0xA2]
+SWITCH_OFF = [0xA0, 0x01, 0x00, 0xA1]
 ###################################################################
 
 Freq = 2500
 DUR = 1000
 SEND_BYTES = 0
+gga_cnt = 0
+warm_reset_cnt = 0
 COLOR_TAB = {'0': 'black', '1': 'red', '2': 'red', '3': 'black',
              '4': 'green', '5': 'blue', '6': 'yellow'}
 SERIAL_WRITE_MUTEX = False
@@ -228,6 +232,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         serial port reading
         :return:
         """
+        global gga_cnt, warm_reset_cnt
         if not self.com.isOpen(): return
 
         data = self.com.readline()
@@ -261,7 +266,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                     self.disp_fmi(data)
                 except Exception as e:
                     print(f'{e}')
-            elif data.startswith("Rtk Boot"):
+            elif data.startswith("$GNTXT"):
                 self._cold_reseted = False
                 pass  # other nmea msgs
 
@@ -278,6 +283,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         :param data: gga string
         :return:
         """
+        global warm_reset_cnt
         if data.startswith(('$GNGGA', '$GPGGA')) and data.endswith("\r\n"):
             seg = data.strip("\r\n").split(",")
             if len(seg) < 14: return
@@ -306,23 +312,30 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self.lineEdit_solstat.setText(solstat)
                 self.lineEdit_sats.setText(nsats)
                 self.lineEdit_time.setText(now)
-                self.lineEdit_dage.setText(dage)
+                # self.lineEdit_dage.setText(dage)
 
                 # test cold reset
-                # if solstat == '4' and self._cold_reseted == False:
-                #     cmd = "AT+COLD_RESET\r\n"
-                #     try:
-                #         self.com.write(cmd.encode("utf-8", "ignore"))
-                #         self.com.write(cmd.encode("utf-8", "ignore"))
-                #         self.com.write(cmd.encode("utf-8", "ignore"))
-                #         self.com.write(cmd.encode("utf-8", "ignore"))
-                #         self.com.write(cmd.encode("utf-8", "ignore"))
-                #     except Exception as e:
-                #         print(f'{e}')
-                #     self._cold_reset_cnt += 1
-                #     # dage show cold reset counts
-                #     self.lineEdit_dage.setText(str(self._cold_reset_cnt))
-                #     self._cold_reseted = True
+                if solstat == '1':
+                    import time
+                    warm_reset_cnt += 1
+                    # cmd = "AT+COLD_RESET\r\n"
+                    try:
+                        if warm_reset_cnt % 10 == 0:
+                            # self.pushButton_conn.click()
+                            time.sleep(5)
+                            # self.com.write(cmd.encode("utf-8", "ignore"))
+                            # self.com.write(cmd.encode("utf-8", "ignore"))
+                            # self.com.flush()
+                            # self.pushButton_conn.click()
+                            self._cold_reset_cnt += 1
+                            print(f"ON/OFF switch counts # {self._cold_reset_cnt}")
+                    except Exception as e:
+                        print(f'{e}')
+
+                    # dage show cold reset counts
+                    self.lineEdit_dage.setText(str(self._cold_reset_cnt))
+                    self._cold_reseted = True
+                solstat = '0'
             else:
                 pass  # lat, lon not a float string
 
@@ -466,8 +479,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 print(f'{e}')
         else:
             pass
-
-
 
     # send gga to ntrip server
     def send_gga(self):
