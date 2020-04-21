@@ -6,10 +6,8 @@
  
 """
 
-"""
-TODO:   1. log cors data 
-        2. multi serial port support
-"""
+# TODO  1. default ntrip user name and password
+#       2. multi serial function selection
 
 from base64 import b64encode
 from datetime import datetime
@@ -51,7 +49,6 @@ SERIAL_WRITE_MUTEX = False
 
 
 ###################################################################
-# TODO   misc plots, compare with ground truth file
 
 def gettstr():
     return datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -312,30 +309,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self.lineEdit_solstat.setText(solstat)
                 self.lineEdit_sats.setText(nsats)
                 self.lineEdit_time.setText(now)
-                # self.lineEdit_dage.setText(dage)
-
-                # test cold reset
-                if solstat == '1':
-                    import time
-                    warm_reset_cnt += 1
-                    # cmd = "AT+COLD_RESET\r\n"
-                    try:
-                        if warm_reset_cnt % 10 == 0:
-                            # self.pushButton_conn.click()
-                            time.sleep(5)
-                            # self.com.write(cmd.encode("utf-8", "ignore"))
-                            # self.com.write(cmd.encode("utf-8", "ignore"))
-                            # self.com.flush()
-                            # self.pushButton_conn.click()
-                            self._cold_reset_cnt += 1
-                            print(f"ON/OFF switch counts # {self._cold_reset_cnt}")
-                    except Exception as e:
-                        print(f'{e}')
-
-                    # dage show cold reset counts
-                    self.lineEdit_dage.setText(str(self._cold_reset_cnt))
-                    self._cold_reseted = True
-                solstat = '0'
+                self.lineEdit_dage.setText(dage)
             else:
                 pass  # lat, lon not a float string
 
@@ -379,7 +353,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             mount = self.comboBox_mount.currentText()
 
             if self.lineEdit_user.text() == '' or self.lineEdit_pwd.text() == '':
-                user, passwd = 'feyman', '123456'
+                user, passwd = 'feyman-user', '123456'
             else:
                 user = self.lineEdit_user.text()
                 passwd = self.lineEdit_pwd.text()
