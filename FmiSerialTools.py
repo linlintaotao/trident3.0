@@ -14,6 +14,7 @@ from datetime import datetime
 from os import path, stat, makedirs
 from sys import argv, exit
 from threading import Thread
+from functools import partial
 # from matplotlib.pyplot import figure, plot, title, xlabel, ylabel, show, grid, subplots, axhline
 
 import serial
@@ -26,27 +27,26 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 from extools.nmea2kml import nmeaFileToCoords, genKmlStr
 # from extools.comp_gga_analysis import genComp
 from gui.form import Ui_widget
-from gui.multiser import MUi_widget
+from gui.multiser import Multi_Ui_widget
 
 ###################################################################
+DIR = 'NMEA/'
 OPEN = 'Open'
 CLOSE = 'Close'
 CONNECT = 'Connect'
 DISCONNECT = 'Disconnect'
 
-SWITCH_ON = [0xA0, 0x01, 0x01, 0xA2]
-SWITCH_OFF = [0xA0, 0x01, 0x00, 0xA1]
+# SWITCH_ON = [0xA0, 0x01, 0x01, 0xA2]
+# SWITCH_OFF = [0xA0, 0x01, 0x00, 0xA1]
 ###################################################################
-
-Freq = 2500
-DUR = 1000
 SEND_BYTES = 0
-gga_cnt = 0
-warm_reset_cnt = 0
-COLOR_TAB = {'0': 'black', '1': 'red', '2': 'red', '3': 'black',
-             '4': 'green', '5': 'blue', '6': 'yellow'}
+ENABLE_TOOL_BTN = True
+SERIAL_PORT_LIST = []
 SERIAL_WRITE_MUTEX = False
-
+SERIAL_SET = [None, None, None, None]
+FIRM_UPDATE_LIST = [False, False, False, False]
+COLOR_TAB = {'0': 'gray', '1': 'red', '2': 'pink', '3': 'black',
+             '4': 'green', '5': 'blue', '6': 'cyan'}
 
 ###################################################################
 
@@ -72,36 +72,192 @@ def sendser(file, serhd):
     SERIAL_WRITE_MUTEX = False
 
 
-class MultiSerial(QMainWindow, MUi_widget):
+class MultiSerial(QMainWindow, Multi_Ui_widget):
     def __init__(self, parent=None):
+        global ENABLE_TOOL_BTN
+        ENABLE_TOOL_BTN = False
         super(MultiSerial, self).__init__(parent)
         self.setupUi(self)
-        self.ser_refresh()
+        self.create_items(4)
+        self.create_slots()
+        self.port_refresh()
 
-    def ser_refresh(self):
+    def set_ser_params(self, enable, spn):
+        self.cbsport[spn].setEnabled(enable)
+        self.cbsbaud[spn].setEnabled(enable)
+        self.cbsattr[spn].setEnabled(enable)
+
+    def port_refresh(self):
         """
         refresh current serial port list
         :return:
         """
-        self.cbsport.clear()
-        self.cbsport_2.clear()
-        self.cbsport_3.clear()
-        self.cbsport_4.clear()
-        port_list = refresh_ser()
-        for port in port_list:
-            self.cbsport.addItem(port[0])
-            self.cbsport_2.addItem(port[0])
-            self.cbsport_3.addItem(port[0])
-            self.cbsport_4.addItem(port[0])
+        for port in self.cbsport:
+            port.clear()
 
+        for com in SERIAL_PORT_LIST:
+            for port in self.cbsport:
+                port.addItem(com)
 
+    def create_items(self, nsers):
+        self._clear = [True for _ in range(4)]
+        self._fh = [None for _ in range(4)]
+        self._fn = ['' for _ in range(4)]
 
+        self._check = [self.cb_firmu1, self.cb_firmu2, self.cb_firmu3, self.cb_firmu4]
+        self._text = [self.textEdit_1, self.textEdit_2, self.textEdit_3, self.textEdit_4]
+        self.cbsport = [self.cs_port_1, self.cs_port_2, self.cs_port_3, self.cs_port_4]
+        self.cbsbaud = [self.cs_baud_1, self.cs_baud_2, self.cs_baud_3, self.cs_baud_4]
+        self.cbsattr = [self.cs_attrs_1, self.cs_attrs_2, self.cs_attrs_3, self.cs_attrs_4]
+        self.com = [serial.Serial() for _ in range(nsers)]
 
+        self.ReadSerTimer = [QTimer() for _ in range(nsers)]
+        self.LEllh = [self.lineEdit_llh1, self.lineEdit_llh2, self.lineEdit_llh3, self.lineEdit_llh4]
+        self.LEstat = [self.lineEdit_stat1, self.lineEdit_stat2, self.lineEdit_stat3, self.lineEdit_stat4]
+
+    def create_slots(self):
+        # button click signal
+        self.pushButton_open_1.clicked.connect(partial(self.on_button, (self.pushButton_open_1, 0)))
+        self.pushButton_open_2.clicked.connect(partial(self.on_button, (self.pushButton_open_2, 1)))
+        self.pushButton_open_3.clicked.connect(partial(self.on_button, (self.pushButton_open_3, 2)))
+        self.pushButton_open_4.clicked.connect(partial(self.on_button, (self.pushButton_open_4, 3)))
+
+        # text received signal
+        self.textEdit_1.textChanged.connect(partial(self.on_txtchange, self.textEdit_1))
+        self.textEdit_2.textChanged.connect(partial(self.on_txtchange, self.textEdit_2))
+        self.textEdit_3.textChanged.connect(partial(self.on_txtchange, self.textEdit_3))
+        self.textEdit_4.textChanged.connect(partial(self.on_txtchange, self.textEdit_4))
+
+    def on_button(self, btntup):
+        """
+        serial open button clicked handling
+        :return:
+        """
+        btn = btntup[0]
+        spn = btntup[1]
+        if btn.text() == OPEN:
+            self.com[spn].port = self.cbsport[spn].currentText()
+            self.com[spn].baudrate = int(self.cbsbaud[spn].currentText())
+
+            attrs = self.cbsattr[spn].currentText().split('/')
+            self.com[spn].bytesize = int(attrs[0])
+            self.com[spn].stopbits = int(attrs[2])
+            self.com[spn].parity= attrs[1]
+            self.com[spn].timeout = 0
+
+            self.com[spn].close()
+            try:
+                self.com[spn].open()
+                SERIAL_SET[spn] = self.com[spn]
+            except serial.SerialException:
+                QMessageBox.critical(self, "error", f"can not open serial {self.com[spn].port}")
+            else:
+                self.set_ser_params(False, spn)
+                btn.setText(CLOSE)
+                self.ReadSerTimer[spn].timeout.connect(partial(self.on_read, (self.com[spn], spn)))
+                self.ReadSerTimer[spn].start(50)
+
+        elif btn.text() == CLOSE:
+            self.ReadSerTimer[spn].stop()
+            self.com[spn].close()
+            self.set_ser_params(True, spn)
+            btn.setText(OPEN)
+
+    def on_read(self, stup):
+
+        s = stup[0]
+        n = stup[1]
+
+        if not s.isOpen(): return
+        data = s.readline()
+
+        if data != b'':
+            if self._fh[n] is None:
+                if self._fn[n] == '':
+                    self._fn[n] = DIR + s.port +'_'+ gettstr()
+                self._fh[n] = open(self._fn[n] + '.log', 'wb')
+            else:
+                self._fh[n].write(data)
+                self._fh[n].flush()
+
+            # decode received data
+            data = data.decode("utf-8", "ignore")
+            if self._clear[n]:
+                self._text[n].clear()
+                self._clear[n] = False
+            self._text[n].insertPlainText(data)
+
+            # display info
+            if data.startswith(('$GNGGA', '$GPGGA')):
+                try:
+                    self.disp_gga(data, n)
+                except Exception as e:
+                    print(f'{e}')
+            else:
+                pass
+
+            # check firmware update
+            if self._check[n].isChecked():
+                FIRM_UPDATE_LIST[n] = True
+            else:
+                FIRM_UPDATE_LIST[n] = False
+
+    def disp_gga(self, data, n):
+        """
+        display gga string
+        :param data: gga string
+        :return:
+        """
+        if data.startswith(('$GNGGA', '$GPGGA')) and data.endswith("\r\n"):
+            seg = data.strip("\r\n").split(",")
+            if len(seg) < 14: return
+
+            now, latdm = seg[1:3]
+            londm = seg[4]
+            solstat, nsats, dop, hgt = seg[6:10]
+            dage = seg[-2]
+            dage = dage if dage != '' else '0'
+
+            if latdm != '' and londm != '':
+                try:
+                    lat_deg = float(latdm)
+                    lon_deg = float(londm)
+                except TypeError as e:
+                    return
+                else:
+                    a = int(lat_deg / 100) + (lat_deg % 100) / 60
+                    o = int(lon_deg / 100) + (lon_deg % 100) / 60
+                    latdm, londm = "%.7f" % a, "%.7f" % o
+
+                stat = "{0:8s},{1:2d},{2:1d},{3:<3s}".\
+                        format(now, int(nsats), int(solstat), dage)
+                self.LEstat[n].setText(stat)
+
+                if float(dage) > 60:
+                    bg = 'light red'
+                else:
+                    bg = COLOR_TAB[solstat]
+                self.LEllh[n].setStyleSheet('background-color:' + bg + '; color:white')
+
+                llh = "{0:10s},{1:11s},{2:5s}".format(latdm, londm, hgt)
+                self.LEllh[n].setText(llh)
+
+            else:
+                pass  # lat, lon not a float string
+
+    def on_txtchange(self, txtup):
+        txtup.moveCursor(QTextCursor.End)
+
+    def closeEvent(self, event):
+        global ENABLE_TOOL_BTN
+        ENABLE_TOOL_BTN = True
+
+############################################################################################
 class NtripSerialTool(QMainWindow, Ui_widget):
     """
     Ntrip serial tool for testing FMI P20 comb board
     """
-    global SERIAL_WRITE_MUTEX
+    global SERIAL_WRITE_MUTEX, ENABLE_TOOL_BTN
 
     def __init__(self, parent=None):
         super(NtripSerialTool, self).__init__(parent)
@@ -111,7 +267,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self._imgfile = None
         self._nmeaf = None
         self._fn = ''
-        self._dir = 'NMEA'
 
         self._cold_reseted = False
         self._mnt_updated = False
@@ -130,8 +285,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.create_items()
         self.create_sigslots()
         self.ser_refresh()
-        if not path.exists(self._dir):
-            makedirs(self._dir)
+        if not path.exists(DIR):
+            makedirs(DIR)
 
     def create_items(self):
         """
@@ -165,7 +320,12 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.pushButton_close.clicked.connect(self.close_all)
         self.pushButton_stop.clicked.connect(self.stop_all)
 
-        self.pushButton_multi.clicked.connect(self.mulser_control)
+        # serial refresh button pressed
+        self.pushButton_refresh.clicked.connect(self.ser_refresh)
+
+        # tool button pressed
+        self.toolButton.clicked.connect(self.mulser_control)
+
         # self.cbsport.mousePressEvent()
 
         # open image file and send it to P20 navi board
@@ -190,6 +350,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.cbsport.clear()
         port_list = refresh_ser()
         for port in port_list:
+            if port[0] not in SERIAL_PORT_LIST:
+                SERIAL_PORT_LIST.append(port[0])
             self.cbsport.addItem(port[0])
 
     # serial configuration parameters
@@ -199,6 +361,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         :return:
         """
         if self.pushButton_open.text() == OPEN:
+
             self.com.port = self.cbsport.currentText()
             self.com.baudrate = int(self.cbsbaud.currentText())
             self.com.bytesize = int(self.cbsdata.currentText())
@@ -214,7 +377,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             else:
                 self.set_ser_params(False)
                 self.pushButton_open.setText(CLOSE)
-                self.pushButton_multi.setEnabled(False)
+                self.pushButton_refresh.setEnabled(False)
                 self.ReadSerTimer.start(50)
 
         elif self.pushButton_open.text() == CLOSE:
@@ -222,14 +385,13 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.com.close()
             self.set_ser_params(True)
             self.pushButton_open.setText(OPEN)
-            self.pushButton_multi.setEnabled(True)
+            self.pushButton_refresh.setEnabled(True)
 
     def read_ser_data(self):
         """
         serial port reading
         :return:
         """
-        global gga_cnt, warm_reset_cnt
         if not self.com.isOpen(): return
 
         data = self.com.readline()
@@ -237,7 +399,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             if self.checkBox_savenmea.isChecked():
                 if self._fh is None:
                     if self._fn == '':
-                        self._fn = self._dir + '/' + gettstr()
+                        self._fn = DIR + self.com.port + '_' + gettstr()
                     self._fh = open(self._fn+'.log', 'wb')
                 else:
                     self._fh.write(data)
@@ -267,7 +429,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self._cold_reseted = False
                 pass  # other nmea msgs
 
-
     def set_lebf_color(self, bg, fg):
         self.lineEdit_rovlat.setStyleSheet('background-color:' + bg + '; color:' + fg)
         self.lineEdit_rovlon.setStyleSheet('background-color:' + bg + '; color:' + fg)
@@ -280,7 +441,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         :param data: gga string
         :return:
         """
-        global warm_reset_cnt
         if data.startswith(('$GNGGA', '$GPGGA')) and data.endswith("\r\n"):
             seg = data.strip("\r\n").split(",")
             if len(seg) < 14: return
@@ -376,7 +536,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     # at command button handle
     def atcmd_send_btclik(self):
-        if SERIAL_WRITE_MUTEX == False:
+        if not SERIAL_WRITE_MUTEX:
             if self.com.isOpen():
                 cmd = self.cbatcmd.currentText() + "\r\n"
                 if not cmd.startswith('AT+'):
@@ -414,7 +574,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     # socket receive data
     def sock_recv(self):
-        if SERIAL_WRITE_MUTEX == False:
+        if not SERIAL_WRITE_MUTEX:
             try:
                 rtcm = self.sock.readAll()
 
@@ -431,7 +591,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 if self.checkBox_logcos.isChecked():
                     if self._fhcors is None:
                         if self._fn == '':
-                            self._fn = self._dir + '/' + gettstr()
+                            self._fn = DIR + gettstr()
                         self._fhcors = open(self._fn+'.cors', 'wb')
                     else:
                         self._fhcors.write(rtcm)
@@ -449,6 +609,12 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                     self.lineEdit_stx.setText(str(self._stxbs))
                 else:
                     pass
+
+                # write rtcm data into multi serial
+                for _com in SERIAL_SET:
+                    if _com is not None and _com.isOpen() and _com.port != self.com.port:
+                        _com.write(rtcm)
+
             except Exception as e:
                 print(f'{e}')
         else:
@@ -456,7 +622,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     # send gga to ntrip server
     def send_gga(self):
-        if SERIAL_WRITE_MUTEX == False:
+        if not SERIAL_WRITE_MUTEX:
             self._flush_file()
             if self.sock.isOpen():
                 if self.checkBox_sendgga.isChecked():
@@ -465,7 +631,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     # ntirp reconnection
     def ntp_reconn(self):
-        if SERIAL_WRITE_MUTEX == False:
+        if not SERIAL_WRITE_MUTEX:
             if self.sock.state() == QTcpSocket.UnconnectedState:
                 self.pushButton_conn.click()
                 self.pushButton_conn.click()
@@ -509,7 +675,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.file_transbar.setValue(0)
 
     def ShowFilepBarr(self):
-        if SERIAL_WRITE_MUTEX is True:
+        if SERIAL_WRITE_MUTEX:
             self.file_transbar.setValue(SEND_BYTES)
         else:
             self.file_transbar.setValue(SEND_BYTES)
@@ -694,9 +860,12 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     #     show()
 
     def mulser_control(self):
-        pass
-        # dialog = MultiSerial(self)
-        # dialog.show()
+        # check  toolButton is valid
+        if not ENABLE_TOOL_BTN: return
+        dialog = MultiSerial(self)
+        dialog.show()
+
+
 
 if __name__ == '__main__':
     app = QApplication(argv)
