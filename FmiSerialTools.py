@@ -6,8 +6,7 @@
  
 """
 
-# TODO  1. default ntrip user name and password
-#       2. multi serial function selection
+# TODO  multi-serial firmware update
 
 from base64 import b64encode
 from datetime import datetime
@@ -44,20 +43,65 @@ ENABLE_TOOL_BTN = True
 SERIAL_PORT_LIST = []
 SERIAL_WRITE_MUTEX = False
 SERIAL_SET = [None, None, None, None]
+LABEL_SHOW_LIST = [None, None, None, None]
 FIRM_UPDATE_LIST = [False, False, False, False]
-COLOR_TAB = {'0': 'gray', '1': 'red', '2': 'pink', '3': 'black',
-             '4': 'green', '5': 'blue', '6': 'cyan'}
+
+COLOR_TAB = {'0': 'gray', '1': 'red', '2': 'pink', '3': 'black', '4': 'green', '5': 'blue', '6': 'cyan'}
+
 
 ###################################################################
 
-def gettstr():
+def gettstr() -> str:
+    """
+    get current host time string
+    :return:
+    """
     return datetime.now().strftime("%Y%m%d_%H%M%S")
 
-def refresh_ser():
+
+def refresh_ser() -> list:
+    """
+    refresh current host serial port
+    :return:
+    """
     port_list = list(serial.tools.list_ports.comports())
     return port_list
 
-def sendser(file, serhd):
+
+def update_mulfirmware(file: str, serhd: serial.Serial, sn:int) -> None:
+    """
+    multi-serial firmware update
+    :param file:
+    :param serhd:
+    :return:
+    """
+    global LABEL_SHOW_LIST, SERIAL_WRITE_MUTEX
+    if file is None or serhd is None:
+        return False
+
+    if LABEL_SHOW_LIST[sn] is not None:
+        LABEL_SHOW_LIST[sn].setText("updating...")
+        LABEL_SHOW_LIST[sn].setStyleSheet("{ background-color : red; color : black; }")
+
+    SERIAL_WRITE_MUTEX = False
+    with open(file, "rb") as f:
+        for line in f:
+            serhd.write(line)
+
+    SERIAL_WRITE_MUTEX = True
+    if LABEL_SHOW_LIST[sn] is not None:
+        LABEL_SHOW_LIST[sn].setText("done!")
+        LABEL_SHOW_LIST[sn].setStyleSheet("{ background-color : green; color : black; }")
+
+
+
+def update_firmware(file: str, serhd: serial.Serial) -> None:
+    """
+    send file to serial handler
+    :param file: binary file
+    :param serhd: serial handler
+    :return:
+    """
     global SERIAL_WRITE_MUTEX, SEND_BYTES
 
     if file is None or serhd is None:
@@ -114,6 +158,7 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
         self.ReadSerTimer = [QTimer() for _ in range(nsers)]
         self.LEllh = [self.lineEdit_llh1, self.lineEdit_llh2, self.lineEdit_llh3, self.lineEdit_llh4]
         self.LEstat = [self.lineEdit_stat1, self.lineEdit_stat2, self.lineEdit_stat3, self.lineEdit_stat4]
+        self.LBshow = [self.label, self.label_2, self.label_3, self.label_4]
 
     def create_slots(self):
         # button click signal
@@ -142,7 +187,7 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
             attrs = self.cbsattr[spn].currentText().split('/')
             self.com[spn].bytesize = int(attrs[0])
             self.com[spn].stopbits = int(attrs[2])
-            self.com[spn].parity= attrs[1]
+            self.com[spn].parity = attrs[1]
             self.com[spn].timeout = 0
 
             self.com[spn].close()
@@ -164,7 +209,6 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
             btn.setText(OPEN)
 
     def on_read(self, stup):
-
         s = stup[0]
         n = stup[1]
 
@@ -174,7 +218,7 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
         if data != b'':
             if self._fh[n] is None:
                 if self._fn[n] == '':
-                    self._fn[n] = DIR + s.port +'_'+ gettstr()
+                    self._fn[n] = DIR + s.port + '_' + gettstr()
                 self._fh[n] = open(self._fn[n] + '.log', 'wb')
             else:
                 self._fh[n].write(data)
@@ -186,7 +230,7 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
                 self._text[n].clear()
                 self._clear[n] = False
             self._text[n].insertPlainText(data)
-
+            self.LBshow[n].setText("serial recv...")
             # display info
             if data.startswith(('$GNGGA', '$GPGGA')):
                 try:
@@ -199,8 +243,10 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
             # check firmware update
             if self._check[n].isChecked():
                 FIRM_UPDATE_LIST[n] = True
+                LABEL_SHOW_LIST[n] = self.LBshow[n]
             else:
                 FIRM_UPDATE_LIST[n] = False
+                LABEL_SHOW_LIST[n] = None
 
     def disp_gga(self, data, n):
         """
@@ -229,8 +275,7 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
                     o = int(lon_deg / 100) + (lon_deg % 100) / 60
                     latdm, londm = "%.7f" % a, "%.7f" % o
 
-                stat = "{0:8s},{1:2d},{2:1d},{3:<3s}".\
-                        format(now, int(nsats), int(solstat), dage)
+                stat = "{0:8s},{1:2d},{2:1d},{3:<3s}".format(now, int(nsats), int(solstat), dage)
                 self.LEstat[n].setText(stat)
 
                 if float(dage) > 60:
@@ -251,6 +296,7 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
     def closeEvent(self, event):
         global ENABLE_TOOL_BTN
         ENABLE_TOOL_BTN = True
+
 
 ############################################################################################
 class NtripSerialTool(QMainWindow, Ui_widget):
@@ -361,7 +407,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         :return:
         """
         if self.pushButton_open.text() == OPEN:
-
             self.com.port = self.cbsport.currentText()
             self.com.baudrate = int(self.cbsbaud.currentText())
             self.com.bytesize = int(self.cbsdata.currentText())
@@ -400,7 +445,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 if self._fh is None:
                     if self._fn == '':
                         self._fn = DIR + self.com.port + '_' + gettstr()
-                    self._fh = open(self._fn+'.log', 'wb')
+                    self._fh = open(self._fn + '.log', 'wb')
                 else:
                     self._fh.write(data)
             else:
@@ -546,7 +591,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 if cmd == "AT+GPFMI\r\n":
                     cmd = "AT+GPFPD\r\n"
                 self.com.write(cmd.encode("utf-8", "ignore"))
-                if cmd == "AT+UPDATE_MODE\r\n" or cmd == "AT+UPDATE_SHELL\r\n":
+
+                if cmd in ["AT+UPDATE_MODE\r\n", "AT+UPDATE_SHELL\r\n", "AT+UPDATE_MODE_H=115200\r\n"]:
                     self._term_ntrip()
             else:
                 QMessageBox.warning(self, "Warning", "Open serial port first! ")
@@ -592,7 +638,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                     if self._fhcors is None:
                         if self._fn == '':
                             self._fn = DIR + gettstr()
-                        self._fhcors = open(self._fn+'.cors', 'wb')
+                        self._fhcors = open(self._fn + '.cors', 'wb')
                     else:
                         self._fhcors.write(rtcm)
                 else:
@@ -600,12 +646,13 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                         self._flush_file()
                         self._fhcors.close()
                         self._fhcors = None
+
                 # write rtcm data into serial
                 if self.com.isOpen():
                     n = self.com.write(rtcm)
                     self._stxbs += n
                     self._val += 5
-                    self.progressBar.setValue(self._val%100)
+                    self.progressBar.setValue(self._val % 100)
                     self.lineEdit_stx.setText(str(self._stxbs))
                 else:
                     pass
@@ -666,13 +713,29 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         if self._imgfile is None:
             QMessageBox.warning(self, "Warning", f".enc file first plz!")
         else:
+            info = ""
+            mulcom_list = []
+            for i, _com in enumerate(zip(SERIAL_SET, FIRM_UPDATE_LIST)):
+                if _com[1] and _com[0] is not None and _com[0].isOpen():
+                    mulcom_list.append((_com, i))
+                    info += _com[0].port
+                    info += " "
+            info += self.com.port
+            ret = QMessageBox.warning(self, "Warning", f"update serial {info}", QMessageBox.No, QMessageBox.Yes)
+            if ret == QMessageBox.No:
+                return
+
             file_size = stat(self._imgfile).st_size
             self.file_transbar.setRange(0, file_size)
-            trans_file = Thread(target=sendser, args=(self._imgfile, self.com))
-            trans_file.start()
+            Thread(target=update_firmware, args=(self._imgfile, self.com)).start()
+
+            # _com = (serial, update firm check box)
+            for _port in mulcom_list:
+                    Thread(target=update_mulfirmware, args=(self._imgfile, _port[0][0], _port[1])).start()
 
             self.FileTrans.start(1200)
             self.file_transbar.setValue(0)
+
 
     def ShowFilepBarr(self):
         if SERIAL_WRITE_MUTEX:
@@ -864,7 +927,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         if not ENABLE_TOOL_BTN: return
         dialog = MultiSerial(self)
         dialog.show()
-
 
 
 if __name__ == '__main__':
