@@ -78,7 +78,10 @@ def parseFMI(fields):
     secs = week*604800+insec-18
     milsec = (sow-insec)*1e3
     micsec = (sow-insec)*1e6-milsec*1e3
-    data['UtcTime'] = (GPS_EPOCH + timedelta(seconds=secs, milliseconds=milsec, microseconds=micsec)).strftime('%H%M%S.%f')[:-4]
+    data['UtcTime'] = (GPS_EPOCH + timedelta(seconds=secs, milliseconds=milsec, microseconds=micsec)).strftime(
+        '%m/%d/%Y %H%M%S.%f')[:-4]
+    data['week'] = week
+    data['sow'] = sow
     data['yaw'] = _float(fields[3])
     data['pitch'] = _float(fields[4])
     data['roll'] = _float(fields[5])
@@ -91,6 +94,7 @@ def parseFMI(fields):
     data['bl'] = _float(fields[12])
     data['SatellitesUsed'] = _float(fields[13])
     data['PositionFix'] = fields[15]
+
 
 def parseGGA(fields):
     """
@@ -115,15 +119,14 @@ def parseGGA(fields):
     data['MslAltitudeUnits'] = fields[10]
     data['GeoidSeparation'] = _float(fields[11])
     data['GeoidSeparationUnits'] = fields[12]
-    data['AgeOfDiffCorr'] = _float(fields[13])
-    data['DiffRefStationId'] = fields[14]
+    data['AgeOfDiffCorr'] = _float(fields[13]) if _float(fields[13]) is not None else -1
+    data['DiffRefStationId'] = fields[14] if fields[14] != '' else '-1'
 
     # Attend to lat/lon plus/minus signs
     if data['NsIndicator'] == 'S':
         data['Latitude'] *= -1.0
     if data['EwIndicator'] == 'W':
         data['Longitude'] *= -1.0
-
 
 def parseGLL(fields):
     """
@@ -148,7 +151,6 @@ def parseGLL(fields):
         data['Latitude'] *= -1.0
     if data['EwIndicator'] == 'W':
         data['Longitude'] *= -1.0
-
 
 def parseGSA(fields):
     """
@@ -242,7 +244,6 @@ def parseGSV(fields):
             del data['Snr'][nn]
             nn += 1
 
-
 def parseRMC(fields):
     """
     Parses the Recommended Minimum Specific GNSS Data sentence fields.
@@ -276,7 +277,6 @@ def parseRMC(fields):
         data['Latitude'] *= -1.0
     if data['EwIndicator'] == 'W':
         data['Longitude'] *= -1.0
-
 
 def parseVTG(fields):
     """
@@ -316,8 +316,9 @@ def parseLine(line, check=False):
 
     # Pick the proper parsing function
     parseFunc = {"$GNGGA": parseGGA,
-                 "$GPFMI": parseFMI,
                  "$GPGGA": parseGGA,
+                 "$GPFMI": parseFMI,
+                 "$GPFPD": parseFMI,
                  "$GNGLL": parseGLL,
                  "$GNGSA": parseGSA,
                  "$GNGSV": parseGSV,
@@ -329,7 +330,6 @@ def parseLine(line, check=False):
     parseFunc(line[:-3].split(','))
     # Return the type of sentence that was parsed
     return line[3:6]
-
 
 def getField(fieldname):
     """

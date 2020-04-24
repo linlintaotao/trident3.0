@@ -6,7 +6,9 @@
  
 """
 
-# TODO  multi-serial firmware update
+# TODO  1. multi-serial firmware update evaluation
+#       2. add direction in kml
+#       3. add H binary support
 
 from base64 import b64encode
 from datetime import datetime
@@ -68,7 +70,7 @@ def refresh_ser() -> list:
     return port_list
 
 
-def update_mulfirmware(file: str, serhd: serial.Serial, sn:int) -> None:
+def update_mulfirmware(file: str, serhd: serial.Serial, sn: int) -> None:
     """
     multi-serial firmware update
     :param file:
@@ -92,7 +94,6 @@ def update_mulfirmware(file: str, serhd: serial.Serial, sn:int) -> None:
     if LABEL_SHOW_LIST[sn] is not None:
         LABEL_SHOW_LIST[sn].setText("done!")
         LABEL_SHOW_LIST[sn].setStyleSheet("{ background-color : green; color : black; }")
-
 
 
 def update_firmware(file: str, serhd: serial.Serial) -> None:
@@ -407,11 +408,13 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         :return:
         """
         if self.pushButton_open.text() == OPEN:
+            attrs = self.cbsdata.currentText().split('/')
+
             self.com.port = self.cbsport.currentText()
             self.com.baudrate = int(self.cbsbaud.currentText())
-            self.com.bytesize = int(self.cbsdata.currentText())
-            self.com.stopbits = int(self.cbsstop.currentText())
-            self.com.parity = self.cbsparity.currentText()
+            self.com.bytesize = int(attrs[0])
+            self.com.stopbits = int(attrs[2])
+            self.com.parity = attrs[1]
             self.com.timeout = 0
 
             self.com.close()
@@ -540,8 +543,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.cbsport.setEnabled(enable)
         self.cbsbaud.setEnabled(enable)
         self.cbsdata.setEnabled(enable)
-        self.cbsstop.setEnabled(enable)
-        self.cbsparity.setEnabled(enable)
 
     def set_ntrip_params(self, enable):
         self.comboBox_caster.setEnabled(enable)
@@ -582,20 +583,27 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     # at command button handle
     def atcmd_send_btclik(self):
         if not SERIAL_WRITE_MUTEX:
-            if self.com.isOpen():
-                cmd = self.cbatcmd.currentText() + "\r\n"
-                if not cmd.startswith('AT+'):
-                    QMessageBox.warning(self, "Warning", "AT command start with AT+ ")
-                    return
+            cmd = self.cbatcmd.currentText() + "\r\n"
+            if not cmd.startswith(('AT+', '$J')):
+                QMessageBox.warning(self, "Warning", "Only support Feynman and H command")
+                return
+            # while in firmware update mode, terminate ntrip first
+            if cmd in ["AT+UPDATE_MODE\r\n", "AT+UPDATE_SHELL\r\n", "AT+UPDATE_MODE_H=115200\r\n"]:
+                self._term_ntrip()
 
-                if cmd == "AT+GPFMI\r\n":
-                    cmd = "AT+GPFPD\r\n"
-                self.com.write(cmd.encode("utf-8", "ignore"))
-
-                if cmd in ["AT+UPDATE_MODE\r\n", "AT+UPDATE_SHELL\r\n", "AT+UPDATE_MODE_H=115200\r\n"]:
-                    self._term_ntrip()
+            # re-direct to other serial port
+            if '>' in cmd:
+                _cmd, _port = cmd.strip("\r\n").split('>')
+                _cmd = _cmd.strip() + "\r\n"
+                _port = _port.strip()
+                for s in SERIAL_SET:
+                    if s is not None and s.isOpen() and s.port != _port:
+                        s.write(_cmd.encode("utf-8", "ignore"))
             else:
-                QMessageBox.warning(self, "Warning", "Open serial port first! ")
+                if self.com.isOpen():
+                    self.com.write(cmd.encode("utf-8", "ignore"))
+                else:
+                    QMessageBox.warning(self, "Warning", "Open serial port first! ")
         else:
             QMessageBox.information(self, "Info", "Firmware updating......")
 
@@ -621,49 +629,46 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     # socket receive data
     def sock_recv(self):
         if not SERIAL_WRITE_MUTEX:
-            try:
-                rtcm = self.sock.readAll()
+            rtcm = self.sock.readAll()
 
-                # source cors host mount point
-                if self._mnt_updated is False and b'SOURCETABLE 200 OK' in rtcm:
-                    resp_list = bytes(rtcm).decode().split("\r\n")[6:]
-                    for mnt in resp_list:
-                        if mnt.startswith('STR;'):
-                            self.comboBox_mount.addItem(mnt.split(';')[1])
-                    self._term_ntrip()
-                    self._mnt_updated = True
-                    return
-                # log cors rtcm data into file self._fhcors
-                if self.checkBox_logcos.isChecked():
-                    if self._fhcors is None:
-                        if self._fn == '':
-                            self._fn = DIR + gettstr()
-                        self._fhcors = open(self._fn + '.cors', 'wb')
-                    else:
-                        self._fhcors.write(rtcm)
+            # source cors host mount point
+            if self._mnt_updated is False and b'SOURCETABLE 200 OK' in rtcm:
+                resp_list = bytes(rtcm).decode().split("\r\n")[6:]
+                for mnt in resp_list:
+                    if mnt.startswith('STR;'):
+                        self.comboBox_mount.addItem(mnt.split(';')[1])
+                self._term_ntrip()
+                self._mnt_updated = True
+                return
+            # log cors rtcm data into file self._fhcors
+            if self.checkBox_logcos.isChecked():
+                if self._fhcors is None:
+                    if self._fn == '':
+                        self._fn = DIR + gettstr()
+                    self._fhcors = open(self._fn + '.cors', 'wb')
                 else:
-                    if self._fhcors is not None:
-                        self._flush_file()
-                        self._fhcors.close()
-                        self._fhcors = None
+                    self._fhcors.write(rtcm)
+            else:
+                if self._fhcors is not None:
+                    self._flush_file()
+                    self._fhcors.close()
+                    self._fhcors = None
 
-                # write rtcm data into serial
-                if self.com.isOpen():
-                    n = self.com.write(rtcm)
-                    self._stxbs += n
-                    self._val += 5
-                    self.progressBar.setValue(self._val % 100)
-                    self.lineEdit_stx.setText(str(self._stxbs))
-                else:
-                    pass
+            # write rtcm data into serial
+            if self.com.isOpen():
+                n = self.com.write(rtcm)
+                self._stxbs += n
+                self.lineEdit_stx.setText(str(self._stxbs))
+            else:
+                pass
 
-                # write rtcm data into multi serial
-                for _com in SERIAL_SET:
-                    if _com is not None and _com.isOpen() and _com.port != self.com.port:
-                        _com.write(rtcm)
+            # write rtcm data into multi serial
+            for _com in SERIAL_SET:
+                if _com is not None and _com.isOpen() and _com.port != self.com.port:
+                    _com.write(rtcm)
 
-            except Exception as e:
-                print(f'{e}')
+            self._val += 5
+            self.progressBar.setValue(self._val % 100)
         else:
             pass
 
@@ -672,9 +677,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         if not SERIAL_WRITE_MUTEX:
             self._flush_file()
             if self.sock.isOpen():
-                if self.checkBox_sendgga.isChecked():
-                    if self._curgga.decode("utf-8", "ignore").startswith(("$GNGGA", "$GPGGA")):
-                        self.sock.write(self._curgga)
+                if self._curgga.decode("utf-8", "ignore").startswith(("$GNGGA", "$GPGGA")):
+                    self.sock.write(self._curgga)
 
     # ntirp reconnection
     def ntp_reconn(self):
@@ -731,7 +735,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
             # _com = (serial, update firm check box)
             for _port in mulcom_list:
-                    Thread(target=update_mulfirmware, args=(self._imgfile, _port[0][0], _port[1])).start()
+                Thread(target=update_mulfirmware, args=(self._imgfile, _port[0][0], _port[1])).start()
 
             self.FileTrans.start(1200)
             self.file_transbar.setValue(0)
@@ -783,6 +787,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.send_ggaTimer.stop()
         self.NtripReconTimer.stop()
         self.set_ntrip_params(True)
+        self.progressBar.setValue(0)
         self.pushButton_conn.setText(CONNECT)
 
     # flush recorded nmea file
@@ -819,14 +824,78 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             over_write = QMessageBox.Yes
 
         if over_write == QMessageBox.Yes:
+            # got_rmc = False
             fo = open(fnkml, 'w')
+
+            # line_10head = ""
+            # _f = open(fn, 'r', encoding='utf-8')
+            # for i in range(20):
+            #     line_10head += _f.readline().strip('\n').split(',')[0]
+            # if any(rmc in line_10head for rmc in ("$GNRMC", "$GPRMC")):
+            #     got_rmc = True
+            # _f.close()
+
             with open(fn, 'r', encoding='utf-8') as f:
-                coords = nmeaFileToCoords(f, header)
-                kml_str = genKmlStr(coords, header)
+                coords = nmeaFileToCoords(f, header, False)
+                kml_str = genKmlStr(coords, header, False)
+
             fo.write(kml_str)
+            fo.flush()
             fo.close()
 
-            QMessageBox.information(self, "Info", f"file {fn} done")
+            _info = self.ana_nmea(coords, header)
+            QMessageBox.information(self, "Info", f"{fnkml} done\n"
+                                                  f"Statistics\n{_info}")
+
+    def ana_nmea(self, nmea, header):
+        # gga analysis
+        cnt = 0
+        sol = {'0': 0, '1': 0, '2': 0, '4': 0, '5': 0, '6': 0}
+        tofo, tolo = '', ''
+        if header == 'GGA':
+            for utc, val in nmea.items():
+                val_len = len(val)
+                # first and last obs time
+                if cnt == 0:
+                    tofo = utc
+                tolo = utc
+                # solution stat statistics
+                cnt += 1
+                if val_len == 10:
+                    stat = val[7]
+                else:
+                    stat = val[3]
+                sol[stat] += 1
+        else:
+            for utc, val in nmea.items():
+                # first and last obs time
+                if cnt == 0:
+                    tofo = utc
+                tolo = utc
+                # solution stat statistics
+                cnt += 1
+                sol[val[3]] += 1
+        spp_ratio = "{:4.1f}".format(100 * sol['1'] / cnt)
+        dgps_ratio = "{:4.1f}".format(100 * sol['2'] / cnt)
+        fix_ratio = "{:4.1f}".format(100 * sol['4'] / cnt)
+        float_ratio = "{:4.1f}".format(100 * sol['5'] / cnt)
+        dr_ratio = "{:4.1f}".format(100 * sol['6'] / cnt)
+        if header == 'GGA':
+            stofo = tofo[:2] + ':' + tofo[2:4] + ':' + tofo[4:]
+            stolo = tolo[:2] + ':' + tolo[2:4] + ':' + tolo[4:]
+            ts = datetime.strptime(tolo, '%H%M%S.%f') - datetime.strptime(tofo, '%H%M%S.%f')
+        else:
+            tofo_list = tofo.split()
+            tolo_list = tolo.split()
+            stofo = tofo_list[0] + ' ' + tofo_list[1][:2] + ':' + tofo_list[1][2:4] + ':' + tofo_list[1][4:]
+            stolo = tolo_list[0] + ' ' + tolo_list[1][:2] + ':' + tolo_list[1][2:4] + ':' + tolo_list[1][4:]
+            ts = datetime.strptime(tolo, '%m/%d/%Y %H%M%S.%f') - datetime.strptime(tofo, '%m/%d/%Y %H%M%S.%f')
+
+        s = f"Total points: {cnt}\n" \
+            f"Time(UTC): {stofo} - {stolo}, duration {ts} \n" \
+            f"Solution state: SPP {sol['1']}({spp_ratio}%), DGPS {sol['2']}({dgps_ratio}%)\n" \
+            f"FIX {sol['4']}({fix_ratio}%), FLOAT {sol['5']}({float_ratio}%), DR {sol['6']}({dr_ratio}%)"
+        return s
 
     # def devmap(self, fn):
     #     if fn is None:

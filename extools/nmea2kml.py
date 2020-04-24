@@ -10,17 +10,16 @@
 @author: Chey
 """
 from extools import nmeagram
+from collections import defaultdict, namedtuple
 
 ###################################################################
 HEADKML1 = """<?xml version="1.0" encoding="UTF-8"?>"""
-HEADKML2 = """<kml xmlns="http://www.opengis.net/kml/2.2">"""
-MARKICNO = """http://maps.google.com/mapfiles/kml/pal5/icon13.png"""
+HEADKML2 = """<kml xmlns="http://earth.google.com/kml/2.2">"""
+MARKICNO = """http://earth.google.com/images/kml-icons/track-directional/track-0.png"""
 
-START = """http://maps.google.com/mapfiles/kml/paddle/S.png"""
-END = """http://maps.google.com/mapfiles/kml/paddle/E.png"""
 
-COLMAPKML = {0: "ff000000", 1: "ff000000", 3: "ff800080", 2: "ff00ff00", 4: "ffff0000", 5: "ff0000ff", 6: "ff00ffff",
-             8: "ffffffff", 9: "ffffffff"}
+COLMAPKML = {0: "ffc0c0c0", 1: "AF000000", 3: "ffff9600", 2: "AF00FF00", 4: "AFFF0000", 5: "AF0000FF", 6: "AF00FFFF",
+             8: "afffffff", 9: "afffffff"}
 
 BRIEFDESP = {'0': "Sorry! invalid solution", '1': "Oops! single point solution", '3': "What the f**k ?",
              '2': "Good! cors data valid at least", '4': "Excellent! fixed solution", '5': "Nice! float solution",
@@ -29,245 +28,241 @@ BRIEFDESP = {'0': "Sorry! invalid solution", '1': "Oops! single point solution",
 
 ###################################################################
 
-def genKmlHeader ():
+def genKmlHeader():
     s = ''
     s += f"""{HEADKML1}\n{HEADKML2}\n"""
     s += f"""<Document>\n"""
-    for i in range (7):
+    for i in range(7):
         s += f"""<Style id="P{i}">\n"""
-        s += f"""  <IconStyle>\n"""
-        s += f"""    <color>{COLMAPKML[i]}</color>\n"""
-        s += f"""    <scale>{0.5}</scale>\n"""
-        s += f"""    <Icon><href>{MARKICNO}</href></Icon>\n"""
-        s += f"""  </IconStyle>\n"""
+        s += f"""<IconStyle>\n"""
+        s += f"""<color>{COLMAPKML[i]}</color>\n"""
+        s += f"""<scale>{0.7}</scale>\n"""
+        s += f"""<Icon><href>{MARKICNO}</href></Icon>\n"""
+        s += f"""</IconStyle>\n"""
+        s += f"""<LabelStyle><scale>0</scale></LabelStyle>"""
+        s += f"""<BalloonStyle>
+			<bgColor>ffd5f3fa</bgColor>
+			<text><![CDATA[<b><font color="#CC0000" size="+3">$[name]</font></b><br>$[description]</font><br/>]]></text>
+		    </BalloonStyle>"""
         s += f"""</Style>\n"""
-    s += f"""<Style id="P{8}">\n"""
-    s += f"""  <IconStyle>\n"""
-    s += f"""    <color>{COLMAPKML[8]}</color>\n"""
-    s += f"""    <scale>{1.5}</scale>\n"""
-    s += f"""    <Icon><href>{START}</href></Icon>\n"""
-    s += f"""  </IconStyle>\n"""
-    s += f"""</Style>\n"""
-
-    s += f"""<Style id="P{9}">\n"""
-    s += f"""  <IconStyle>\n"""
-    s += f"""    <color>{COLMAPKML[9]}</color>\n"""
-    s += f"""    <scale>{1.5}</scale>\n"""
-    s += f"""    <Icon><href>{END}</href></Icon>\n"""
-    s += f"""  </IconStyle>\n"""
-    s += f"""</Style>\n"""
 
     return s
 
 
-def genKmlTrack (llh, header):
+def genKmlTrack(llh: dict, header: str)->str:
     s = ''
     s += f"""<Placemark>\n"""
     s += f"""<name>Rover Track</name>\n"""
     s += f"""<Style>\n"""
     s += f"""<LineStyle>\n"""
     s += f"""<color>{COLMAPKML[2]}</color>\n"""
-    s += f"""<width>1.2</width>\n"""
+    s += f"""<width>1.0</width>\n"""
     s += f"""</LineStyle>\n"""
     s += f"""</Style>\n"""
     s += f"""<LineString>\n"""
     s += f"""<coordinates>\n"""
 
-    if header == 'GGA':
-        data_len = len (llh) // 7
-        for i in range (data_len):
-            s += f"""{llh[i * 7]},{llh[i * 7 + 1]},{0} """
-    if header == 'FMI':
-        data_len = len (llh) // 13
-        for i in range (data_len):
-            s += f"""{llh[i * 13]},{llh[i * 13 + 1]},{0} """
+    for utc, val in llh.items():
+        if len(val) == 10:
+            s += f"""{val[4]},{val[5]},{0} """
+        else:
+            s += f"""{val[0]},{val[1]},{0} """
+
     s += f"""</coordinates>\n"""
     s += f"""</LineString>\n"""
     s += f"""</Placemark>\n"""
     return s
 
 
-def genKmlPoint (llh, header):
+def genKmlPoint(llh: dict, header: str)->str:
+    s = ''
+    i = 1
     if header == 'GGA':
-        s = ''
-        data_len = len (llh) // 7
-        i = 0
-        s += f"""<Placemark>\n"""
-        s += f"""<description><![CDATA[Point #{i}, {BRIEFDESP[llh[i * 7 + 4]]}\n<table border=1>
-            <tr><td>Time </td><td>{llh[i * 7 + 3]}</td><td>     </td><td></td></tr>
-            <tr><td>Lat  </td><td>{llh[i * 7 + 1]}</td><td>Stat </td><td>{llh[i * 7 + 4]}</td></tr>
-            <tr><td>Lon  </td><td>{llh[i * 7]}    </td><td>nSats</td><td>{llh[i * 7 + 5]}</td></tr>
-            <tr><td>Alt  </td><td>{llh[i * 7 + 2]}</td><td>dAge </td><td>{llh[i * 7 + 6]}</td></tr>
-            </table>]]></description>\n"""
-        s += f"""<styleUrl>#P{8}</styleUrl>\n"""
-        s += f"""<Point>\n"""
-        s += f"""<coordinates>{llh[i * 7]},{llh[i * 7 + 1]},{0}</coordinates>\n"""
-        s += f"""</Point>\n"""
-        s += f"""</Placemark>\n"""
-
-        for i in range (1, data_len - 1):
+        for utc, val in llh.items():
+            ln = len(val)
             s += f"""<Placemark>\n"""
-            s += f"""<description><![CDATA[Point #{i}, {BRIEFDESP[llh[i * 7 + 4]]}\n<table border=1>
-                <tr><td>Time </td><td>{llh[i * 7 + 3]}</td><td>     </td><td></td></tr>
-                <tr><td>Lat  </td><td>{llh[i * 7 + 1]}</td><td>Stat </td><td>{llh[i * 7 + 4]}</td></tr>
-                <tr><td>Lon  </td><td>{llh[i * 7]}    </td><td>nSats</td><td>{llh[i * 7 + 5]}</td></tr>
-                <tr><td>Alt  </td><td>{llh[i * 7 + 2]}</td><td>dAge </td><td>{llh[i * 7 + 6]}</td></tr>
-                </table>]]></description>\n"""
-            s += f"""<styleUrl>#P{int (llh[i * 7 + 4])}</styleUrl>\n"""
+            s += f"""<name>FMI Point {i}</name>"""
+            if ln == 9:
+                d = val[-1]
+                s += f"""<TimeStamp><when>{d[2:4]}/{d[:2]}/{d[-2:]}T{utc}Z</when></TimeStamp>\n"""
+            elif ln == 10:
+                d = val[2]
+                s += f"""<TimeStamp><when>{d[2:4]}/{d[:2]}/{d[-2:]}T{utc}Z</when></TimeStamp>\n"""
+            else:
+                s += f"""<TimeStamp><when>{utc}TZ</when></TimeStamp>\n"""
+
+            s += f"""<Snippet></Snippet>\n"""
+
+            if ln == 10:
+                s += f"""<description><![CDATA[{BRIEFDESP[val[7]]}\n<TABLE border="1" width="100%" 
+                            Align="center">\n"""
+            else:
+                s += f"""<description><![CDATA[FMI Point {i} {BRIEFDESP[val[3]]}\n<TABLE border="1" width="100%" 
+                            Align="center">\n"""
+            if ln == 9:
+                d = val[-1]
+                s += f"""
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Time </td><td>{utc}</td><td>Date </td><td>{d[2:4]}/{d[:2]}/{d[-2:]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lat  </td><td>{val[1]}</td><td>Stat </td><td>{val[3]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lon  </td><td>{val[0]}</td><td>nSats</td><td>{val[4]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Alt  </td><td>{val[2]}</td><td>dAge </td><td>{val[5]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Speed</td><td>{val[-3]*0.514}</td><td>head </td><td>{val[-2]}</td></tr>
+                     </table>]]></description>\n"""
+            elif ln == 10:
+                d = val[2]
+                s += f"""
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Time </td><td>{utc}</td><td>Date </td><td>{d[2:4]}/{d[:2]}/{d[-2:]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lat  </td><td>{val[5]}</td><td>Stat </td><td>{val[7]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lon  </td><td>{val[4]}</td><td>nSats</td><td>{val[8]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Alt  </td><td>{val[6]}</td><td>dAge </td><td>{val[9]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Speed</td><td>{val[0]*0.514}</td><td>head </td><td>{val[1]}</td></tr>
+                     </table>]]></description>\n"""
+            else:
+                s += f"""
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Time </td><td>{utc}</td><td>Date </td><td></td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lat  </td><td>{val[1]}</td><td>Stat </td><td>{val[3]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lon  </td><td>{val[0]}</td><td>nSats</td><td>{val[4]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Alt  </td><td>{val[2]}</td><td>dAge </td><td>{val[5]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Speed</td><td></td><td>head </td><td></td></tr>
+                     </table>]]></description>\n"""
+
+            if ln == 10:
+                s += f"""<styleUrl>#P{int(val[7])}</styleUrl>\n"""
+            else:
+                s += f"""<styleUrl>#P{int(val[3])}</styleUrl>\n"""
+
+            if ln == 9:
+                s += f"""<Style><IconStyle><heading>{val[-2]}</heading></IconStyle></Style>\n"""
+            elif ln == 10:
+                s += f"""<Style><IconStyle><heading>{val[1]}</heading></IconStyle></Style>\n"""
+            else:
+                s += f"""<Style><IconStyle><heading>0</heading></IconStyle></Style>\n"""
             s += f"""<Point>\n"""
-            s += f"""<coordinates>{llh[i * 7]},{llh[i * 7 + 1]},{0}</coordinates>\n"""
+
+            if ln == 10:
+                s += f"""<coordinates>{val[4]},{val[5]},{0}</coordinates>\n"""
+            else:
+                s += f"""<coordinates>{val[0]},{val[1]},{0}</coordinates>\n"""
             s += f"""</Point>\n"""
             s += f"""</Placemark>\n"""
+            i += 1
 
-        i = data_len - 1
-        s += f"""<Placemark>\n"""
-        s += f"""<description><![CDATA[Point #{i}, {BRIEFDESP[llh[i * 7 + 4]]}\n<table border=1>
-            <tr><td>Time </td><td>{llh[i * 7 + 3]}</td><td>     </td><td></td></tr>
-            <tr><td>Lat  </td><td>{llh[i * 7 + 1]}</td><td>Stat </td><td>{llh[i * 7 + 4]}</td></tr>
-            <tr><td>Lon  </td><td>{llh[i * 7]}    </td><td>nSats</td><td>{llh[i * 7 + 5]}</td></tr>
-            <tr><td>Alt  </td><td>{llh[i * 7 + 2]}</td><td>dAge </td><td>{llh[i * 7 + 6]}</td></tr>
-            </table>]]></description>\n"""
-        s += f"""<styleUrl>#P{9}</styleUrl>\n"""
-        s += f"""<Point>\n"""
-        s += f"""<coordinates>{llh[i * 7]},{llh[i * 7 + 1]},{0}</coordinates>\n"""
-        s += f"""</Point>\n"""
-        s += f"""</Placemark>\n"""
     if header == 'FMI':
-        s = ''
-        data_len = len (llh) // 13
-        i = 0
-        s += f"""<Placemark>\n"""
-        s += f"""<description><![CDATA[Point #{i}, {BRIEFDESP[llh[i * 13 + 4]]}\n<table border=1>
-            <tr><td>Time </td><td>{llh[i * 13 + 3]}</td><td>     </td><td></td></tr>
-            <tr><td>Lat  </td><td>{llh[i * 13 + 1]}</td><td>Stat </td><td>{llh[i * 13 + 4]}</td></tr>
-            <tr><td>Lon  </td><td>{llh[i * 13]}    </td><td>nSats</td><td>{llh[i * 13 + 5]}</td></tr>
-            <tr><td>Alt  </td><td>{llh[i * 13 + 2]}</td><td>Bl   </td><td>{llh[i * 13 + 12]}</td></tr>
-            <tr><td>Roll </td><td>{llh[i * 13 + 6]}</td><td>Vn   </td><td>{llh[i * 13 + 9]}</td></tr>
-            <tr><td>Pitch</td><td>{llh[i * 13 + 7]}</td><td>Ve   </td><td>{llh[i * 13 + 10]}</td></tr>
-            <tr><td>Yaw  </td><td>{llh[i * 13 + 8]}</td><td>Vu   </td><td>{llh[i * 13 + 11]}</td></tr>
-            </table>]]></description>\n"""
-        s += f"""<styleUrl>#P{8}</styleUrl>\n"""
-        s += f"""<Point>\n"""
-        s += f"""<coordinates>{llh[i * 13]},{llh[i * 13 + 1]},{0}</coordinates>\n"""
-        s += f"""</Point>\n"""
-        s += f"""</Placemark>\n"""
-
-        for i in range (1, data_len - 1):
+        for utc, val in llh.items():
             s += f"""<Placemark>\n"""
-            s += f"""<description><![CDATA[Point #{i}, {BRIEFDESP[llh[i * 13 + 4]]}\n<table border=1>
-                <tr><td>Time </td><td>{llh[i * 13 + 3]}</td><td>     </td><td></td></tr>
-                <tr><td>Lat  </td><td>{llh[i * 13 + 1]}</td><td>Stat </td><td>{llh[i * 13 + 4]}</td></tr>
-                <tr><td>Lon  </td><td>{llh[i * 13]}    </td><td>nSats</td><td>{llh[i * 13 + 5]}</td></tr>
-                <tr><td>Alt  </td><td>{llh[i * 13 + 2]}</td><td>Bl   </td><td>{llh[i * 13 + 12]}</td></tr>
-                <tr><td>Roll </td><td>{llh[i * 13 + 6]}</td><td>Vn   </td><td>{llh[i * 13 + 9]}</td></tr>
-                <tr><td>Pitch</td><td>{llh[i * 13 + 7]}</td><td>Ve   </td><td>{llh[i * 13 + 10]}</td></tr>
-                <tr><td>Yaw  </td><td>{llh[i * 13 + 8]}</td><td>Vu   </td><td>{llh[i * 13 + 11]}</td></tr>
+            s += f"""<name>FMI Point {i}</name>"""
+            s += f"""<TimeStamp><when>{utc}TZ</when></TimeStamp>\n"""
+            s += f"""<Snippet></Snippet>\n"""
+
+            s += f"""<description><![CDATA[{BRIEFDESP[val[3]]}\n<table border=1>
+                <tr ALIGN=RIGHT><td ALIGN=LEFT>Time </td><td>{utc}</td><td>     </td><td></td></tr>
+                <tr ALIGN=RIGHT><td ALIGN=LEFT>Week </td><td>{val[12]}</td><td>SoW  </td><td>{val[13]}</td></tr>
+                <tr ALIGN=RIGHT><td ALIGN=LEFT>Lat  </td><td>{val[1]}</td><td>Stat </td><td>{val[3]}</td></tr>
+                <tr ALIGN=RIGHT><td ALIGN=LEFT>Lon  </td><td>{val[0]}</td><td>nSats</td><td>{val[4]}</td></tr>
+                <tr ALIGN=RIGHT><td ALIGN=LEFT>Alt  </td><td>{val[2]}</td><td>BaseL</td><td>{val[11]}</td></tr>
+                <tr ALIGN=RIGHT><td ALIGN=LEFT>Roll </td><td>{val[5]}</td><td>Vn   </td><td>{val[8]}</td></tr>
+                <tr ALIGN=RIGHT><td ALIGN=LEFT>Pitch</td><td>{val[6]}</td><td>Ve   </td><td>{val[9]}</td></tr>
+                <tr ALIGN=RIGHT><td ALIGN=LEFT>Yaw  </td><td>{val[7]}</td><td>Vu   </td><td>{val[10]}</td></tr>
                 </table>]]></description>\n"""
-            s += f"""<styleUrl>#P{int (llh[i * 13 + 4])}</styleUrl>\n"""
+            s += f"""<styleUrl>#P{int(val[3])}</styleUrl>\n"""
+            s += f"""<Style><IconStyle><heading>{val[7]}</heading></IconStyle></Style>\n"""
             s += f"""<Point>\n"""
-            s += f"""<coordinates>{llh[i * 13]},{llh[i * 13 + 1]},{0}</coordinates>\n"""
+            s += f"""<coordinates>{val[0]},{val[1]},{0}</coordinates>\n"""
             s += f"""</Point>\n"""
             s += f"""</Placemark>\n"""
-
-        i = data_len - 1
-        s += f"""<Placemark>\n"""
-        s += f"""<description><![CDATA[Point #{i}, {BRIEFDESP[llh[i * 13 + 4]]}\n<table border=1>
-            <tr><td>Time </td><td>{llh[i * 13 + 3]}</td><td>     </td><td></td></tr>
-            <tr><td>Lat  </td><td>{llh[i * 13 + 1]}</td><td>Stat </td><td>{llh[i * 13 + 4]}</td></tr>
-            <tr><td>Lon  </td><td>{llh[i * 13]}    </td><td>nSats</td><td>{llh[i * 13 + 5]}</td></tr>
-            <tr><td>Alt  </td><td>{llh[i * 13 + 2]}</td><td>Bl   </td><td>{llh[i * 13 + 12]}</td></tr>
-            <tr><td>Roll </td><td>{llh[i * 13 + 6]}</td><td>Vn   </td><td>{llh[i * 13 + 9]}</td></tr>
-            <tr><td>Pitch</td><td>{llh[i * 13 + 7]}</td><td>Ve   </td><td>{llh[i * 13 + 10]}</td></tr>
-            <tr><td>Yaw  </td><td>{llh[i * 13 + 8]}</td><td>Vu   </td><td>{llh[i * 13 + 11]}</td></tr>
-            </table>]]></description>\n"""
-        s += f"""<styleUrl>#P{9}</styleUrl>\n"""
-        s += f"""<Point>\n"""
-        s += f"""<coordinates>{llh[i * 13]},{llh[i * 13 + 1]},{0}</coordinates>\n"""
-        s += f"""</Point>\n"""
-        s += f"""</Placemark>\n"""
+            i += 1
     return s
 
 
-def genKmlRear ():
+def genKmlRear()->str:
     s = ''
     s += f"""</Document>\n"""
     s += f"""</kml>"""
     return s
 
 
-def genKmlStr (points, header):
-    s = genKmlHeader ()
-    s += genKmlTrack (points, header)
-    s += genKmlPoint (points, header)
-    s += genKmlRear ()
+def genKmlStr(points, header, hasrmc=False)->str:
+    s = genKmlHeader()
+    s += genKmlTrack(points, header)
+    s += genKmlPoint(points, header)
+    s += genKmlRear()
     return s
 
 
-def nmeaFileToCoords (f, header):
+def nmeaFileToCoords(f, header: str, hasrmc=False)->dict:
     """Read a file full of NMEA sentences and return a string of lat/lon/z
     coordinates.  'z' is often 0.
     """
-    data = []
-    data_append = data.append
-    for line in f.readlines ():
+    data = defaultdict(list)
+    for line in f.readlines():
         if header == 'GGA':
             if line.startswith(("$GNGGA", "$GPGGA")):
-                nmeagram.parseLine (line)
-                data_append (nmeagram.getField ("Longitude"))
-                data_append (nmeagram.getField ("Latitude"))
-                data_append (nmeagram.getField ("MslAltitude"))
-                data_append (nmeagram.getField ("UtcTime"))
-                data_append (nmeagram.getField ("PositionFix"))
-                data_append (nmeagram.getField ("SatellitesUsed"))
-                data_append (nmeagram.getField ("AgeOfDiffCorr"))
-        elif header == 'FMI':
-            if line.startswith("$GPFMI"):
-                nmeagram.parseLine (line)
-                data_append (nmeagram.getField ("Longitude"))
-                data_append (nmeagram.getField ("Latitude"))
-                data_append (nmeagram.getField ("MslAltitude"))
-                data_append (nmeagram.getField ("UtcTime"))
-                data_append (nmeagram.getField ("PositionFix"))
-                data_append (nmeagram.getField ("SatellitesUsed"))
-                data_append (nmeagram.getField ("roll"))
-                data_append (nmeagram.getField ("pitch"))
-                data_append (nmeagram.getField ("yaw"))
-                data_append (nmeagram.getField ("vn"))
-                data_append (nmeagram.getField ("ve"))
-                data_append (nmeagram.getField ("vu"))
-                data_append (nmeagram.getField ("bl"))
+                nmeagram.parseLine(line)
+                utc = nmeagram.getField('UtcTime')
+                if utc in data.keys(): # if gga first len = 9 else len = 10
+                    data[utc].append(True)
+                data[utc].append(nmeagram.getField("Longitude"))
+                data[utc].append(nmeagram.getField("Latitude"))
+                data[utc].append(nmeagram.getField("MslAltitude"))
+                data[utc].append(nmeagram.getField("PositionFix"))
+                data[utc].append(nmeagram.getField("SatellitesUsed"))
+                data[utc].append(nmeagram.getField("AgeOfDiffCorr"))
+            elif line.startswith(("$GNRMC", "$GPRMC")):
+                nmeagram.parseLine(line)
+                utc = nmeagram.getField('UtcTime')
+                data[utc].append(nmeagram.getField("SpeedOverGround"))
+                data[utc].append(nmeagram.getField("CourseOverGround"))
+                data[utc].append(nmeagram.getField("Date"))
 
+        elif header == 'FMI':
+            if line.startswith(("$GPFMI", "$GPFPD")):
+                nmeagram.parseLine(line)
+                utc = nmeagram.getField('UtcTime')
+                data[utc].append(nmeagram.getField("Longitude"))
+                data[utc].append(nmeagram.getField("Latitude"))
+                data[utc].append(nmeagram.getField("MslAltitude"))
+                data[utc].append(nmeagram.getField("PositionFix"))
+                data[utc].append(nmeagram.getField("SatellitesUsed"))
+                data[utc].append(nmeagram.getField("roll"))
+                data[utc].append(nmeagram.getField("pitch"))
+                data[utc].append(nmeagram.getField("yaw"))
+                data[utc].append(nmeagram.getField("vn"))
+                data[utc].append(nmeagram.getField("ve"))
+                data[utc].append(nmeagram.getField("vu"))
+                data[utc].append(nmeagram.getField("bl"))
+                data[utc].append(nmeagram.getField("week"))
+                data[utc].append(nmeagram.getField("sow"))
     return data
 
 
-def nmeaFileTodev (f):
+def nmeaFileTodev(f):
     """Read a file full of NMEA sentences and return a string of lat/lon/z
     coordinates.  'z' is often 0.
     """
     data = []
     data_append = data.append
-    for line in f.readlines ():
+    for line in f.readlines():
         if line[:6] in ("$GNGGA", "$GPGGA"):
-            nmeagram.parseLine (line)
-            data_append (nmeagram.getField ("Latitude"))
-            data_append (nmeagram.getField ("Longitude"))
-            data_append (nmeagram.getField ("SatellitesUsed"))
+            nmeagram.parseLine(line)
+            data_append(nmeagram.getField("Latitude"))
+            data_append(nmeagram.getField("Longitude"))
+            data_append(nmeagram.getField("SatellitesUsed"))
 
     return data
 
 
-def main ():
+def main():
     fn = "../NMEA/20191220.txt"
-    fo = open (fn + '.kml', 'w')
+    fo = open(fn + '.kml', 'w')
 
-    fi = open (fn, 'r', encoding='utf-8')
-    coords = nmeaFileToCoords (fi, 'GGA')
-    kml_str = genKmlStr (coords, 'GGA')
+    fi = open(fn, 'r', encoding='utf-8')
+    coords = nmeaFileToCoords(fi, 'GGA')
+    kml_str = genKmlStr(coords, 'GGA')
 
-    fo.write (kml_str)
-    fi.close ()
-    fo.close ()
+    fo.write(kml_str)
+    fi.close()
+    fo.close()
 
 
 if __name__ == "__main__":
-    main ()
+    main()
