@@ -48,7 +48,7 @@ SERIAL_SET = [None, None, None, None]
 LABEL_SHOW_LIST = [None, None, None, None]
 FIRM_UPDATE_LIST = [False, False, False, False]
 
-COLOR_TAB = {'0': 'gray', '1': 'red', '2': 'pink', '3': 'black', '4': 'green', '5': 'blue', '6': 'cyan'}
+COLOR_TAB = {'0': 'gray', '1': 'red', '2': '#55aaff', '3': 'black', '4': 'green', '5': 'blue', '6': '#ff55ff'}
 
 
 ###################################################################
@@ -279,10 +279,13 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
                 stat = "{0:8s},{1:2d},{2:1d},{3:<3s}".format(now, int(nsats), int(solstat), dage)
                 self.LEstat[n].setText(stat)
 
-                if float(dage) > 60:
-                    bg = 'light red'
+
+                if float(dage) > 30:
+                    self.LEstat[n].setStyleSheet('background-color:#ff557f; color:white')
                 else:
-                    bg = COLOR_TAB[solstat]
+                    self.LEstat[n].setStyleSheet('background-color:white; color:black')
+
+                bg = COLOR_TAB[solstat]
                 self.LEllh[n].setStyleSheet('background-color:' + bg + '; color:white')
 
                 llh = "{0:10s},{1:11s},{2:5s}".format(latdm, londm, hgt)
@@ -518,6 +521,15 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self.lineEdit_sats.setText(nsats)
                 self.lineEdit_time.setText(now)
                 self.lineEdit_dage.setText(dage)
+                dage = dage if dage != '' else '0'
+                if float(dage) > 30:
+                    self.lineEdit_dage.setStyleSheet('background-color:#ff557f;color:white')
+                else:
+                    self.lineEdit_dage.setStyleSheet('background-color:white;color:black')
+                if int(nsats) < 5:
+                    self.lineEdit_sats.setStyleSheet('background-color:#ff5500;color:white')
+                else:
+                    self.lineEdit_sats.setStyleSheet('background-color:white;color:black')
             else:
                 pass  # lat, lon not a float string
 
