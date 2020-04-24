@@ -15,11 +15,10 @@ from collections import defaultdict, namedtuple
 ###################################################################
 HEADKML1 = """<?xml version="1.0" encoding="UTF-8"?>"""
 HEADKML2 = """<kml xmlns="http://earth.google.com/kml/2.2">"""
-MARKICNO = """http://earth.google.com/images/kml-icons/track-directional/track-0.png"""
+MARKICNO = """http://maps.google.com/mapfiles/kml/shapes/airports.png"""
 
-
-COLMAPKML = {0: "ffc0c0c0", 1: "AF000000", 3: "ffff9600", 2: "AF00FF00", 4: "AFFF0000", 5: "AF0000FF", 6: "AF00FFFF",
-             8: "afffffff", 9: "afffffff"}
+COLMAPKML = {0: "9fc0c0c0", 1: "9F000000", 3: "9fff9600", 2: "9F00FF00", 4: "9FFF0000", 5: "9F0000FF", 6: "9F00FFFF",
+             8: "9fffffff", 9: "9fffffff"}
 
 BRIEFDESP = {'0': "Sorry! invalid solution", '1': "Oops! single point solution", '3': "What the f**k ?",
              '2': "Good! cors data valid at least", '4': "Excellent! fixed solution", '5': "Nice! float solution",
@@ -32,6 +31,21 @@ def genKmlHeader():
     s = ''
     s += f"""{HEADKML1}\n{HEADKML2}\n"""
     s += f"""<Document>\n"""
+    # s += f"""<Folder id="ID1">
+    #         <name>Screen Overlays</name>
+    #         <visibility>0</visibility>
+    #         <open>0</open>
+	# 	    <ScreenOverlay>
+	# 		<name>FMI Logo</name>
+	# 		<visibility>1</visibility>
+	# 		<Icon>
+	# 			<href>https://www.bing.com/images/search?view=detailV2&ccid=XOIk2Gql&id=0ABD1AEF24B2D573AEDEC25102030C07AAA4AB74&thid=OIP.XOIk2GqlrR_EcPJauMJ1awAAAA&mediaurl=https%3A%2F%2Fmedia.licdn.com%2Fdms%2Fimage%2FC4D0BAQFmI01aNmGBTw%2Fcompany-logo_200_200%2F0%3Fe%3D2159024400&v=beta&t=yuojs1saVS8rWeqt7wYe-S0DhBQgxkL3fvTlj_J-q-w&exph=200&expw=200&q=Logo+FMI+Engineering&simid=608047655134432105&selectedindex=0&adlt=strict&shtp=GetUrl&shid=18d71d22-3a06-4d20-ae72-262b1b63ae11&shtk=Rk1JIEVuZ2luZWVyaW5nIEJWIHwgTGlua2VkSW4%3D&shdk=Rm91bmQgb24gQmluZyBmcm9tIG5sLmxpbmtlZGluLmNvbQ%3D%3D&shhk=WFV8hGP7qOS9GsBGDpGFZ1kDZNtimElXP0E9BlZEeF8%3D&ensearch=1&form=EX0023&shth=OSH.Z6FutzKfGWzualgTBP6V6Q</href>
+	# 		</Icon>
+	# 		<overlayXY x="0" y="-1" xunits="fraction" yunits="fraction"/>
+	# 		<screenXY x="0" y="0" xunits="fraction" yunits="fraction"/>
+	# 		<size x="237.0" y="81.0" xunits="pixels" yunits="pixels"/>
+	# 	</ScreenOverlay>
+    #     </Folder>"""
     for i in range(7):
         s += f"""<Style id="P{i}">\n"""
         s += f"""<IconStyle>\n"""
@@ -49,7 +63,7 @@ def genKmlHeader():
     return s
 
 
-def genKmlTrack(llh: dict, header: str)->str:
+def genKmlTrack(llh: dict, header: str) -> str:
     s = ''
     s += f"""<Placemark>\n"""
     s += f"""<name>Rover Track</name>\n"""
@@ -74,7 +88,7 @@ def genKmlTrack(llh: dict, header: str)->str:
     return s
 
 
-def genKmlPoint(llh: dict, header: str)->str:
+def genKmlPoint(llh: dict, header: str) -> str:
     s = ''
     i = 1
     if header == 'GGA':
@@ -106,7 +120,7 @@ def genKmlPoint(llh: dict, header: str)->str:
                      <tr ALIGN=RIGHT><td ALIGN=LEFT>Lat  </td><td>{val[1]}</td><td>Stat </td><td>{val[3]}</td></tr>
                      <tr ALIGN=RIGHT><td ALIGN=LEFT>Lon  </td><td>{val[0]}</td><td>nSats</td><td>{val[4]}</td></tr>
                      <tr ALIGN=RIGHT><td ALIGN=LEFT>Alt  </td><td>{val[2]}</td><td>dAge </td><td>{val[5]}</td></tr>
-                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Speed</td><td>{val[-3]*0.514}</td><td>head </td><td>{val[-2]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Speed</td><td>{val[-3] * 0.514}</td><td>head </td><td>{val[-2]}</td></tr>
                      </table>]]></description>\n"""
             elif ln == 10:
                 d = val[2]
@@ -115,7 +129,7 @@ def genKmlPoint(llh: dict, header: str)->str:
                      <tr ALIGN=RIGHT><td ALIGN=LEFT>Lat  </td><td>{val[5]}</td><td>Stat </td><td>{val[7]}</td></tr>
                      <tr ALIGN=RIGHT><td ALIGN=LEFT>Lon  </td><td>{val[4]}</td><td>nSats</td><td>{val[8]}</td></tr>
                      <tr ALIGN=RIGHT><td ALIGN=LEFT>Alt  </td><td>{val[6]}</td><td>dAge </td><td>{val[9]}</td></tr>
-                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Speed</td><td>{val[0]*0.514}</td><td>head </td><td>{val[1]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Speed</td><td>{val[0] * 0.514}</td><td>head </td><td>{val[1]}</td></tr>
                      </table>]]></description>\n"""
             else:
                 s += f"""
@@ -174,14 +188,14 @@ def genKmlPoint(llh: dict, header: str)->str:
     return s
 
 
-def genKmlRear()->str:
+def genKmlRear() -> str:
     s = ''
     s += f"""</Document>\n"""
     s += f"""</kml>"""
     return s
 
 
-def genKmlStr(points, header, hasrmc=False)->str:
+def genKmlStr(points, header, hasrmc=False) -> str:
     s = genKmlHeader()
     s += genKmlTrack(points, header)
     s += genKmlPoint(points, header)
@@ -189,7 +203,7 @@ def genKmlStr(points, header, hasrmc=False)->str:
     return s
 
 
-def nmeaFileToCoords(f, header: str, hasrmc=False)->dict:
+def nmeaFileToCoords(f, header: str, hasrmc=False) -> dict:
     """Read a file full of NMEA sentences and return a string of lat/lon/z
     coordinates.  'z' is often 0.
     """
@@ -199,7 +213,7 @@ def nmeaFileToCoords(f, header: str, hasrmc=False)->dict:
             if line.startswith(("$GNGGA", "$GPGGA")):
                 nmeagram.parseLine(line)
                 utc = nmeagram.getField('UtcTime')
-                if utc in data.keys(): # if gga first len = 9 else len = 10
+                if utc in data.keys():  # if gga first len = 9 else len = 10
                     data[utc].append(True)
                 data[utc].append(nmeagram.getField("Longitude"))
                 data[utc].append(nmeagram.getField("Latitude"))

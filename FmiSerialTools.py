@@ -16,6 +16,7 @@ from os import path, stat, makedirs
 from sys import argv, exit
 from threading import Thread
 from functools import partial
+import zipfile
 # from matplotlib.pyplot import figure, plot, title, xlabel, ylabel, show, grid, subplots, axhline
 
 import serial
@@ -145,7 +146,6 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
                 port.addItem(com)
 
     def create_items(self, nsers):
-        self._clear = [True for _ in range(4)]
         self._fh = [None for _ in range(4)]
         self._fn = ['' for _ in range(4)]
 
@@ -227,17 +227,13 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
 
             # decode received data
             data = data.decode("utf-8", "ignore")
-            if self._clear[n]:
-                self._text[n].clear()
-                self._clear[n] = False
             self._text[n].insertPlainText(data)
             self.LBshow[n].setText("serial recv...")
             # display info
             if data.startswith(('$GNGGA', '$GPGGA')):
-                try:
-                    self.disp_gga(data, n)
-                except Exception as e:
-                    print(f'{e}')
+                print(data)
+                self.disp_gga(data, n)
+
             else:
                 pass
 
@@ -467,10 +463,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.lineEdit_srx.setText(str(self._srxbs))
 
             if data.startswith(('$GNGGA', '$GPGGA')):
-                try:
-                    self.disp_gga(data)
-                except Exception as e:
-                    print(f'{e}')
+                self.disp_gga(data)
             elif data.startswith("$GPFMI"):
                 try:
                     self.disp_fmi(data)
