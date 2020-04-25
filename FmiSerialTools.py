@@ -122,7 +122,9 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
     def __init__(self, parent=None):
         global ENABLE_TOOL_BTN
         ENABLE_TOOL_BTN = False
+
         super(MultiSerial, self).__init__(parent)
+        self._exit = False
         self.setupUi(self)
         self.create_items(4)
         self.create_slots()
@@ -275,7 +277,6 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
                 stat = "{0:8s},{1:2d},{2:1d},{3:<3s}".format(now, int(nsats), int(solstat), dage)
                 self.LEstat[n].setText(stat)
 
-
                 if float(dage) > 30:
                     self.LEstat[n].setStyleSheet('background-color:#ff557f; color:white')
                 else:
@@ -294,8 +295,13 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
         txtup.moveCursor(QTextCursor.End)
 
     def closeEvent(self, event):
+        for f in self._fh:
+            if f is not None:
+                f.flush()
+
         global ENABLE_TOOL_BTN
         ENABLE_TOOL_BTN = True
+        self._exit = True
 
 
 ############################################################################################
@@ -386,6 +392,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.sock.connected.connect(self.sock_conn)
         self.sock.readyRead.connect(self.sock_recv)
 
+        #s serial received text changed
         self.textEdit_recv.textChanged.connect(self.text_recv_changed)
 
     def ser_refresh(self):
@@ -600,10 +607,30 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             if '>' in cmd:
                 _cmd, _port = cmd.strip("\r\n").split('>')
                 _cmd = _cmd.strip() + "\r\n"
-                _port = _port.strip()
+                _port = _port.strip().lower().split(',')
+
+                if _port[0] == 'all':
+                    _s = [s.port for s in SERIAL_SET if s is not None and s.isOpen]
+                    _ss = ', '.join(_s)
+                    ret = QMessageBox.information(self, "Info", f"send {_cmd} to {_ss}", QMessageBox.No,
+                        QMessageBox.Yes)
+                    if ret == QMessageBox.No:
+                        return
+
                 for s in SERIAL_SET:
-                    if s is not None and s.isOpen() and s.port != _port:
-                        s.write(_cmd.encode("utf-8", "ignore"))
+                    # support all serial port config
+                    if _port[0] == 'all':
+                        if s is not None and s.isOpen():
+                            s.write(_cmd.encode("utf-8", "ignore"))
+                    else:
+                        # port list must startswith 'com
+                        for p in _port:
+                            if not p.startswith('com'):
+                                QMessageBox.warning(self, "Warning", "cmd as: AT+THIS_PORT>coma,comb")
+                                return
+                        # config each specified serial port
+                        if s is not None and s.isOpen() and s.port.lower() in _port:
+                            s.write(_cmd.encode("utf-8", "ignore"))
             else:
                 if self.com.isOpen():
                     self.com.write(cmd.encode("utf-8", "ignore"))
@@ -745,7 +772,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.FileTrans.start(1200)
             self.file_transbar.setValue(0)
 
-
     def ShowFilepBarr(self):
         if SERIAL_WRITE_MUTEX:
             self.file_transbar.setValue(SEND_BYTES)
@@ -829,78 +855,68 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             over_write = QMessageBox.Yes
 
         if over_write == QMessageBox.Yes:
-            # got_rmc = False
+            info = ''
             fo = open(fnkml, 'w')
-
-            # line_10head = ""
-            # _f = open(fn, 'r', encoding='utf-8')
-            # for i in range(20):
-            #     line_10head += _f.readline().strip('\n').split(',')[0]
-            # if any(rmc in line_10head for rmc in ("$GNRMC", "$GPRMC")):
-            #     got_rmc = True
-            # _f.close()
-
             with open(fn, 'r', encoding='utf-8') as f:
-                coords = nmeaFileToCoords(f, header, False)
-                kml_str = genKmlStr(coords, header, False)
+                coords = nmeaFileToCoords(f, header)
+                kml_str, info = genKmlStr(coords, header)
 
             fo.write(kml_str)
             fo.flush()
             fo.close()
 
-            _info = self.ana_nmea(coords, header)
             QMessageBox.information(self, "Info", f"{fnkml} done\n"
-                                                  f"Statistics\n{_info}")
+                                                  f"Statistics\n{info}")
 
-    def ana_nmea(self, nmea, header):
-        # gga analysis
-        cnt = 0
-        sol = {'0': 0, '1': 0, '2': 0, '4': 0, '5': 0, '6': 0}
-        tofo, tolo = '', ''
-        if header == 'GGA':
-            for utc, val in nmea.items():
-                val_len = len(val)
-                # first and last obs time
-                if cnt == 0:
-                    tofo = utc
-                tolo = utc
-                # solution stat statistics
-                cnt += 1
-                if val_len == 10:
-                    stat = val[7]
-                else:
-                    stat = val[3]
-                sol[stat] += 1
-        else:
-            for utc, val in nmea.items():
-                # first and last obs time
-                if cnt == 0:
-                    tofo = utc
-                tolo = utc
-                # solution stat statistics
-                cnt += 1
-                sol[val[3]] += 1
-        spp_ratio = "{:4.1f}".format(100 * sol['1'] / cnt)
-        dgps_ratio = "{:4.1f}".format(100 * sol['2'] / cnt)
-        fix_ratio = "{:4.1f}".format(100 * sol['4'] / cnt)
-        float_ratio = "{:4.1f}".format(100 * sol['5'] / cnt)
-        dr_ratio = "{:4.1f}".format(100 * sol['6'] / cnt)
-        if header == 'GGA':
-            stofo = tofo[:2] + ':' + tofo[2:4] + ':' + tofo[4:]
-            stolo = tolo[:2] + ':' + tolo[2:4] + ':' + tolo[4:]
-            ts = datetime.strptime(tolo, '%H%M%S.%f') - datetime.strptime(tofo, '%H%M%S.%f')
-        else:
-            tofo_list = tofo.split()
-            tolo_list = tolo.split()
-            stofo = tofo_list[0] + ' ' + tofo_list[1][:2] + ':' + tofo_list[1][2:4] + ':' + tofo_list[1][4:]
-            stolo = tolo_list[0] + ' ' + tolo_list[1][:2] + ':' + tolo_list[1][2:4] + ':' + tolo_list[1][4:]
-            ts = datetime.strptime(tolo, '%m/%d/%Y %H%M%S.%f') - datetime.strptime(tofo, '%m/%d/%Y %H%M%S.%f')
-
-        s = f"Total points: {cnt}\n" \
-            f"Time(UTC): {stofo} - {stolo}, duration {ts} \n" \
-            f"Solution state: SPP {sol['1']}({spp_ratio}%), DGPS {sol['2']}({dgps_ratio}%)\n" \
-            f"FIX {sol['4']}({fix_ratio}%), FLOAT {sol['5']}({float_ratio}%), DR {sol['6']}({dr_ratio}%)"
-        return s
+    # def ana_nmea(self, nmea, header):
+    #     # gga analysis
+    #     cnt = 0
+    #     sol = {'0': 0, '1': 0, '2': 0, '4': 0, '5': 0, '6': 0}
+    #     tofo, tolo = '', ''
+    #     if header == 'GGA':
+    #         for utc, val in nmea.items():
+    #             val_len = len(val)
+    #             # first and last obs time
+    #             if cnt == 0:
+    #                 tofo = utc
+    #             tolo = utc
+    #             # solution stat statistics
+    #             cnt += 1
+    #             if val_len == 10:
+    #                 stat = val[7]
+    #             else:
+    #                 stat = val[3]
+    #             sol[stat] += 1
+    #     else:
+    #         for utc, val in nmea.items():
+    #             # first and last obs time
+    #             if cnt == 0:
+    #                 tofo = utc
+    #             tolo = utc
+    #             # solution stat statistics
+    #             cnt += 1
+    #             sol[val[3]] += 1
+    #     spp_ratio = "{:4.1f}".format(100 * sol['1'] / cnt)
+    #     dgps_ratio = "{:4.1f}".format(100 * sol['2'] / cnt)
+    #     fix_ratio = "{:4.1f}".format(100 * sol['4'] / cnt)
+    #     float_ratio = "{:4.1f}".format(100 * sol['5'] / cnt)
+    #     dr_ratio = "{:4.1f}".format(100 * sol['6'] / cnt)
+    #     if header == 'GGA':
+    #         stofo = tofo[:2] + ':' + tofo[2:4] + ':' + tofo[4:]
+    #         stolo = tolo[:2] + ':' + tolo[2:4] + ':' + tolo[4:]
+    #         ts = datetime.strptime(tolo, '%H%M%S.%f') - datetime.strptime(tofo, '%H%M%S.%f')
+    #     else:
+    #         tofo_list = tofo.split()
+    #         tolo_list = tolo.split()
+    #         stofo = tofo_list[0] + ' ' + tofo_list[1][:2] + ':' + tofo_list[1][2:4] + ':' + tofo_list[1][4:]
+    #         stolo = tolo_list[0] + ' ' + tolo_list[1][:2] + ':' + tolo_list[1][2:4] + ':' + tolo_list[1][4:]
+    #         ts = datetime.strptime(tolo, '%m/%d/%Y %H%M%S.%f') - datetime.strptime(tofo, '%m/%d/%Y %H%M%S.%f')
+    #
+    #     s = f"Total points: {cnt}\n" \
+    #         f"Time(UTC): {stofo} - {stolo}, duration {ts} \n" \
+    #         f"Solution state: SPP {sol['1']}({spp_ratio}%), DGPS {sol['2']}({dgps_ratio}%)\n" \
+    #         f"FIX {sol['4']}({fix_ratio}%), FLOAT {sol['5']}({float_ratio}%), DR {sol['6']}({dr_ratio}%)"
+    #     return s
 
     # def devmap(self, fn):
     #     if fn is None:

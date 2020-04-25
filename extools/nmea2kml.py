@@ -10,7 +10,8 @@
 @author: Chey
 """
 from extools import nmeagram
-from collections import defaultdict, namedtuple
+from datetime import datetime
+from collections import defaultdict
 
 ###################################################################
 HEADKML1 = """<?xml version="1.0" encoding="UTF-8"?>"""
@@ -89,11 +90,15 @@ def genKmlTrack(llh: dict, header: str) -> str:
 
 
 def genKmlPoint(llh: dict, header: str) -> str:
-    s = ''
     i = 1
+    s ,tofo, tolo = '', '', ''
+    sol = {'0': 0, '1': 0, '2': 0, '4': 0, '5': 0, '6': 0}
     if header == 'GGA':
         for utc, val in llh.items():
             ln = len(val)
+            # in-complate nmea info
+            if ln not in [6, 9, 10]: continue
+
             s += f"""<Placemark>\n"""
             s += f"""<name>FMI Point {i}</name>"""
             if ln == 9:
@@ -154,15 +159,24 @@ def genKmlPoint(llh: dict, header: str) -> str:
             s += f"""<Point>\n"""
 
             if ln == 10:
+                stat = val[7]
                 s += f"""<coordinates>{val[4]},{val[5]},{0}</coordinates>\n"""
             else:
+                stat = val[3]
                 s += f"""<coordinates>{val[0]},{val[1]},{0}</coordinates>\n"""
             s += f"""</Point>\n"""
             s += f"""</Placemark>\n"""
+            # nmea info statistics
+            if i == 1:
+                tofo = utc
+            tolo = utc
+            sol[stat] += 1
             i += 1
 
     if header == 'FMI':
         for utc, val in llh.items():
+
+            if len(val) != 14: continue
             s += f"""<Placemark>\n"""
             s += f"""<name>FMI Point {i}</name>"""
             s += f"""<TimeStamp><when>{utc}TZ</when></TimeStamp>\n"""
@@ -184,8 +198,35 @@ def genKmlPoint(llh: dict, header: str) -> str:
             s += f"""<coordinates>{val[0]},{val[1]},{0}</coordinates>\n"""
             s += f"""</Point>\n"""
             s += f"""</Placemark>\n"""
+            # nmea info statistics
+            if i == 1:
+                tofo = utc
+            tolo = utc
+            sol[val[3]] += 1
             i += 1
-    return s
+    if i > 1:
+        spp_ratio   = "{:4.1f}".format(100 * sol['1'] / (i-1))
+        dgps_ratio  = "{:4.1f}".format(100 * sol['2'] / (i-1))
+        fix_ratio   = "{:4.1f}".format(100 * sol['4'] / (i-1))
+        float_ratio = "{:4.1f}".format(100 * sol['5'] / (i-1))
+        dr_ratio    = "{:4.1f}".format(100 * sol['6'] / (i-1))
+        if header == 'GGA':
+            stofo = tofo[:2] + ':' + tofo[2:4] + ':' + tofo[4:]
+            stolo = tolo[:2] + ':' + tolo[2:4] + ':' + tolo[4:]
+            ts = datetime.strptime(tolo, '%H%M%S.%f') - datetime.strptime(tofo, '%H%M%S.%f')
+        else:
+            tofo_list = tofo.split()
+            tolo_list = tolo.split()
+            stofo = tofo_list[0] + ' ' + tofo_list[1][:2] + ':' + tofo_list[1][2:4] + ':' + tofo_list[1][4:]
+            stolo = tolo_list[0] + ' ' + tolo_list[1][:2] + ':' + tolo_list[1][2:4] + ':' + tolo_list[1][4:]
+            ts = datetime.strptime(tolo, '%m/%d/%Y %H%M%S.%f') - datetime.strptime(tofo, '%m/%d/%Y %H%M%S.%f')
+
+        info = f"Total points: {i-1}\n" \
+            f"Time(UTC): {stofo} - {stolo}, duration {ts} \n" \
+            f"Solution state: SPP {sol['1']}({spp_ratio}%), DGPS {sol['2']}({dgps_ratio}%)\n" \
+            f"FIX {sol['4']}({fix_ratio}%), FLOAT {sol['5']}({float_ratio}%), DR {sol['6']}({dr_ratio}%)"
+
+    return s, info
 
 
 def genKmlRear() -> str:
@@ -195,15 +236,16 @@ def genKmlRear() -> str:
     return s
 
 
-def genKmlStr(points, header, hasrmc=False) -> str:
+def genKmlStr(points, header) -> str:
     s = genKmlHeader()
     s += genKmlTrack(points, header)
-    s += genKmlPoint(points, header)
+    kml, info = genKmlPoint(points, header)
+    s += kml
     s += genKmlRear()
-    return s
+    return s, info
 
 
-def nmeaFileToCoords(f, header: str, hasrmc=False) -> dict:
+def nmeaFileToCoords(f, header: str) -> dict:
     """Read a file full of NMEA sentences and return a string of lat/lon/z
     coordinates.  'z' is often 0.
     """
@@ -213,7 +255,7 @@ def nmeaFileToCoords(f, header: str, hasrmc=False) -> dict:
             if line.startswith(("$GNGGA", "$GPGGA")):
                 nmeagram.parseLine(line)
                 utc = nmeagram.getField('UtcTime')
-                if utc in data.keys():  # if gga first len = 9 else len = 10
+                if utc in data.keys():  # if gga first len = 9 else len = 10(rmc first)
                     data[utc].append(True)
                 data[utc].append(nmeagram.getField("Longitude"))
                 data[utc].append(nmeagram.getField("Latitude"))
