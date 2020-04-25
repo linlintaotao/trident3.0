@@ -18,7 +18,7 @@ HEADKML1 = """<?xml version="1.0" encoding="UTF-8"?>"""
 HEADKML2 = """<kml xmlns="http://earth.google.com/kml/2.2">"""
 MARKICNO = """http://maps.google.com/mapfiles/kml/shapes/airports.png"""
 
-COLMAPKML = {0: "9fc0c0c0", 1: "9F000000", 3: "9fff9600", 2: "9F00FF00", 4: "9FFF0000", 5: "9F0000FF", 6: "9F00FFFF",
+COLMAPKML = {0: "9fc0c0c0", 1: "9F000000", 3: "9fff9600", 2: "9F00FF00", 4: "FFFFFFFF", 5: "FF0055FF", 6: "FF00FFFF",
              8: "9fffffff", 9: "9fffffff"}
 
 BRIEFDESP = {'0': "Sorry! invalid solution", '1': "Oops! single point solution", '3': "What the f**k ?",
@@ -51,7 +51,7 @@ def genKmlHeader():
         s += f"""<Style id="P{i}">\n"""
         s += f"""<IconStyle>\n"""
         s += f"""<color>{COLMAPKML[i]}</color>\n"""
-        s += f"""<scale>{0.7}</scale>\n"""
+        s += f"""<scale>{0.6}</scale>\n"""
         s += f"""<Icon><href>{MARKICNO}</href></Icon>\n"""
         s += f"""</IconStyle>\n"""
         s += f"""<LabelStyle><scale>0</scale></LabelStyle>"""
@@ -78,6 +78,8 @@ def genKmlTrack(llh: dict, header: str) -> str:
     s += f"""<coordinates>\n"""
 
     for utc, val in llh.items():
+        val_len = len(val)
+        if val_len not in [14, 10, 9, 6]: continue
         if len(val) == 10:
             s += f"""{val[4]},{val[5]},{0} """
         else:
@@ -254,6 +256,8 @@ def nmeaFileToCoords(f, header: str) -> dict:
         if header == 'GGA':
             if line.startswith(("$GNGGA", "$GPGGA")):
                 nmeagram.parseLine(line)
+                if int(nmeagram.getField("Longitude"))==0 or int(nmeagram.getField("Latitude"))==0:
+                    continue
                 utc = nmeagram.getField('UtcTime')
                 if utc in data.keys():  # if gga first len = 9 else len = 10(rmc first)
                     data[utc].append(True)
@@ -266,6 +270,8 @@ def nmeaFileToCoords(f, header: str) -> dict:
             elif line.startswith(("$GNRMC", "$GPRMC")):
                 nmeagram.parseLine(line)
                 utc = nmeagram.getField('UtcTime')
+                if int(nmeagram.getField("Longitude"))==0 or int(nmeagram.getField("Latitude"))==0:
+                    continue
                 data[utc].append(nmeagram.getField("SpeedOverGround"))
                 data[utc].append(nmeagram.getField("CourseOverGround"))
                 data[utc].append(nmeagram.getField("Date"))

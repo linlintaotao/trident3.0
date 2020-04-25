@@ -616,6 +616,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                         QMessageBox.Yes)
                     if ret == QMessageBox.No:
                         return
+                    if self.com.isOpen():
+                        self.com.write(cmd.encode("utf-8", "ignore"))
 
                 for s in SERIAL_SET:
                     # support all serial port config
@@ -831,6 +833,9 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     # get extools combo selection
     def write_kml(self):
         select = self.comboBox_extools.currentText()
+        if self._nmeaf is None:
+            QMessageBox.information(self, "Info", f"Invalid file, select one first")
+            return
         if select.startswith('1 - '):
             QMessageBox.information(self, "Info", f"Convert {self._nmeaf} gga to kml")
             self.tokml(self._nmeaf, 'GGA')
@@ -855,7 +860,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             over_write = QMessageBox.Yes
 
         if over_write == QMessageBox.Yes:
-            info = ''
             fo = open(fnkml, 'w')
             with open(fn, 'r', encoding='utf-8') as f:
                 coords = nmeaFileToCoords(f, header)
