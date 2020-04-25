@@ -115,7 +115,7 @@ def parseGGA(fields):
     data['PositionFix'] = fields[6]
     data['SatellitesUsed'] = _int(fields[7])
     data['HorizontalDilutionOfPrecision'] = _float(fields[8])
-    data['MslAltitude'] = _float(fields[9])
+    data['MslAltitude'] = _float(fields[9])+_float(fields[11])
     data['MslAltitudeUnits'] = fields[10]
     data['GeoidSeparation'] = _float(fields[11])
     data['GeoidSeparationUnits'] = fields[12]

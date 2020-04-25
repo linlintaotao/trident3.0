@@ -627,4 +627,4 @@ class Ui_widget(object):
         self.checkBox_logcos.setToolTip(_translate("widget", "<html><head/><body><p>record CORS data in NMEA/*.cors </p></body></html>"))
         self.checkBox_logcos.setText(_translate("widget", "Log CORS"))
         self.label_fmi.setToolTip(_translate("widget", "<html><head/><body><p><br/></p></body></html>"))
-        self.label_fmi.setText(_translate("widget", "Developed by FeynMan Innvation Development Team "))
+        self.label_fmi.setText(_translate("widget", "Developed by FeynMan Innovation Development Team "))
