@@ -6,9 +6,7 @@
  
 """
 
-# TODO  1. multi-serial firmware update evaluation
-#       2. add direction in kml
-#       3. add H binary support
+# TODO  1. second window should always on top of first window
 
 from base64 import b64encode
 from datetime import datetime
@@ -16,12 +14,11 @@ from os import path, stat, makedirs
 from sys import argv, exit
 from threading import Thread
 from functools import partial
-import zipfile
 # from matplotlib.pyplot import figure, plot, title, xlabel, ylabel, show, grid, subplots, axhline
 
 import serial
 import serial.tools.list_ports
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
@@ -29,7 +26,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 from extools.nmea2kml import nmeaFileToCoords, genKmlStr
 # from extools.comp_gga_analysis import genComp
 from gui.form import Ui_widget
-from gui.multiser import Multi_Ui_widget
+from gui.multiser import Multiser_Ui_widget
 
 ###################################################################
 DIR = 'NMEA/'
@@ -118,12 +115,15 @@ def update_firmware(file: str, serhd: serial.Serial) -> None:
     SERIAL_WRITE_MUTEX = False
 
 
-class MultiSerial(QMainWindow, Multi_Ui_widget):
+class MultiSerial(QMainWindow, Multiser_Ui_widget):
     def __init__(self, parent=None):
         global ENABLE_TOOL_BTN
         ENABLE_TOOL_BTN = False
 
+
         super(MultiSerial, self).__init__(parent)
+        # self.setWindowFlags(Qt.WindowStaysOnBottomHint)
+        self.setFixedSize(780, 580)
         self._exit = False
         self.setupUi(self)
         self.create_items(4)
@@ -203,12 +203,14 @@ class MultiSerial(QMainWindow, Multi_Ui_widget):
                 self.set_ser_params(False, spn)
                 btn.setText(CLOSE)
                 self.ReadSerTimer[spn].timeout.connect(partial(self.on_read, (self.com[spn], spn)))
-                self.ReadSerTimer[spn].start(50)
+                self.ReadSerTimer[spn].start(20)
 
         elif btn.text() == CLOSE:
             self.ReadSerTimer[spn].stop()
             self.com[spn].close()
             self.set_ser_params(True, spn)
+            self._fh = [None for _ in range(4)]
+            self._fn = ['' for _ in range(4)]
             btn.setText(OPEN)
 
     def on_read(self, stup):
@@ -314,6 +316,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     def __init__(self, parent=None):
         super(NtripSerialTool, self).__init__(parent)
         self.setWindowIcon(QIcon("./gui/i.svg"))
+        self.setFixedSize(840, 600)
         self._fh = None
         self._fhcors = None
         self._imgfile = None
@@ -432,8 +435,9 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self.set_ser_params(False)
                 self.pushButton_open.setText(CLOSE)
                 self.pushButton_refresh.setEnabled(False)
-                self.ReadSerTimer.start(50)
+                self.ReadSerTimer.start(20)
 
+            self.textEdit_recv.clear()
         elif self.pushButton_open.text() == CLOSE:
             self.ReadSerTimer.stop()
             self.com.close()
@@ -459,6 +463,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                     self._fh.write(data)
             else:
                 if self._fh is not None:
+                    self._fn = ''
                     self._flush_file()
                     self._fh.close()
                     self._fh = None
