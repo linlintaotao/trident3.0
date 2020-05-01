@@ -316,7 +316,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     def __init__(self, parent=None):
         super(NtripSerialTool, self).__init__(parent)
         self.setWindowIcon(QIcon("./gui/i.svg"))
-        self.setFixedSize(840, 600)
+        self.setFixedSize(860, 600)
         self._fh = None
         self._fhcors = None
         self._imgfile = None

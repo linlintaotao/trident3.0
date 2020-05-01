@@ -23,7 +23,7 @@ def toDecimalDegrees(ddmm):
     splitat = ddmm.find('.') - 2
     try:
         res = _float(ddmm[:splitat]) + _float(ddmm[splitat:]) / 60.0
-        return float('%.8f' % res)
+        return float(res)
     except Exception as e:
         print(f"{e}")
 

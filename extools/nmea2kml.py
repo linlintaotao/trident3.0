@@ -123,31 +123,38 @@ def genKmlPoint(llh: dict, header: str) -> str:
             if ln == 9:
                 d = val[-1]
                 spd = '{:5.2f}'.format(val[-3] * 0.514)
+                lat = '{:10.7f}'.format(val[1])
+                lon = '{:10.7f}'.format(val[0])
+                alt = '{:6.3f}'.format(val[2])
                 s += f"""
-                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Time</td><td>{utc}</td><td ALIGN=LEFT>Date</td><td>{d[2:4]}/{d[:2]}
-/{d[-2:]}</td></tr>
-                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lat</td><td>{val[1]}</td><td ALIGN=LEFT>Stat</td><td>{val[3]}</td></tr>
-                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lon</td><td>{val[0]}</td><td ALIGN=LEFT>nSats</td><td>{val[4]}</td></tr>
-                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Alt</td><td>{val[2]}</td><td ALIGN=LEFT>dAge</td><td>{val[5]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Time</td><td>{utc}</td><td ALIGN=LEFT>Date</td><td>{d[2:4]}/{d[:2]}/{d[-2:]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lat</td><td>{lat}</td><td ALIGN=LEFT>Stat</td><td>{val[3]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lon</td><td>{lon}</td><td ALIGN=LEFT>nSats</td><td>{val[4]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Alt</td><td>{alt}</td><td ALIGN=LEFT>dAge</td><td>{val[5]}</td></tr>
                      <tr ALIGN=RIGHT><td ALIGN=LEFT>Speed</td><td>{spd}</td><td ALIGN=LEFT>heading</td><td>{val[-2]}</td></tr>
                      </table>]]></description>\n"""
             elif ln == 10:
                 d = val[2]
                 spd = '{:5.2f}'.format(val[0] * 0.514)
+                lat = '{:10.7f}'.format(val[5])
+                lon = '{:10.7f}'.format(val[4])
+                alt = '{:6.3f}'.format(val[6])
                 s += f"""
-                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Time</td><td>{utc}</td><td ALIGN=LEFT>Date</td><td>{d[2:4]}/{d[:2]}/2
-0{d[-2:]}</td></tr>
-                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lat</td><td>{val[5]}</td><td ALIGN=LEFT>Stat</td><td>{val[7]}</td></tr>
-                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lon</td><td>{val[4]}</td><td ALIGN=LEFT>nSats</td><td>{val[8]}</td></tr>
-                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Alt</td><td>{val[6]}</td><td ALIGN=LEFT>dAge</td><td>{val[9]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Time</td><td>{utc}</td><td ALIGN=LEFT>Date</td><td>{d[2:4]}/{d[:2]}/20{d[-2:]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lat</td><td>{lat}</td><td ALIGN=LEFT>Stat</td><td>{val[7]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lon</td><td>{lon}</td><td ALIGN=LEFT>nSats</td><td>{val[8]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Alt</td><td>{alt}</td><td ALIGN=LEFT>dAge</td><td>{val[9]}</td></tr>
                      <tr ALIGN=RIGHT><td ALIGN=LEFT>Speed</td><td>{spd}</td><td ALIGN=LEFT>heading</td><td>{val[1]}</td></tr>
                      </table>]]></description>\n"""
             else:
+                lat = '{:10.7f}'.format(val[1])
+                lon = '{:10.7f}'.format(val[0])
+                alt = '{:6.3f}'.format(val[2])
                 s += f"""
                      <tr ALIGN=RIGHT><td ALIGN=LEFT>Time</td><td>{utc}</td><td ALIGN=LEFT>Date</td><td></td></tr>
-                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lat</td><td>{val[1]}</td><td ALIGN=LEFT>Stat</td><td>{val[3]}</td></tr>
-                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lon</td><td>{val[0]}</td><td ALIGN=LEFT>nSats</td><td>{val[4]}</td></tr>
-                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Alt</td><td>{val[2]}</td><td ALIGN=LEFT>dAge</td><td>{val[5]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lat</td><td>{lat}</td><td ALIGN=LEFT>Stat</td><td>{val[3]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Lon</td><td>{lon}</td><td ALIGN=LEFT>nSats</td><td>{val[4]}</td></tr>
+                     <tr ALIGN=RIGHT><td ALIGN=LEFT>Alt</td><td>{alt}</td><td ALIGN=LEFT>dAge</td><td>{val[5]}</td></tr>
                      <tr ALIGN=RIGHT><td ALIGN=LEFT>Speed</td><td></td><td ALIGN=LEFT>heading</td><td></td></tr>
                      </table>]]></description>\n"""
 
