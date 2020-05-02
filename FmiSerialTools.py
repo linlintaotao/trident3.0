@@ -5,8 +5,7 @@
  @author : chey
  
 """
-
-# TODO  1. second window should always on top of first window
+# TODO: more test case
 
 from base64 import b64encode
 from datetime import datetime
@@ -208,6 +207,7 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
         elif btn.text() == CLOSE:
             self.ReadSerTimer[spn].stop()
             self.com[spn].close()
+            self.LBshow[spn].setText("closed")
             self.set_ser_params(True, spn)
             self._fh = [None for _ in range(4)]
             self._fn = ['' for _ in range(4)]
@@ -233,11 +233,11 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
             data = data.decode("utf-8", "ignore")
             self._text[n].insertPlainText(data)
             self.LBshow[n].setText("serial recv...")
+
             # display info
             if data.startswith(('$GNGGA', '$GPGGA')):
                 print(data)
                 self.disp_gga(data, n)
-
             else:
                 pass
 
@@ -1024,7 +1024,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     def mulser_control(self):
         # check  toolButton is valid
         if not ENABLE_TOOL_BTN: return
-        dialog = MultiSerial(self)
+        dialog = MultiSerial()
         dialog.show()
 
 
