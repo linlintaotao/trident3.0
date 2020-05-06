@@ -38,6 +38,7 @@ DISCONNECT = 'Disconnect'
 # SWITCH_OFF = [0xA0, 0x01, 0x00, 0xA1]
 ###################################################################
 SEND_BYTES = 0
+SAVE_NMEA = False
 ENABLE_TOOL_BTN = True
 SERIAL_PORT_LIST = []
 SERIAL_WRITE_MUTEX = False
@@ -118,7 +119,6 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
     def __init__(self, parent=None):
         global ENABLE_TOOL_BTN
         ENABLE_TOOL_BTN = False
-
 
         super(MultiSerial, self).__init__(parent)
         # self.setWindowFlags(Qt.WindowStaysOnBottomHint)
@@ -203,6 +203,7 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
                 btn.setText(CLOSE)
                 self.ReadSerTimer[spn].timeout.connect(partial(self.on_read, (self.com[spn], spn)))
                 self.ReadSerTimer[spn].start(20)
+                self._text[spn].clear()
 
         elif btn.text() == CLOSE:
             self.ReadSerTimer[spn].stop()
@@ -214,6 +215,7 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
             btn.setText(OPEN)
 
     def on_read(self, stup):
+        global SAVE_NMEA
         s = stup[0]
         n = stup[1]
 
@@ -221,13 +223,21 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
         data = s.readline()
 
         if data != b'':
-            if self._fh[n] is None:
-                if self._fn[n] == '':
-                    self._fn[n] = DIR + s.port + '_' + gettstr()
-                self._fh[n] = open(self._fn[n] + '.log', 'wb')
+            if SAVE_NMEA:
+                if self._fh[n] is None:
+                    if self._fn[n] == '':
+                        self._fn[n] = DIR + s.port + '_' + gettstr()
+                    self._fh[n] = open(self._fn[n] + '.log', 'wb')
+                else:
+                    self._fh[n].write(data)
+                    self._fh[n].flush()
             else:
-                self._fh[n].write(data)
-                self._fh[n].flush()
+                self._fn = ['' for _ in range(4)]
+                for f in self._fh:
+                    if f is not None:
+                        f.write(data)
+                        f.flush()
+                self._fh = [None for _ in range(4)]
 
             # decode received data
             data = data.decode("utf-8", "ignore")
@@ -236,10 +246,7 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
 
             # display info
             if data.startswith(('$GNGGA', '$GPGGA')):
-                print(data)
                 self.disp_gga(data, n)
-            else:
-                pass
 
             # check firmware update
             if self._check[n].isChecked():
@@ -395,7 +402,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.sock.connected.connect(self.sock_conn)
         self.sock.readyRead.connect(self.sock_recv)
 
-        #s serial received text changed
+        # s serial received text changed
         self.textEdit_recv.textChanged.connect(self.text_recv_changed)
 
     def ser_refresh(self):
@@ -438,6 +445,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self.ReadSerTimer.start(20)
 
             self.textEdit_recv.clear()
+            self.textEdit_recv.clear()
         elif self.pushButton_open.text() == CLOSE:
             self.ReadSerTimer.stop()
             self.com.close()
@@ -450,9 +458,11 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         serial port reading
         :return:
         """
+        global SAVE_NMEA
+        SAVE_NMEA = self.checkBox_savenmea.isChecked()
         if not self.com.isOpen(): return
-
         data = self.com.readline()
+
         if data != b'':
             if self.checkBox_savenmea.isChecked():
                 if self._fh is None:
@@ -462,8 +472,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 else:
                     self._fh.write(data)
             else:
+                self._fn = ''
                 if self._fh is not None:
-                    self._fn = ''
                     self._flush_file()
                     self._fh.close()
                     self._fh = None
@@ -474,16 +484,15 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.textEdit_recv.insertPlainText(data)
             self.lineEdit_srx.setText(str(self._srxbs))
 
-            if data.startswith(('$GNGGA', '$GPGGA')):
-                self.disp_gga(data)
-            elif data.startswith("$GPFMI"):
-                try:
+            try:
+                if data.startswith(('$GNGGA', '$GPGGA')):
+                    self.disp_gga(data)
+                elif data.startswith("$GPFMI"):
                     self.disp_fmi(data)
-                except Exception as e:
-                    print(f'{e}')
-            elif data.startswith("$GNTXT"):
-                self._cold_reseted = False
-                pass  # other nmea msgs
+                elif data.startswith("$GNTXT"):
+                    self._cold_reseted = False
+            except Exception as e:
+                pass  # print(e)
 
     def set_lebf_color(self, bg, fg):
         self.lineEdit_rovlat.setStyleSheet('background-color:' + bg + '; color:' + fg)
@@ -499,7 +508,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         """
         if data.startswith(('$GNGGA', '$GPGGA')) and data.endswith("\r\n"):
             seg = data.strip("\r\n").split(",")
-            if len(seg) < 14: return
+            if len(seg) < 15: return
 
             now, latdm = seg[1:3]
             londm = seg[4]
@@ -703,8 +712,10 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
             # write rtcm data into multi serial
             for _com in SERIAL_SET:
-                if _com is not None and _com.isOpen() and _com.port != self.com.port:
-                    _com.write(rtcm)
+                if _com is not None and _com.isOpen():
+                    _w = _com.port == self.com.port and not self.com.isOpen()
+                    if _w or _com.port != self.com.port:
+                        _com.write(rtcm)
 
             self._val += 5
             self.progressBar.setValue(self._val % 100)
