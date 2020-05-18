@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Multiser_Ui_widget(object):
     def setupUi(self, widget):
         widget.setObjectName("widget")
-        widget.setWindowModality(QtCore.Qt.NonModal)
+        widget.setWindowModality(QtCore.Qt.WindowModal)
         widget.resize(779, 580)
         widget.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.Serial_1 = QtWidgets.QGroupBox(widget)
@@ -441,14 +441,12 @@ class Multiser_Ui_widget(object):
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'Arial\'; font-size:8pt; font-weight:600; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">If Matlab can find the answer faster than you  can, then your question is just an algorithm: this is not real problem solving. really?  so what is the real problem solving?</p></body></html>"))
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">If Matlab can find the answer faster than you  can, then your question is just an algorithm: this is not real problem solving.</p></body></html>"))
         self.textEdit_4.setHtml(_translate("widget", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'Arial\'; font-size:8pt; font-weight:600; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Simple is better than complex, complex is better than complicate</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">If you encounter any bugs or issues please free to contact fmi@feyman.cn, have a nice day!</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">--- Feynman Innovation Software Development Team </p></body></html>"))
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">have a nice day!</p></body></html>"))
         self.Serial_3.setTitle(_translate("widget", "Serial-Ext3"))
         self.ls_baud_3.setText(_translate("widget", "Baud"))
         self.ls_port_3.setText(_translate("widget", "Port"))

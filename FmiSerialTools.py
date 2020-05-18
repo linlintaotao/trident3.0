@@ -227,7 +227,7 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
                 if self._fh[n] is None:
                     if self._fn[n] == '':
                         self._fn[n] = DIR + s.port + '_' + gettstr()
-                    self._fh[n] = open(self._fn[n] + '.log', 'wb')
+                    self._fh[n] = open(self._fn[n] + '.nmea', 'wb')
                 else:
                     self._fh[n].write(data)
                     self._fh[n].flush()
@@ -281,7 +281,7 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
                 else:
                     a = int(lat_deg / 100) + (lat_deg % 100) / 60
                     o = int(lon_deg / 100) + (lon_deg % 100) / 60
-                    latdm, londm = "%.7f" % a, "%.7f" % o
+                    latdm, londm = "%.8f" % a, "%.8f" % o
 
                 stat = "{0:8s},{1:2d},{2:1d},{3:<3s}".format(now, int(nsats), int(solstat), dage)
                 self.LEstat[n].setText(stat)
@@ -323,7 +323,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     def __init__(self, parent=None):
         super(NtripSerialTool, self).__init__(parent)
         self.setWindowIcon(QIcon("./gui/i.svg"))
-        self.setFixedSize(860, 600)
+        self.setFixedSize(950, 590)
         self._fh = None
         self._fhcors = None
         self._imgfile = None
@@ -341,6 +341,9 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self._nrxbs = 0
         self._ntxbs = 0
         self._val = 0
+
+        self._ggacnt = 0
+        self._cold_resets = 0
 
         self._cold_reset_cnt = 0
         self.setupUi(self)
@@ -468,7 +471,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 if self._fh is None:
                     if self._fn == '':
                         self._fn = DIR + self.com.port + '_' + gettstr()
-                    self._fh = open(self._fn + '.log', 'wb')
+                    self._fh = open(self._fn + '.nmea', 'wb')
                 else:
                     self._fh.write(data)
             else:
@@ -494,6 +497,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             except Exception as e:
                 pass  # print(e)
 
+
     def set_lebf_color(self, bg, fg):
         self.lineEdit_rovlat.setStyleSheet('background-color:' + bg + '; color:' + fg)
         self.lineEdit_rovlon.setStyleSheet('background-color:' + bg + '; color:' + fg)
@@ -514,6 +518,17 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             londm = seg[4]
             solstat, nsats, dop, hgt = seg[6:10]
             dage = seg[-2]
+
+            # if solstat == '4':
+            #     self._ggacnt += 1
+            # if self._ggacnt >= 10:
+            #     self._ggacnt = 0
+            #     self._cold_resets += 1
+            #     self.com.write('AT+COLD_RESET\r\n'.encode("utf-8", "ignore"))
+            #     self.com.write('AT+COLD_RESET\r\n'.encode("utf-8", "ignore"))
+            #     self.com.write('AT+COLD_RESET\r\n'.encode("utf-8", "ignore"))
+            #     self.com.write('AT+COLD_RESET\r\n'.encode("utf-8", "ignore"))
+            #     print(f'device cold reset cnt {self._cold_resets}')
 
             if latdm != '' and londm != '':
                 if self.checkBox_ggafmt.isChecked():
@@ -682,6 +697,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             # source cors host mount point
             if self._mnt_updated is False and b'SOURCETABLE 200 OK' in rtcm:
                 resp_list = bytes(rtcm).decode().split("\r\n")[6:]
+                self.comboBox_mount.removeItem(0)
                 for mnt in resp_list:
                     if mnt.startswith('STR;'):
                         self.comboBox_mount.addItem(mnt.split(';')[1])

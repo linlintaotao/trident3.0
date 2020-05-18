@@ -51,7 +51,7 @@ def genKmlHeader():
         s += f"""<Style id="P{i}">\n"""
         s += f"""<IconStyle>\n"""
         s += f"""<color>{COLMAPKML[i]}</color>\n"""
-        s += f"""<scale>{0.6}</scale>\n"""
+        s += f"""<scale>{0.4}</scale>\n"""
         s += f"""<Icon><href>{MARKICNO}</href></Icon>\n"""
         s += f"""</IconStyle>\n"""
         s += f"""<LabelStyle><scale>0</scale></LabelStyle>"""
@@ -250,8 +250,11 @@ def genKmlRear() -> str:
 
 def genKmlStr(points, header) -> str:
     s = genKmlHeader()
-    s += genKmlTrack(points, header)
-    kml, info = genKmlPoint(points, header)
+    try:
+        s += genKmlTrack(points, header)
+        kml, info = genKmlPoint(points, header)
+    except Exception as e:
+        print(f'generate kml error {e}')
     s += kml
     s += genKmlRear()
     return s, info
