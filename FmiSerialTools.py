@@ -13,11 +13,14 @@ from os import path, stat, makedirs
 from sys import argv, exit
 from threading import Thread
 from functools import partial
+from struct import pack
 # from matplotlib.pyplot import figure, plot, title, xlabel, ylabel, show, grid, subplots, axhline
+
 
 import serial
 import serial.tools.list_ports
-from PyQt5.QtCore import QTimer, Qt
+
+from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
@@ -34,6 +37,11 @@ CLOSE = 'Close'
 CONNECT = 'Connect'
 DISCONNECT = 'Disconnect'
 
+FRAME_HEADER = 0xAA55
+DATA_FRAME = 0x01
+COMPLETE_FRAME = 0x02
+RESPONSE_FRAME = 0x10
+SUBFRAME_LEN = 2048
 # SWITCH_ON = [0xA0, 0x01, 0x01, 0xA2]
 # SWITCH_OFF = [0xA0, 0x01, 0x00, 0xA1]
 ###################################################################
@@ -93,6 +101,58 @@ def update_mulfirmware(file: str, serhd: serial.Serial, sn: int) -> None:
         LABEL_SHOW_LIST[sn].setText("done!")
         LABEL_SHOW_LIST[sn].setStyleSheet("{ background-color : green; color : black; }")
 
+def check_sum(buff):
+    cs = 0
+    for b in buff[2:]:
+        cs += b
+    buff += pack('B', cs&0xFF)
+    return buff
+
+def update_firm2(file: str, serhd: serial.Serial) -> None:
+    global SERIAL_WRITE_MUTEX, SEND_BYTES
+
+    if file is None or serhd is None:
+        return False
+
+    file_size = stat(file).st_size
+    file_buff = b''
+    # read firm file into file buffer
+    with open(file, "rb") as f:
+        for line in f:
+            file_buff += line
+
+    # fill trans buffer
+    packs = file_size//SUBFRAME_LEN
+    if file_size%SUBFRAME_LEN != 0:
+        packs += 1
+
+    data_list = []
+    serhd.baudrate = 460800
+    for i in range(packs):
+        if i == packs-1:
+            data = file_buff[i * SUBFRAME_LEN:]
+        else:
+            data = file_buff[i*SUBFRAME_LEN:(i+1)*SUBFRAME_LEN]
+        data_list.append(data)
+        trans_buff = [0x55, 0xAA, 0x01, pack('HB', packs, i), data]
+
+        serhd.write(check_sum(trans_buff))
+        SEND_BYTES += len(data)
+
+    serhd.write([0xAA, 0x55, 0x02, 0x00, 0x00, 0x01])
+    serhd.write([0xAA, 0x55, 0x02, 0x00, 0x00, 0x01])
+    serhd.write([0xAA, 0x55, 0x02, 0x00, 0x00, 0x01])
+    resp = serhd.readall()
+    for i in range(len(resp)-3):
+        if resp[i] == 0xAA and resp[i+1] == 0x55 and resp[i+2] == 0x10:
+            frame = resp[i+2:]
+            if frame[0] == 0x01:
+                print('Firmware update success')
+                break
+            else:
+                print(frame[0], '0: failed, 2: re-send required')
+
+    SERIAL_WRITE_MUTEX = False
 
 def update_firmware(file: str, serhd: serial.Serial) -> None:
     """
@@ -797,7 +857,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
             file_size = stat(self._imgfile).st_size
             self.file_transbar.setRange(0, file_size)
-            Thread(target=update_firmware, args=(self._imgfile, self.com)).start()
+            Thread(target=update_firm2, args=(self._imgfile, self.com)).start()
+            # Thread(target=update_firmware, args=(self._imgfile, self.com)).start()
 
             # _com = (serial, update firm check box)
             for _port in mulcom_list:
