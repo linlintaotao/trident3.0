@@ -618,7 +618,7 @@ class Ui_widget(object):
         self.comboBox_caster.setItemText(1, _translate("widget", "219.142.87.107"))
         self.comboBox_caster.setItemText(2, _translate("widget", "219.142.87.73"))
         self.ATCmd.setTitle(_translate("widget", "AT Cmd"))
-        self.cbatcmd.setToolTip(_translate("widget", "<html><head/><body><p>Multi serial port command format: </p><p>AT command &gt; port1,port2</p><p>Example: </p><p>a.AT+THIS_PORT&gt;com2,com3 </p><p>  will send AT+THIS_PORT command to com2 com3</p><p>b.AT+THIS_PORT&gt;all </p><p>  will send AT+THIS_PORT command to all valid port</p></body></html>"))
+        self.cbatcmd.setToolTip(_translate("widget", "<html><head/><body><p>Multi serial port command format: </p><p>AT command &gt; port1,port2</p><p>Example: </p><p>a.AT+THIS_PORT&gt;com2,com3 </p><p>  send AT+THIS_PORT command to com2 com3</p><p>b.AT+THIS_PORT&gt;all </p><p>  send AT+THIS_PORT command to all valid port</p></body></html>"))
         self.cbatcmd.setItemText(0, _translate("widget", "AT+THIS_PORT"))
         self.cbatcmd.setItemText(1, _translate("widget", "AT+WARM_RESET"))
         self.cbatcmd.setItemText(2, _translate("widget", "AT+COLD_RESET"))

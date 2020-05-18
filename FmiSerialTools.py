@@ -286,6 +286,8 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
             if SAVE_NMEA:
                 if self._fh[n] is None:
                     if self._fn[n] == '':
+                        if s.port.startswith('/dev'):
+                            s.port = s.port.split('/')[-1]
                         self._fn[n] = DIR + s.port + '_' + gettstr()
                     self._fh[n] = open(self._fn[n] + '.nmea', 'wb')
                 else:
@@ -530,6 +532,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             if self.checkBox_savenmea.isChecked():
                 if self._fh is None:
                     if self._fn == '':
+                        if self.com.port.startswith('/dev'):
+                            self.com.port = self.com.port.split('/')[-1]
                         self._fn = DIR + self.com.port + '_' + gettstr()
                     self._fh = open(self._fn + '.nmea', 'wb')
                 else:
