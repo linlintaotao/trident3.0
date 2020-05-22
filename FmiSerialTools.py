@@ -103,68 +103,10 @@ def update_mulfirmware(file: str, serhd: serial.Serial, sn: int) -> None:
         LABEL_SHOW_LIST[sn].setStyleSheet("{ background-color : green; color : black; }")
 
 
-def check_sum(buff):
-    cs = 0
-    for b in buff[2:]:
-        cs += b
-    buff += pack('B', cs & 0xFF)
-    return buff
-
-
-def updateTrans(sendBytes):
-    global SEND_BYTES
+def updateTrans(isUpdateing, sendBytes):
+    global SEND_BYTES, SERIAL_WRITE_MUTEX
+    SERIAL_WRITE_MUTEX = isUpdateing
     SEND_BYTES = sendBytes
-
-
-def update_firm2(file: str, serhd: serial.Serial) -> None:
-    global SERIAL_WRITE_MUTEX
-
-    if file is None or serhd is None:
-        return False
-
-    upgradeManager = UpgradeManager(listener=updateTrans)
-    upgradeManager.start(file, serhd)
-    # file_size = stat(file).st_size
-    # file_buff = b''
-    # # read firm file into file buffer
-    # with open(file, "rb") as f:
-    #     for line in f:
-    #         file_buff += line
-    #
-    # # fill trans buffer
-    # packs = file_size // SUBFRAME_LEN
-    # if file_size % SUBFRAME_LEN != 0:
-    #     packs += 1
-    #
-    # data_list = []
-    # serhd.baudrate = 460800
-    # for i in range(packs):
-    #     if i == packs - 1:
-    #         data = file_buff[i * SUBFRAME_LEN:]
-    #     else:
-    #         data = file_buff[i * SUBFRAME_LEN:(i + 1) * SUBFRAME_LEN]
-    #     data_list.append(data)
-    #     trans_buff = [0x55, 0xAA, 0x01, pack('HB', packs, i), data]
-    #
-    #     serhd.write(check_sum(trans_buff))
-    #     SEND_BYTES += len(data)
-    #
-    # serhd.write([0xAA, 0x55, 0x02, 0x00, 0x00, 0x01])
-    # serhd.write([0xAA, 0x55, 0x02, 0x00, 0x00, 0x01])
-    # serhd.write([0xAA, 0x55, 0x02, 0x00, 0x00, 0x01])
-    # resp = serhd.readall()
-    # for i in range(len(resp) - 3):
-    #     if resp[i] == 0xAA and resp[i + 1] == 0x55 and resp[i + 2] == 0x10:
-    #         frame = resp[i + 2:]
-    #         if frame[0] == 0x01:
-    #             print('Firmware update success')
-    #             break
-    #         elif frame[0] == 0x02:
-    #             pass
-    #         else:
-    #             print(frame[0], '0: failed')
-
-    SERIAL_WRITE_MUTEX = False
 
 
 def update_firmware(file: str, serhd: serial.Serial) -> None:
@@ -421,6 +363,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self._cold_resets = 0
 
         self._cold_reset_cnt = 0
+        self.upgrade = None
         self.setupUi(self)
         self.create_items()
         self.create_sigslots()
@@ -496,16 +439,17 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.cbsport.addItem(port[0])
 
     # serial configuration parameters
-    def ser_open_btclik(self):
+    def ser_open_btclik(self, serialBaudrate=0, openOn=None):
         """
         serial open button clicked handling
         :return:
         """
-        if self.pushButton_open.text() == OPEN:
+        isOpen = self.pushButton_open.text() == OPEN if openOn is None else openOn
+        if isOpen:
             attrs = self.cbsdata.currentText().split('/')
 
             self.com.port = self.cbsport.currentText()
-            self.com.baudrate = int(self.cbsbaud.currentText())
+            self.com.baudrate = int(self.cbsbaud.currentText()) if serialBaudrate == 0 else serialBaudrate
             self.com.bytesize = int(attrs[0])
             self.com.stopbits = int(attrs[2])
             self.com.parity = attrs[1]
@@ -536,12 +480,14 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         serial port reading
         :return:
         """
-        global SAVE_NMEA
+        global SAVE_NMEA, SERIAL_WRITE_MUTEX
         SAVE_NMEA = self.checkBox_savenmea.isChecked()
         if not self.com.isOpen(): return
         data = self.com.readline()
-
         if data != b'':
+            if SERIAL_WRITE_MUTEX:
+                if self.upgrade is not None:
+                    self.upgrade.parseResponse(data)
             if self.checkBox_savenmea.isChecked():
                 if self._fh is None:
                     if self._fn == '':
@@ -572,6 +518,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 elif data.startswith("$GNTXT"):
                     self._cold_reseted = False
             except Exception as e:
+                print(e)
                 pass  # print(e)
 
     def set_lebf_color(self, bg, fg):
@@ -852,6 +799,14 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.lineEdit_filename.setText(filename)
             self._imgfile = filename
 
+    def update_firm2(self, file: str, serhd: serial.Serial) -> None:
+        global SERIAL_WRITE_MUTEX
+        if file is None or serhd is None:
+            return
+        SERIAL_WRITE_MUTEX = True
+        self.upgrade = UpgradeManager(listener=updateTrans)
+        self.upgrade.start(file, serhd)
+
     # send file to serial
     def trans_filed(self):
         global SEND_BYTES
@@ -873,7 +828,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
             file_size = stat(self._imgfile).st_size
             self.file_transbar.setRange(0, file_size)
-            Thread(target=update_firm2, args=(self._imgfile, self.com)).start()
+            self.changeBaudrate(460800)
+            Thread(target=self.update_firm2, args=(self._imgfile, self.com)).start()
             # Thread(target=update_firmware, args=(self._imgfile, self.com)).start()
 
             # _com = (serial, update firm check box)
@@ -884,11 +840,17 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.file_transbar.setValue(0)
 
     def ShowFilepBarr(self):
+        print('ShowFilepBarr===>', SEND_BYTES)
         if SERIAL_WRITE_MUTEX:
             self.file_transbar.setValue(SEND_BYTES)
         else:
             self.file_transbar.setValue(SEND_BYTES)
             self.FileTrans.stop()
+            self.changeBaudrate(115200)
+
+    def changeBaudrate(self, toBaudrate):
+        self.ser_open_btclik(serialBaudrate=115200 if toBaudrate == 406800 else 406800, openOn=False)
+        self.ser_open_btclik(serialBaudrate=toBaudrate, openOn=True)
 
     # close window
     def close_all(self):
