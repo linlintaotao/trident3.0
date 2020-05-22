@@ -202,7 +202,7 @@ class Ui_widget(object):
         self.gridLayout_3.addWidget(self.open_file, 1, 1, 1, 1)
         self.file_transbar = QtWidgets.QProgressBar(self.ATCmd)
         self.file_transbar.setProperty("value", 0)
-        self.file_transbar.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.file_transbar.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         self.file_transbar.setTextVisible(True)
         self.file_transbar.setOrientation(QtCore.Qt.Horizontal)
         self.file_transbar.setInvertedAppearance(False)
@@ -226,7 +226,7 @@ class Ui_widget(object):
         self.label_16.setObjectName("label_16")
         self.gridLayout.addWidget(self.label_16, 3, 0, 1, 1)
         self.lineEdit_vu = QtWidgets.QLineEdit(self.Infos)
-        self.lineEdit_vu.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_vu.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.lineEdit_vu.setReadOnly(True)
         self.lineEdit_vu.setObjectName("lineEdit_vu")
         self.gridLayout.addWidget(self.lineEdit_vu, 2, 3, 1, 1)
@@ -249,7 +249,7 @@ class Ui_widget(object):
         self.label_4.setObjectName("label_4")
         self.gridLayout.addWidget(self.label_4, 3, 6, 1, 1)
         self.lineEdit_pitch = QtWidgets.QLineEdit(self.Infos)
-        self.lineEdit_pitch.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_pitch.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.lineEdit_pitch.setReadOnly(True)
         self.lineEdit_pitch.setObjectName("lineEdit_pitch")
         self.gridLayout.addWidget(self.lineEdit_pitch, 1, 5, 1, 1)
@@ -264,7 +264,7 @@ class Ui_widget(object):
         self.gridLayout.addWidget(self.label_14, 0, 2, 1, 1)
         self.lineEdit_rovlon = QtWidgets.QLineEdit(self.Infos)
         self.lineEdit_rovlon.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.lineEdit_rovlon.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_rovlon.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.lineEdit_rovlon.setReadOnly(True)
         self.lineEdit_rovlon.setObjectName("lineEdit_rovlon")
         self.gridLayout.addWidget(self.lineEdit_rovlon, 1, 1, 1, 1)
@@ -278,7 +278,7 @@ class Ui_widget(object):
         self.label_15.setObjectName("label_15")
         self.gridLayout.addWidget(self.label_15, 0, 4, 1, 1)
         self.lineEdit_roll = QtWidgets.QLineEdit(self.Infos)
-        self.lineEdit_roll.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_roll.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.lineEdit_roll.setReadOnly(True)
         self.lineEdit_roll.setObjectName("lineEdit_roll")
         self.gridLayout.addWidget(self.lineEdit_roll, 0, 5, 1, 1)
@@ -314,7 +314,7 @@ class Ui_widget(object):
         self.label_10.setObjectName("label_10")
         self.gridLayout.addWidget(self.label_10, 1, 0, 1, 1)
         self.lineEdit_yaw = QtWidgets.QLineEdit(self.Infos)
-        self.lineEdit_yaw.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_yaw.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.lineEdit_yaw.setReadOnly(True)
         self.lineEdit_yaw.setObjectName("lineEdit_yaw")
         self.gridLayout.addWidget(self.lineEdit_yaw, 2, 5, 1, 1)
@@ -328,7 +328,7 @@ class Ui_widget(object):
         self.label.setObjectName("label")
         self.gridLayout.addWidget(self.label, 0, 6, 1, 1)
         self.lineEdit_vn = QtWidgets.QLineEdit(self.Infos)
-        self.lineEdit_vn.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_vn.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.lineEdit_vn.setReadOnly(True)
         self.lineEdit_vn.setObjectName("lineEdit_vn")
         self.gridLayout.addWidget(self.lineEdit_vn, 0, 3, 1, 1)
@@ -342,13 +342,13 @@ class Ui_widget(object):
         self.label_9.setObjectName("label_9")
         self.gridLayout.addWidget(self.label_9, 2, 4, 1, 1)
         self.lineEdit_dage = QtWidgets.QLineEdit(self.Infos)
-        self.lineEdit_dage.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_dage.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.lineEdit_dage.setReadOnly(True)
         self.lineEdit_dage.setObjectName("lineEdit_dage")
         self.gridLayout.addWidget(self.lineEdit_dage, 3, 3, 1, 1)
         self.lineEdit_rovhgt = QtWidgets.QLineEdit(self.Infos)
         self.lineEdit_rovhgt.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.lineEdit_rovhgt.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_rovhgt.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.lineEdit_rovhgt.setReadOnly(True)
         self.lineEdit_rovhgt.setObjectName("lineEdit_rovhgt")
         self.gridLayout.addWidget(self.lineEdit_rovhgt, 2, 1, 1, 1)
@@ -363,7 +363,7 @@ class Ui_widget(object):
         self.gridLayout.addWidget(self.label_8, 2, 2, 1, 1)
         self.lineEdit_rovlat = QtWidgets.QLineEdit(self.Infos)
         self.lineEdit_rovlat.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.lineEdit_rovlat.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_rovlat.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.lineEdit_rovlat.setReadOnly(True)
         self.lineEdit_rovlat.setObjectName("lineEdit_rovlat")
         self.gridLayout.addWidget(self.lineEdit_rovlat, 0, 1, 1, 1)
@@ -377,13 +377,13 @@ class Ui_widget(object):
         self.label_3.setObjectName("label_3")
         self.gridLayout.addWidget(self.label_3, 2, 6, 1, 1)
         self.lineEdit_bl = QtWidgets.QLineEdit(self.Infos)
-        self.lineEdit_bl.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_bl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.lineEdit_bl.setReadOnly(True)
         self.lineEdit_bl.setObjectName("lineEdit_bl")
         self.gridLayout.addWidget(self.lineEdit_bl, 3, 5, 1, 1)
         self.lineEdit_solstat = QtWidgets.QLineEdit(self.Infos)
         self.lineEdit_solstat.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.lineEdit_solstat.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_solstat.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.lineEdit_solstat.setReadOnly(True)
         self.lineEdit_solstat.setObjectName("lineEdit_solstat")
         self.gridLayout.addWidget(self.lineEdit_solstat, 3, 1, 1, 1)
@@ -406,7 +406,7 @@ class Ui_widget(object):
         self.label_17.setObjectName("label_17")
         self.gridLayout.addWidget(self.label_17, 3, 2, 1, 1)
         self.lineEdit_ve = QtWidgets.QLineEdit(self.Infos)
-        self.lineEdit_ve.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_ve.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.lineEdit_ve.setReadOnly(True)
         self.lineEdit_ve.setObjectName("lineEdit_ve")
         self.gridLayout.addWidget(self.lineEdit_ve, 1, 3, 1, 1)
@@ -555,28 +555,29 @@ class Ui_widget(object):
     def retranslateUi(self, widget):
         _translate = QtCore.QCoreApplication.translate
         widget.setWindowTitle(_translate("widget", "Trident v1.6 (for any support contact fmi@feyman.cn)"))
-        self.textEdit_recv.setHtml(_translate("widget", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Calibri\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Trident a FMI ntrip serial tool</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">i. Serial</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -Click &quot;Refresh&quot; button all valid com ports connected to your PC lists in &quot;Port&quot; comb box, set proper baud rate and attributes(in Databits/Parity/Stopbits) then &quot;Open&quot;, serial received data shows in this area.</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -For multi serial interface, click &quot;...&quot; under the &quot;Baud&quot; text.</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">ii. Ntrip</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -Set ntrip caster host, port, mount point, user id and password.</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -If you do not know the mount point click &quot;Connect&quot; first, all monut points will list in &quot;Mnt&quot; comb box.</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">iii. AT Cmd</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -Support FMI AT command and H $J cmd.</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -FMI Px series board firmware upgrade.</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">iv. Extools</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -Only support NEMA or $GPFMI to .kml in standard version.</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Any bugs or issues feel free to contact fmi@feyman.cn</p></body></html>"))
+        self.textEdit_recv.setHtml(_translate("widget",
+                                              "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+                                              "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+                                              "p, li { white-space: pre-wrap; }\n"
+                                              "</style></head><body style=\" font-family:\'Calibri\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
+                                              "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Trident a FMI ntrip serial tool</p>\n"
+                                              "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+                                              "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">i. Serial</p>\n"
+                                              "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -Click &quot;Refresh&quot; button all valid com ports connected to your PC lists in &quot;Port&quot; comb box, set proper baud rate and attributes(in Databits/Parity/Stopbits) then &quot;Open&quot;, serial received data shows in this area.</p>\n"
+                                              "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -For multi serial interface, click &quot;...&quot; under the &quot;Baud&quot; text.</p>\n"
+                                              "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+                                              "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">ii. Ntrip</p>\n"
+                                              "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -Set ntrip caster host, port, mount point, user id and password.</p>\n"
+                                              "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -If you do not know the mount point click &quot;Connect&quot; first, all monut points will list in &quot;Mnt&quot; comb box.</p>\n"
+                                              "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+                                              "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">iii. AT Cmd</p>\n"
+                                              "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -Support FMI AT command and H $J cmd.</p>\n"
+                                              "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -FMI Px series board firmware upgrade.</p>\n"
+                                              "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+                                              "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">iv. Extools</p>\n"
+                                              "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -Only support NEMA or $GPFMI to .kml in standard version.</p>\n"
+                                              "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+                                              "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Any bugs or issues feel free to contact fmi@feyman.cn</p></body></html>"))
         self.Serial.setTitle(_translate("widget", "Serial"))
         self.toolButton.setToolTip(_translate("widget", "Multi serial port interface"))
         self.toolButton.setText(_translate("widget", "..."))
@@ -605,20 +606,23 @@ class Ui_widget(object):
         self.lnport.setText(_translate("widget", "Port"))
         self.pushButton_conn.setText(_translate("widget", "Connect"))
         self.lncaster.setText(_translate("widget", "Caster"))
-        self.lineEdit_pwd.setToolTip(_translate("widget", "<html><head/><body><p>password of your current ntrip connection</p></body></html>"))
+        self.lineEdit_pwd.setToolTip(
+            _translate("widget", "<html><head/><body><p>password of your current ntrip connection</p></body></html>"))
         self.lineEdit_pwd.setText(_translate("widget", "123456"))
         self.comboBox_port.setItemText(0, _translate("widget", "2102"))
         self.comboBox_port.setItemText(1, _translate("widget", "2101"))
         self.comboBox_port.setItemText(2, _translate("widget", "81"))
         self.lnuser.setText(_translate("widget", "User"))
         self.lnpwd.setText(_translate("widget", "Passwd"))
-        self.lineEdit_user.setToolTip(_translate("widget", "<html><head/><body><p>Cause this is a Feynman Innovation ntrip serial tool, default user is feyman-user ofcourse</p></body></html>"))
+        self.lineEdit_user.setToolTip(_translate("widget",
+                                                 "<html><head/><body><p>Cause this is a Feynman Innovation ntrip serial tool, default user is feyman-user ofcourse</p></body></html>"))
         self.lineEdit_user.setText(_translate("widget", "feyman-user"))
         self.comboBox_caster.setItemText(0, _translate("widget", "ntrips.feymani.cn"))
         self.comboBox_caster.setItemText(1, _translate("widget", "219.142.87.107"))
         self.comboBox_caster.setItemText(2, _translate("widget", "219.142.87.73"))
         self.ATCmd.setTitle(_translate("widget", "AT Cmd"))
-        self.cbatcmd.setToolTip(_translate("widget", "<html><head/><body><p>Multi serial port command format: </p><p>AT command &gt; port1,port2</p><p>Example: </p><p>a.AT+THIS_PORT&gt;com2,com3 </p><p>  will send AT+THIS_PORT command to com2 com3</p><p>b.AT+THIS_PORT&gt;all </p><p>  will send AT+THIS_PORT command to all valid port</p></body></html>"))
+        self.cbatcmd.setToolTip(_translate("widget",
+                                           "<html><head/><body><p>Multi serial port command format: </p><p>AT command &gt; port1,port2</p><p>Example: </p><p>a.AT+THIS_PORT&gt;com2,com3 </p><p>  send AT+THIS_PORT command to com2 com3</p><p>b.AT+THIS_PORT&gt;all </p><p>  send AT+THIS_PORT command to all valid port</p></body></html>"))
         self.cbatcmd.setItemText(0, _translate("widget", "AT+THIS_PORT"))
         self.cbatcmd.setItemText(1, _translate("widget", "AT+WARM_RESET"))
         self.cbatcmd.setItemText(2, _translate("widget", "AT+COLD_RESET"))
@@ -681,7 +685,8 @@ class Ui_widget(object):
         self.label_stx.setText(_translate("widget", "Tx"))
         self.label_srx.setText(_translate("widget", "Rx"))
         self.Extools.setTitle(_translate("widget", "Extools"))
-        self.comboBox_extools.setToolTip(_translate("widget", "<html><head/><body><p>For more extern tool requirements, please feel free to contact us</p><p>Email:fmi@feyman.cn, Web site:<a href=\"http://www.feymani.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">http://www.feymani.com/</span></a></p></body></html>"))
+        self.comboBox_extools.setToolTip(_translate("widget",
+                                                    "<html><head/><body><p>For more extern tool requirements, please feel free to contact us</p><p>Email:fmi@feyman.cn, Web site:<a href=\"http://www.feymani.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">http://www.feymani.com/</span></a></p></body></html>"))
         self.comboBox_extools.setItemText(0, _translate("widget", "1 - Convert nmea to .kml"))
         self.comboBox_extools.setItemText(1, _translate("widget", "2 - Convert fmi to .kml"))
         self.comboBox_extools.setItemText(2, _translate("widget", "3 - NMEA statistics"))
@@ -694,7 +699,8 @@ class Ui_widget(object):
         self.open_nmea_file.setText(_translate("widget", "File"))
         self.checkBox_autoScoll.setToolTip(_translate("widget", "auto scroll"))
         self.checkBox_autoScoll.setText(_translate("widget", "SCOL"))
-        self.checkBox_logcos.setToolTip(_translate("widget", "<html><head/><body><p>record CORS data in NMEA/*.cors </p></body></html>"))
+        self.checkBox_logcos.setToolTip(
+            _translate("widget", "<html><head/><body><p>record CORS data in NMEA/*.cors </p></body></html>"))
         self.checkBox_logcos.setText(_translate("widget", "CORS"))
         self.label_fmi.setToolTip(_translate("widget", "<html><head/><body><p><br/></p></body></html>"))
         self.label_fmi.setText(_translate("widget", "Developed by Feynman Innovation Development Team "))
@@ -703,7 +709,8 @@ class Ui_widget(object):
         self.pushButton_clear.setText(_translate("widget", "Clear"))
         self.checkBox_ggafmt.setToolTip(_translate("widget", "lat lon in degree format"))
         self.checkBox_ggafmt.setText(_translate("widget", "DEG"))
-        self.checkBox_savenmea.setToolTip(_translate("widget", "<html><head/><body><p>record all serial received data in NMEA/*.log</p></body></html>"))
+        self.checkBox_savenmea.setToolTip(_translate("widget",
+                                                     "<html><head/><body><p>record all serial received data in NMEA/*.log</p></body></html>"))
         self.checkBox_savenmea.setText(_translate("widget", "SAVE"))
         self.checkBox_dummy1.setText(_translate("widget", "DMY"))
         self.checkBox_dummy2.setText(_translate("widget", "DMY2"))

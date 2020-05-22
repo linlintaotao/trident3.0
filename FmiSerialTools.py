@@ -29,6 +29,7 @@ from extools.nmea2kml import nmeaFileToCoords, genKmlStr
 # from extools.comp_gga_analysis import genComp
 from gui.form import Ui_widget
 from gui.multiser import Multiser_Ui_widget
+from streams.WeaponUpgrade import UpgradeManager
 
 ###################################################################
 DIR = 'NMEA/'
@@ -101,58 +102,70 @@ def update_mulfirmware(file: str, serhd: serial.Serial, sn: int) -> None:
         LABEL_SHOW_LIST[sn].setText("done!")
         LABEL_SHOW_LIST[sn].setStyleSheet("{ background-color : green; color : black; }")
 
+
 def check_sum(buff):
     cs = 0
     for b in buff[2:]:
         cs += b
-    buff += pack('B', cs&0xFF)
+    buff += pack('B', cs & 0xFF)
     return buff
 
+
+def updateTrans(sendBytes):
+    global SEND_BYTES
+    SEND_BYTES = sendBytes
+
+
 def update_firm2(file: str, serhd: serial.Serial) -> None:
-    global SERIAL_WRITE_MUTEX, SEND_BYTES
+    global SERIAL_WRITE_MUTEX
 
     if file is None or serhd is None:
         return False
 
-    file_size = stat(file).st_size
-    file_buff = b''
-    # read firm file into file buffer
-    with open(file, "rb") as f:
-        for line in f:
-            file_buff += line
-
-    # fill trans buffer
-    packs = file_size//SUBFRAME_LEN
-    if file_size%SUBFRAME_LEN != 0:
-        packs += 1
-
-    data_list = []
-    serhd.baudrate = 460800
-    for i in range(packs):
-        if i == packs-1:
-            data = file_buff[i * SUBFRAME_LEN:]
-        else:
-            data = file_buff[i*SUBFRAME_LEN:(i+1)*SUBFRAME_LEN]
-        data_list.append(data)
-        trans_buff = [0x55, 0xAA, 0x01, pack('HB', packs, i), data]
-
-        serhd.write(check_sum(trans_buff))
-        SEND_BYTES += len(data)
-
-    serhd.write([0xAA, 0x55, 0x02, 0x00, 0x00, 0x01])
-    serhd.write([0xAA, 0x55, 0x02, 0x00, 0x00, 0x01])
-    serhd.write([0xAA, 0x55, 0x02, 0x00, 0x00, 0x01])
-    resp = serhd.readall()
-    for i in range(len(resp)-3):
-        if resp[i] == 0xAA and resp[i+1] == 0x55 and resp[i+2] == 0x10:
-            frame = resp[i+2:]
-            if frame[0] == 0x01:
-                print('Firmware update success')
-                break
-            else:
-                print(frame[0], '0: failed, 2: re-send required')
+    upgradeManager = UpgradeManager(listener=updateTrans)
+    upgradeManager.start(file, serhd)
+    # file_size = stat(file).st_size
+    # file_buff = b''
+    # # read firm file into file buffer
+    # with open(file, "rb") as f:
+    #     for line in f:
+    #         file_buff += line
+    #
+    # # fill trans buffer
+    # packs = file_size // SUBFRAME_LEN
+    # if file_size % SUBFRAME_LEN != 0:
+    #     packs += 1
+    #
+    # data_list = []
+    # serhd.baudrate = 460800
+    # for i in range(packs):
+    #     if i == packs - 1:
+    #         data = file_buff[i * SUBFRAME_LEN:]
+    #     else:
+    #         data = file_buff[i * SUBFRAME_LEN:(i + 1) * SUBFRAME_LEN]
+    #     data_list.append(data)
+    #     trans_buff = [0x55, 0xAA, 0x01, pack('HB', packs, i), data]
+    #
+    #     serhd.write(check_sum(trans_buff))
+    #     SEND_BYTES += len(data)
+    #
+    # serhd.write([0xAA, 0x55, 0x02, 0x00, 0x00, 0x01])
+    # serhd.write([0xAA, 0x55, 0x02, 0x00, 0x00, 0x01])
+    # serhd.write([0xAA, 0x55, 0x02, 0x00, 0x00, 0x01])
+    # resp = serhd.readall()
+    # for i in range(len(resp) - 3):
+    #     if resp[i] == 0xAA and resp[i + 1] == 0x55 and resp[i + 2] == 0x10:
+    #         frame = resp[i + 2:]
+    #         if frame[0] == 0x01:
+    #             print('Firmware update success')
+    #             break
+    #         elif frame[0] == 0x02:
+    #             pass
+    #         else:
+    #             print(frame[0], '0: failed')
 
     SERIAL_WRITE_MUTEX = False
+
 
 def update_firmware(file: str, serhd: serial.Serial) -> None:
     """
@@ -286,6 +299,8 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
             if SAVE_NMEA:
                 if self._fh[n] is None:
                     if self._fn[n] == '':
+                        if s.port.startswith('/dev'):
+                            s.port = s.port.split('/')[-1]
                         self._fn[n] = DIR + s.port + '_' + gettstr()
                     self._fh[n] = open(self._fn[n] + '.nmea', 'wb')
                 else:
@@ -530,6 +545,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             if self.checkBox_savenmea.isChecked():
                 if self._fh is None:
                     if self._fn == '':
+                        if self.com.port.startswith('/dev'):
+                            self.com.port = self.com.port.split('/')[-1]
                         self._fn = DIR + self.com.port + '_' + gettstr()
                     self._fh = open(self._fn + '.nmea', 'wb')
                 else:
@@ -556,7 +573,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                     self._cold_reseted = False
             except Exception as e:
                 pass  # print(e)
-
 
     def set_lebf_color(self, bg, fg):
         self.lineEdit_rovlat.setStyleSheet('background-color:' + bg + '; color:' + fg)
@@ -702,7 +718,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                     _s = [s.port for s in SERIAL_SET if s is not None and s.isOpen]
                     _ss = ', '.join(_s)
                     ret = QMessageBox.information(self, "Info", f"send {_cmd} to {_ss}", QMessageBox.No,
-                        QMessageBox.Yes)
+                                                  QMessageBox.Yes)
                     if ret == QMessageBox.No:
                         return
                     if self.com.isOpen():
