@@ -628,7 +628,7 @@ class Ui_widget(object):
         self.cbatcmd.setItemText(2, _translate("widget", "AT+COLD_RESET"))
         self.cbatcmd.setItemText(3, _translate("widget", "AT+READ_PARA"))
         self.cbatcmd.setItemText(4, _translate("widget", "AT+UPDATE_MODE"))
-        self.cbatcmd.setItemText(4, _translate("widget", "AT+UPDATE_MODE_H=115200"))
+        self.cbatcmd.setItemText(4, _translate("widget", "AT+UPDATE_MODE_H=460800"))
         self.cbatcmd.setItemText(5, _translate("widget", "AT+UPDATE_SHELL"))
         self.cbatcmd.setItemText(6, _translate("widget", "AT+SAVE_ALL"))
         self.cbatcmd.setItemText(7, _translate("widget", "AT+SELF_TEST="))
