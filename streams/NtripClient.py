@@ -72,7 +72,7 @@ class NtripClient(object):
         if lon > 180:
             lon = (lon - 360) * -1
             self.flagE = "W"
-        elif (lon < 0 and lon >= -180):
+        elif 0 > lon >= -180:
             lon = lon * -1
             self.flagE = "W"
         elif lon < -180:
@@ -140,7 +140,6 @@ class NtripClient(object):
                 if self.ssl:
                     self._socket = ssl.wrap_socket(self._socket)
 
-
                 error_indicator = self._socket.connect_ex((self.caster, self.port))
 
                 if error_indicator == 0:
@@ -192,7 +191,7 @@ class NtripClient(object):
                             data = self._socket.recv(self.buffer)
                             self.nbytes += len(data)
 
-                            if len(self.data) >= int(0.8*self.data.maxlen):
+                            if len(self.data) >= int(0.8 * self.data.maxlen):
                                 self.data.clear()
                             self.data.append(data)
 
@@ -290,11 +289,7 @@ if __name__ == '__main__':
     parser.add_option("--HeaderFile", type="string", dest="headerFile", default=None,
                       help="Write headers to this file, instead of stderr.")
     (options, args) = parser.parse_args(['ntrips.feymani.cn', '2102', 'Obs'])
-    ntripArgs = {}
-    ntripArgs['lat'] = options.lat
-    ntripArgs['lon'] = options.lon
-    ntripArgs['height'] = options.height
-    ntripArgs['host'] = options.host
+    ntripArgs = {'lat': options.lat, 'lon': options.lon, 'height': options.height, 'host': options.host}
 
     if options.ssl:
         import ssl
