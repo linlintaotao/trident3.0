@@ -30,6 +30,7 @@ from extools.nmea2kml import nmeaFileToCoords, genKmlStr
 from gui.form import Ui_widget
 from gui.multiser import Multiser_Ui_widget
 from streams.WeaponUpgrade import UpgradeManager
+import platform
 
 ###################################################################
 DIR = 'NMEA/'
@@ -491,9 +492,9 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             if self.checkBox_savenmea.isChecked():
                 if self._fh is None:
                     if self._fn == '':
-                        if self.com.port.startswith('/dev'):
+                        if platform.system() is 'Windows':
                             self.com.port = self.com.port.split('/')[-1]
-                        self._fn = DIR + self.com.port + '_' + gettstr()
+                    self._fn = DIR + self.com.port.split('/')[-1] + '_' + gettstr()
                     self._fh = open(self._fn + '.nmea', 'wb')
                 else:
                     self._fh.write(data)
