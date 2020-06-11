@@ -5,6 +5,8 @@ import struct
 from struct import pack
 import time
 import serial
+from PyQt5.QtCore import QThread, pyqtSignal
+from threading import Thread
 
 sendCompleteOrder = [0x55, 0xAA, 0x02, 0x00, 0x00, 0x02]
 SUBFRAME_LEN = 2048
@@ -38,75 +40,128 @@ def spliceData(packs, index, buff_data):
         index) + buff_data
     return check_sum(splice_buff)
 
+    # read firm file into file buffer
 
-class UpgradeManager:
 
-    def __init__(self, listener):
+def getDataFromFile(file):
+    file_size = os.stat(file).st_size
+    print(file_size)
+    file_buff = b''
+    with open(file, "rb") as f:
+        for line in f:
+            file_buff += line
+    return file_buff, file_size
 
+
+class UpgradeManager(QThread):
+    signal = pyqtSignal(bytes)
+
+    def __init__(self, listener, port, file):
+        super().__init__()
         self.repeatTimes = 0
         self._sendByte = 0
         self._byteList = []
         self._isUpdating = False
         self._serial = None
         self._listener = listener
+        self._serial = serial.Serial(baudrate=115200, timeout=1)
+        self._serial.setPort(port)
+        self._file = file
+        self.readThread = Thread(target=self.readSerial)
 
-    def start(self, file, serial):
-        self._serial = serial
-        # read firm file into file buffer
-        file_size = os.stat(file).st_size
-        file_buff = b''
-        with open(file, "rb") as f:
-            for line in f:
-                file_buff += line
-
+    def run(self):
+        self._isUpdating = True
+        file_buffer, file_size = getDataFromFile(self._file)
         # fill trans buffer
         packs = file_size // SUBFRAME_LEN
         if file_size % SUBFRAME_LEN != 0:
             packs += 1
+        print(self._serial)
+        self._serial.open()
+        self.readThread.start()
+        self._serial.write('AT+UPDATE_MODE_H=460800\r\n'.encode())
+        time.sleep(2)
+        self._serial.close()
+        self._serial.baudrate = 460800
+        self._serial.open()
 
         for i in range(packs):
             if i == packs - 1:
-                data = file_buff[i * SUBFRAME_LEN:]
+                data = file_buffer[i * SUBFRAME_LEN:]
             else:
-                data = file_buff[i * SUBFRAME_LEN:(i + 1) * SUBFRAME_LEN]
+                data = file_buffer[i * SUBFRAME_LEN:(i + 1) * SUBFRAME_LEN]
             trans_buff = spliceData(packs, i, data)
             self._byteList.append(trans_buff)
             self._sendByte += len(data)
-            self._serial.write(bytes(trans_buff))
-            # print(''.join(['%02X ' % b for b in bytes(trans_buff)]))
+            if self._serial.isOpen():
+                self._serial.write(bytes(trans_buff))
+                self._serial.flush()
+            else:
+                break
+            print(''.join(['%02X ' % b for b in bytes(trans_buff)]))
             self._listener(True, self._sendByte)
 
+        for i in range(3):
+            self._serial.write(sendCompleteOrder)
+
     def parseResponse(self, response):
+        print('==>', ''.join(['%02X ' % b for b in bytes(response)]))
+        if response is None or len(response) <= 0:
+            return
         if self.repeatTimes > 20:
+            self._isUpdating = False
+            self._serial.close()
             return
         for i in range(len(response) - 3):
             if response[i] == 0x55 and response[i + 1] == 0xAA and response[i + 2] == 0x10:
                 frame = response[i + 3:]
-                if frame[0] == 0x01:
-                    # print('Firmware update success')
-                    # self._update = Fals
+
+                if frame[2] == 0x01:
+                    self._isUpdating = False
                     if self._listener is not None:
                         self._listener(False, self._sendByte)
+                    self._serial.close()
                     break
 
-                elif frame[0] == 0x02:  # resend
-                    size = byteToint_16(frame[1:3])
+                elif frame[2] == 0x02:  # resend
+                    length = byteToint_16(frame[0:1])
+                    if length > len(frame):
+                        return
+                    size = byteToint_16(frame[3:5])
+                    print(size)
                     self._sendByte -= (size * SUBFRAME_LEN)
                     for i in range(size):
-                        self._serial.write(self._byteList[byteToint_16(frame[(i + 3):(i + 5)])])
-                        self._sendByte += SUBFRAME_LEN
-                        self._listener(True, self._sendByte)
+                        print(byteToint_16(frame[(i + 5):(i + 7)]))
+                    self._serial.write(self._byteList[byteToint_16(frame[(i + 5):(i + 7)])])
+                    self._sendByte += SUBFRAME_LEN
+                    self._listener(True, self._sendByte)
                     for i in range(3):
                         self._serial.write(sendCompleteOrder)
                     self.repeatTimes += 1
 
                 else:
-                    # print(frame[0], '0: failed')
+                    print(frame[0], '0: failed')
                     if self._listener is not None:
                         self._listener(False, self._sendByte)
-                    # self._update = False
+                    self._isUpdating = False
+                    self._serial.close()
+                    break
+
+    def readSerial(self):
+        while self._isUpdating:
+            try:
+                if self._serial.isOpen():
+                    bytesData = self._serial.readline()
+                    time.sleep(0.5)
+                    self.parseResponse(bytesData)
+            except Exception as e:
+                print(e)
 
 
 if __name__ == '__main__':
+    up = UpgradeManager(None, None, None)
+    up.parseResponse(
+        [0x55, 0xAA, 0x10, 0x01, 0x00, 0x01, 0x12, 0x01, 0x03, 0x00, 0x04, 0x00, 0x05, 0x00, 0x06, 0x00, 0x07, 0x00,
+         0x08, 0x00, 0x09, 0x00, 0x0A])
 
     pass
