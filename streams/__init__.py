@@ -5,6 +5,4 @@
  @author : chey
  
 """
-from . import NtripClient
-from . import Serial
 from . import WeaponUpgrade
