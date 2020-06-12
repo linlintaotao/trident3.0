@@ -42,7 +42,7 @@ DISCONNECT = 'Disconnect'
 # SWITCH_OFF = [0xA0, 0x01, 0x00, 0xA1]
 ###################################################################
 SEND_BYTES = 0
-SAVE_NMEA = False
+SAVE_NMEA = True
 ENABLE_TOOL_BTN = True
 SERIAL_PORT_LIST = []
 SERIAL_WRITE_MUTEX = False
