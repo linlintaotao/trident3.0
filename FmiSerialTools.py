@@ -194,9 +194,9 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
             if SAVE_NMEA:
                 if self._fh[n] is None:
                     if self._fn[n] == '':
-                        if s.port.startswith('/dev'):
-                            s.port = s.port.split('/')[-1]
-                        self._fn[n] = DIR + s.port + '_' + gettstr()
+                        # if s.port.startswith('/dev'):
+                        #     s.port = s.port.split('/')[-1]
+                        self._fn[n] = DIR + s.port.split('/')[-1] + '_' + gettstr()
                     self._fh[n] = open(self._fn[n] + '.nmea', 'wb')
                 else:
                     self._fh[n].write(data)
