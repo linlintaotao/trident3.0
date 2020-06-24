@@ -194,8 +194,6 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
             if SAVE_NMEA:
                 if self._fh[n] is None:
                     if self._fn[n] == '':
-                        # if s.port.startswith('/dev'):
-                        #     s.port = s.port.split('/')[-1]
                         self._fn[n] = DIR + s.port.split('/')[-1] + '_' + gettstr()
                     self._fh[n] = open(self._fn[n] + '.nmea', 'wb')
                 else:
@@ -294,8 +292,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         super(NtripSerialTool, self).__init__(parent)
         self.setWindowIcon(QIcon("./gui/i.svg"))
         self.setFixedSize(950, 590)
-        # self._fh = None
-        # self._fhcors = None
         self._imgfile = None
         self._nmeaf = None
         self._fn = ''
@@ -477,17 +473,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             londm = seg[4]
             solstat, nsats, dop, hgt = seg[6:10]
             dage = seg[-2]
-
-            # if solstat == '4':
-            #     self._ggacnt += 1
-            # if self._ggacnt >= 10:
-            #     self._ggacnt = 0
-            #     self._cold_resets += 1
-            #     self.com.write('AT+COLD_RESET\r\n'.encode("utf-8", "ignore"))
-            #     self.com.write('AT+COLD_RESET\r\n'.encode("utf-8", "ignore"))
-            #     self.com.write('AT+COLD_RESET\r\n'.encode("utf-8", "ignore"))
-            #     self.com.write('AT+COLD_RESET\r\n'.encode("utf-8", "ignore"))
-            #     print(f'device cold reset cnt {self._cold_resets}')
 
             if latdm != '' and londm != '':
                 if self.checkBox_ggafmt.isChecked():
@@ -701,6 +686,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     # stop all stream
     def stop_all(self):
+        self.pushButton_refresh.setEnabled(True)
         if self.com is not None and self.com.is_running():
             self.com.stop()
             self.set_ser_params(True)
