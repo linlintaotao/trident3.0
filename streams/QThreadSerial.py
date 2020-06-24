@@ -39,9 +39,10 @@ class SerialThread(QThread):
                 self._file = None
 
     def is_running(self):
-        return self._entity.isOpen() & self._isRunning
+        return self._entity is not None and self._entity.isOpen() and self._isRunning
 
     def open_serial(self):
+
         self._entity = serial.Serial(self._port, self._baudRate, timeout=1)
         self._entity.flushInput()
         if self._coldStart:
@@ -68,7 +69,10 @@ class SerialThread(QThread):
 
     def run(self):
         if self._entity is None:
-            self.open_serial()
+            try:
+                self.open_serial()
+            except Exception as e:
+                return
         while self._isRunning and self._entity.is_open:
             try:
                 data = self._entity.readline()
