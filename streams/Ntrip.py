@@ -107,7 +107,6 @@ class NtripClient(Publisher):
                            "Authorization: Basic %s\r\n" % (
                                mnt, "NTRIP FMIPythonClient/1.0", user)
         mountPointString += "\r\n"
-        # print(mountPointString)
         _mount_info = mountPointString.encode('utf-8')
         return _mount_info
 
@@ -119,7 +118,7 @@ class NtripClient(Publisher):
                      self.flagE, self._height)
         checksum = self.check_sum(ggaString)
         ggaStr = "$%s*%s\r\n" % (ggaString, checksum)
-        # print('sendGGAString', ggaStr)
+        print('sendGGAString', ggaStr)
         return ggaStr.encode()
 
     def check_sum(self, stringToCheck):
