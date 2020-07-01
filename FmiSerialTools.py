@@ -420,6 +420,10 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 QMessageBox.critical(self, "error", f"can not open serial {self.cbsport.currentText()}")
             if self.checkBox_savenmea.isChecked():
                 self.com.setFile(on=True)
+
+            if self.ntrip is not None:
+                self.ntrip.register(self.com)
+
             self.set_ser_params(False)
             self.pushButton_open.setText(CLOSE)
             self.pushButton_refresh.setEnabled(False)
@@ -427,6 +431,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         elif self.pushButton_open.text() == CLOSE:
 
             self.com.stop()
+            if self.ntrip is not None:
+                self.ntrip.unregister(self.com)
             self.set_ser_params(True)
             self.pushButton_open.setText(OPEN)
             self.pushButton_refresh.setEnabled(True)
@@ -484,11 +490,14 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                     else:
                         a = int(lat_deg / 100) + (lat_deg % 100) / 60
                         o = int(lon_deg / 100) + (lon_deg % 100) / 60
+                        if self.ntrip is not None:
+                            self.ntrip.setPosition(lat=a, lon=o)
                         latdm, londm = "%.7f" % a, "%.7f" % o
 
                 self.set_lebf_color(COLOR_TAB[solstat], 'white')
                 self.lineEdit_rovlat.setText(latdm)
                 self.lineEdit_rovlon.setText(londm)
+
                 self.lineEdit_rovhgt.setText(hgt)
                 self.lineEdit_solstat.setText(solstat)
                 self.lineEdit_sats.setText(nsats)
