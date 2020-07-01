@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
@@ -554,7 +555,7 @@ class Ui_widget(object):
 
     def retranslateUi(self, widget):
         _translate = QtCore.QCoreApplication.translate
-        widget.setWindowTitle(_translate("widget", "Trident v1.6 (for any support contact fmi@feyman.cn)"))
+        widget.setWindowTitle(_translate("widget", "Trident v1.6.2 (for any support contact fmi@feyman.cn)"))
         self.textEdit_recv.setHtml(_translate("widget",
                                               "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
                                               "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
@@ -645,19 +646,6 @@ class Ui_widget(object):
         self.cbatcmd.setItemText(18, _translate("widget", "AT+ALT_PARA=-9.1,37,1"))
         self.cbatcmd.setItemText(19, _translate("widget", "AT+LEVER_ARM=0.01,-0.027,-0.1"))
         self.cbatcmd.setItemText(20, _translate("widget", "AT+AUTONOMOUS=ENABLE"))
-        self.cbatcmd.setItemText(21, _translate("widget", "$JASC,"))
-        self.cbatcmd.setItemText(22, _translate("widget", "$JATT,"))
-        self.cbatcmd.setItemText(23, _translate("widget", "$JBAUD,"))
-        self.cbatcmd.setItemText(24, _translate("widget", "$JBIN,"))
-        self.cbatcmd.setItemText(25, _translate("widget", "$JBOOT,"))
-        self.cbatcmd.setItemText(26, _translate("widget", "$JDIFF,"))
-        self.cbatcmd.setItemText(27, _translate("widget", "$JNMEA,"))
-        self.cbatcmd.setItemText(28, _translate("widget", "$JOFF,"))
-        self.cbatcmd.setItemText(29, _translate("widget", "$JPOS,"))
-        self.cbatcmd.setItemText(30, _translate("widget", "$JQUERY,"))
-        self.cbatcmd.setItemText(31, _translate("widget", "$JRTCM3,"))
-        self.cbatcmd.setItemText(32, _translate("widget", "$JRTK,"))
-        self.cbatcmd.setItemText(33, _translate("widget", "$JSHOW,"))
         self.pushButton_atcmd.setText(_translate("widget", "Send"))
         self.open_file.setText(_translate("widget", "File"))
         self.trans_file.setText(_translate("widget", "Trans"))

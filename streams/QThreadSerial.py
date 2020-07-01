@@ -65,7 +65,7 @@ class SerialThread(QThread):
             if self._entity.is_open & self._isRunning:
                 self._entity.write(data)
         except Exception as e:
-            print(e)
+            print('notify',e)
 
     def run(self):
         if self._entity is None:

@@ -153,7 +153,7 @@ class NtripClient(Publisher):
 
         except Exception as e:
             self._isRunning = False
-            print("start exp", e)
+            # print("start exp", e)
 
     def stop(self):
         self._isRunning = False
@@ -167,6 +167,7 @@ class NtripClient(Publisher):
 
         if self._socket is not None:
             self._socket.close()
+            self._socket=None
 
     def receive_data(self):
 
@@ -226,7 +227,7 @@ class NtripClient(Publisher):
                 if self._socket is not None:
                     self._socket.send(self.getGGAString())
             except Exception as e:
-                print('check', e)
+                print('check',e)
             sleep(5)
 
     def start_check(self):
