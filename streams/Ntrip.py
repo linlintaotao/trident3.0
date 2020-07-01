@@ -132,8 +132,11 @@ class NtripClient(Publisher):
         if self._isRunning is True:
             return
         self._reconnect = False
-        try:
+        thread = Thread(target=self.run)
+        thread.start()
 
+    def run(self):
+        try:
             if self._socket is not None:
                 self._socket.close()
 
@@ -167,11 +170,16 @@ class NtripClient(Publisher):
 
         if self._socket is not None:
             self._socket.close()
-            self._socket=None
+            self._socket = None
 
     def receive_data(self):
-
-        head = self._socket.recv(1024)
+        head = ""
+        try:
+            head = self._socket.recv(1024)
+        except Exception as e:
+            print(e)
+            return
+        print(head)
         if b'ICY 200 OK' in head:
             self.start_check()
         elif b'SOURCETABLE 200 OK' in head:
@@ -227,7 +235,7 @@ class NtripClient(Publisher):
                 if self._socket is not None:
                     self._socket.send(self.getGGAString())
             except Exception as e:
-                print('check',e)
+                print('check', e)
             sleep(5)
 
     def start_check(self):

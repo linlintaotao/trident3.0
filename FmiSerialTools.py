@@ -563,6 +563,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
             self._port = port
             self._caster = caster
+            if 'clik' in mount:
+                mount = ''
             self.ntrip = NtripClient(ip=self._caster, port=self._port, user=user, password=passwd, mountPoint=mount)
 
             if self.checkBox_logcos.isChecked():
