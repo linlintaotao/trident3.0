@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>950</width>
-    <height>581</height>
+    <width>920</width>
+    <height>578</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -21,7 +21,7 @@
     <rect>
      <x>9</x>
      <y>9</y>
-     <width>671</width>
+     <width>641</width>
      <height>391</height>
     </rect>
    </property>
@@ -68,8 +68,8 @@ p, li { white-space: pre-wrap; }
   <widget class="QGroupBox" name="Serial">
    <property name="geometry">
     <rect>
-     <x>689</x>
-     <y>7</y>
+     <x>670</x>
+     <y>10</y>
      <width>251</width>
      <height>111</height>
     </rect>
@@ -78,6 +78,9 @@ p, li { white-space: pre-wrap; }
     <string>Serial</string>
    </property>
    <layout class="QGridLayout" name="gridLayout_4">
+    <property name="rightMargin">
+     <number>4</number>
+    </property>
     <item row="1" column="3">
      <widget class="QToolButton" name="toolButton">
       <property name="toolTip">
@@ -232,8 +235,8 @@ p, li { white-space: pre-wrap; }
   <widget class="QGroupBox" name="Ntrip">
    <property name="geometry">
     <rect>
-     <x>689</x>
-     <y>127</y>
+     <x>670</x>
+     <y>120</y>
      <width>251</width>
      <height>161</height>
     </rect>
@@ -242,6 +245,9 @@ p, li { white-space: pre-wrap; }
     <string>Ntrip</string>
    </property>
    <layout class="QGridLayout" name="gridLayout_2">
+    <property name="rightMargin">
+     <number>4</number>
+    </property>
     <item row="1" column="3" colspan="2">
      <widget class="QComboBox" name="comboBox_mount">
       <property name="toolTip">
@@ -423,8 +429,8 @@ p, li { white-space: pre-wrap; }
   <widget class="QGroupBox" name="ATCmd">
    <property name="geometry">
     <rect>
-     <x>689</x>
-     <y>289</y>
+     <x>670</x>
+     <y>290</y>
      <width>251</width>
      <height>111</height>
     </rect>
@@ -433,6 +439,9 @@ p, li { white-space: pre-wrap; }
     <string>AT Cmd</string>
    </property>
    <layout class="QGridLayout" name="gridLayout_3">
+    <property name="rightMargin">
+     <number>4</number>
+    </property>
     <item row="0" column="0">
      <widget class="QComboBox" name="cbatcmd">
       <property name="font">
@@ -671,99 +680,19 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>10</x>
      <y>410</y>
-     <width>671</width>
-     <height>130</height>
+     <width>641</width>
+     <height>161</height>
     </rect>
    </property>
    <property name="title">
     <string>States</string>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_16">
-      <property name="font">
-       <font>
-        <family>Calibri</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Stat</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="3">
-     <widget class="QLineEdit" name="lineEdit_vu">
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="6">
-     <widget class="QLabel" name="label_2">
-      <property name="font">
-       <font>
-        <family>Calibri</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Wk</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="6">
-     <widget class="QLabel" name="label_4">
-      <property name="font">
-       <font>
-        <family>Calibri</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Sats</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="5">
-     <widget class="QLineEdit" name="lineEdit_pitch">
+    <item row="3" column="2">
+     <widget class="QLineEdit" name="lineEdit_solstat">
       <property name="toolTip">
-       <string>pitch in deg</string>
+       <string>solution state</string>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="2">
-     <widget class="QLabel" name="label_14">
-      <property name="font">
-       <font>
-        <family>Calibri</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Vn</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="lineEdit_rovlon">
       <property name="layoutDirection">
        <enum>Qt::RightToLeft</enum>
       </property>
@@ -775,8 +704,8 @@ p, li { white-space: pre-wrap; }
       </property>
      </widget>
     </item>
-    <item row="0" column="4">
-     <widget class="QLabel" name="label_15">
+    <item row="1" column="3">
+     <widget class="QLabel" name="label_11">
       <property name="font">
        <font>
         <family>Calibri</family>
@@ -786,25 +715,12 @@ p, li { white-space: pre-wrap; }
        </font>
       </property>
       <property name="text">
-       <string>R</string>
+       <string>Ve</string>
       </property>
      </widget>
     </item>
-    <item row="0" column="5">
-     <widget class="QLineEdit" name="lineEdit_roll">
-      <property name="toolTip">
-       <string>roll in deg</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="4">
-     <widget class="QLabel" name="label_18">
+    <item row="2" column="5">
+     <widget class="QLabel" name="label_9">
       <property name="font">
        <font>
         <family>Calibri</family>
@@ -814,31 +730,7 @@ p, li { white-space: pre-wrap; }
        </font>
       </property>
       <property name="text">
-       <string>BL</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="7">
-     <widget class="QLineEdit" name="lineEdit_sow">
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="9">
-     <widget class="QLineEdit" name="lineEdit_srx">
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="7">
-     <widget class="QLineEdit" name="lineEdit_time">
-      <property name="readOnly">
-       <bool>true</bool>
+       <string>Y</string>
       </property>
      </widget>
     </item>
@@ -857,114 +749,7 @@ p, li { white-space: pre-wrap; }
       </property>
      </widget>
     </item>
-    <item row="2" column="5">
-     <widget class="QLineEdit" name="lineEdit_yaw">
-      <property name="toolTip">
-       <string>yaw(heading) in deg</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="6">
-     <widget class="QLabel" name="label">
-      <property name="font">
-       <font>
-        <family>Calibri</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Time</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="3">
-     <widget class="QLineEdit" name="lineEdit_vn">
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="4">
-     <widget class="QLabel" name="label_9">
-      <property name="font">
-       <font>
-        <family>Calibri</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Y</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="3">
-     <widget class="QLineEdit" name="lineEdit_dage">
-      <property name="toolTip">
-       <string>age of difference</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="lineEdit_rovhgt">
-      <property name="layoutDirection">
-       <enum>Qt::RightToLeft</enum>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="2">
-     <widget class="QLabel" name="label_8">
-      <property name="font">
-       <font>
-        <family>Calibri</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Vu</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QLineEdit" name="lineEdit_rovlat">
-      <property name="layoutDirection">
-       <enum>Qt::RightToLeft</enum>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="6">
+    <item row="2" column="7">
      <widget class="QLabel" name="label_3">
       <property name="font">
        <font>
@@ -979,24 +764,105 @@ p, li { white-space: pre-wrap; }
       </property>
      </widget>
     </item>
-    <item row="3" column="5">
-     <widget class="QLineEdit" name="lineEdit_bl">
-      <property name="toolTip">
-       <string>base line</string>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_srx">
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      <property name="text">
+       <string>Rx</string>
       </property>
+     </widget>
+    </item>
+    <item row="3" column="7">
+     <widget class="QLabel" name="label_4">
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Sats</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="5">
+     <widget class="QLabel" name="label_12">
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>P</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="8">
+     <widget class="QLineEdit" name="lineEdit_sow">
       <property name="readOnly">
        <bool>true</bool>
       </property>
      </widget>
     </item>
-    <item row="3" column="1">
-     <widget class="QLineEdit" name="lineEdit_solstat">
-      <property name="toolTip">
-       <string>solution state</string>
+    <item row="0" column="5">
+     <widget class="QLabel" name="label_15">
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
       </property>
+      <property name="text">
+       <string>R</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="7">
+     <widget class="QLabel" name="label_2">
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Wk</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="7">
+     <widget class="QLabel" name="label">
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Time</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QLineEdit" name="lineEdit_rovlon">
       <property name="layoutDirection">
        <enum>Qt::RightToLeft</enum>
       </property>
@@ -1023,7 +889,61 @@ p, li { white-space: pre-wrap; }
       </property>
      </widget>
     </item>
-    <item row="3" column="2">
+    <item row="2" column="3">
+     <widget class="QLabel" name="label_8">
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Vu</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="6">
+     <widget class="QLineEdit" name="lineEdit_roll">
+      <property name="toolTip">
+       <string>roll in deg</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="6">
+     <widget class="QLineEdit" name="lineEdit_bl">
+      <property name="toolTip">
+       <string>base line</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="6">
+     <widget class="QLineEdit" name="lineEdit_yaw">
+      <property name="toolTip">
+       <string>yaw(heading) in deg</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="3">
      <widget class="QLabel" name="label_17">
       <property name="font">
        <font>
@@ -1038,8 +958,11 @@ p, li { white-space: pre-wrap; }
       </property>
      </widget>
     </item>
-    <item row="1" column="3">
-     <widget class="QLineEdit" name="lineEdit_ve">
+    <item row="1" column="6">
+     <widget class="QLineEdit" name="lineEdit_pitch">
+      <property name="toolTip">
+       <string>pitch in deg</string>
+      </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
@@ -1048,22 +971,8 @@ p, li { white-space: pre-wrap; }
       </property>
      </widget>
     </item>
-    <item row="1" column="7">
-     <widget class="QLineEdit" name="lineEdit_wk">
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="7">
-     <widget class="QLineEdit" name="lineEdit_sats">
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="2">
-     <widget class="QLabel" name="label_11">
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_16">
       <property name="font">
        <font>
         <family>Calibri</family>
@@ -1073,22 +982,17 @@ p, li { white-space: pre-wrap; }
        </font>
       </property>
       <property name="text">
-       <string>Ve</string>
+       <string>Stat</string>
       </property>
      </widget>
     </item>
     <item row="1" column="4">
-     <widget class="QLabel" name="label_12">
-      <property name="font">
-       <font>
-        <family>Calibri</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
+     <widget class="QLineEdit" name="lineEdit_ve">
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
-      <property name="text">
-       <string>P</string>
+      <property name="readOnly">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -1107,7 +1011,124 @@ p, li { white-space: pre-wrap; }
       </property>
      </widget>
     </item>
+    <item row="2" column="2">
+     <widget class="QLineEdit" name="lineEdit_rovhgt">
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="8">
+     <widget class="QLineEdit" name="lineEdit_time">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="4">
+     <widget class="QLineEdit" name="lineEdit_vn">
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QLineEdit" name="lineEdit_rovlat">
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="8">
+     <widget class="QLineEdit" name="lineEdit_wk">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="4">
+     <widget class="QLineEdit" name="lineEdit_vu">
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
     <item row="3" column="8">
+     <widget class="QLineEdit" name="lineEdit_sats">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="4">
+     <widget class="QLineEdit" name="lineEdit_dage">
+      <property name="toolTip">
+       <string>age of difference</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="5">
+     <widget class="QLabel" name="label_18">
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>BL</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="3">
+     <widget class="QLabel" name="label_14">
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Vn</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="2">
+     <widget class="QLineEdit" name="lineEdit_stx">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="3">
      <widget class="QLabel" name="label_stx">
       <property name="font">
        <font>
@@ -1122,25 +1143,13 @@ p, li { white-space: pre-wrap; }
       </property>
      </widget>
     </item>
-    <item row="2" column="9">
-     <widget class="QLineEdit" name="lineEdit_stx">
+    <item row="4" column="4">
+     <widget class="QLineEdit" name="lineEdit_srx">
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
       <property name="readOnly">
        <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="8">
-     <widget class="QLabel" name="label_srx">
-      <property name="font">
-       <font>
-        <family>Calibri</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Rx</string>
       </property>
      </widget>
     </item>
@@ -1149,8 +1158,8 @@ p, li { white-space: pre-wrap; }
   <widget class="QGroupBox" name="Extools">
    <property name="geometry">
     <rect>
-     <x>689</x>
-     <y>407</y>
+     <x>670</x>
+     <y>400</y>
      <width>251</width>
      <height>81</height>
     </rect>
@@ -1159,6 +1168,9 @@ p, li { white-space: pre-wrap; }
     <string>Extools</string>
    </property>
    <layout class="QGridLayout" name="gridLayout_6">
+    <property name="rightMargin">
+     <number>4</number>
+    </property>
     <item row="0" column="0" colspan="2">
      <widget class="QComboBox" name="comboBox_extools">
       <property name="toolTip">
@@ -1228,83 +1240,6 @@ p, li { white-space: pre-wrap; }
     </item>
    </layout>
   </widget>
-  <widget class="QCheckBox" name="checkBox_autoScoll">
-   <property name="geometry">
-    <rect>
-     <x>874</x>
-     <y>498</y>
-     <width>47</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="mouseTracking">
-    <bool>false</bool>
-   </property>
-   <property name="toolTip">
-    <string>auto scroll</string>
-   </property>
-   <property name="text">
-    <string>SCOL</string>
-   </property>
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkBox_logcos">
-   <property name="geometry">
-    <rect>
-     <x>813</x>
-     <y>498</y>
-     <width>47</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;record CORS data in NMEA/*.cors &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="text">
-    <string>CORS</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_fmi">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>540</y>
-     <width>671</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>Arial</family>
-     <pointsize>12</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="text">
-    <string>Developed by Feynman Innovation Development Team </string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="openExternalLinks">
-    <bool>false</bool>
-   </property>
-   <property name="textInteractionFlags">
-    <set>Qt::NoTextInteraction</set>
-   </property>
-  </widget>
   <widget class="QPushButton" name="pushButton_close">
    <property name="geometry">
     <rect>
@@ -1344,101 +1279,112 @@ p, li { white-space: pre-wrap; }
     <string>Clear</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox_ggafmt">
+  <widget class="QWidget" name="widget_2" native="true">
    <property name="geometry">
     <rect>
-     <x>690</x>
-     <y>498</y>
-     <width>41</width>
-     <height>16</height>
+     <x>670</x>
+     <y>490</y>
+     <width>251</width>
+     <height>41</height>
     </rect>
    </property>
-   <property name="mouseTracking">
-    <bool>false</bool>
-   </property>
-   <property name="toolTip">
-    <string>lat lon in degree format</string>
-   </property>
-   <property name="text">
-    <string>DEG</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkBox_savenmea">
-   <property name="geometry">
-    <rect>
-     <x>751</x>
-     <y>498</y>
-     <width>47</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="mouseTracking">
-    <bool>false</bool>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;record all serial received data in NMEA/*.log&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="text">
-    <string>SAVE</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkBox_dummy1">
-   <property name="geometry">
-    <rect>
-     <x>690</x>
-     <y>520</y>
-     <width>41</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>DMY</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkBox_dummy2">
-   <property name="geometry">
-    <rect>
-     <x>751</x>
-     <y>520</y>
-     <width>47</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>DMY2</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkBox_dummy3">
-   <property name="geometry">
-    <rect>
-     <x>813</x>
-     <y>520</y>
-     <width>47</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>DMY3</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkBox_dummy4">
-   <property name="geometry">
-    <rect>
-     <x>874</x>
-     <y>520</y>
-     <width>47</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>DMY4</string>
-   </property>
+   <layout class="QGridLayout" name="gridLayout_5">
+    <property name="rightMargin">
+     <number>2</number>
+    </property>
+    <item row="0" column="0">
+     <widget class="QCheckBox" name="checkBox_ggafmt">
+      <property name="mouseTracking">
+       <bool>false</bool>
+      </property>
+      <property name="toolTip">
+       <string>lat lon in degree format</string>
+      </property>
+      <property name="text">
+       <string>DEG</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QCheckBox" name="checkBox_savenmea">
+      <property name="mouseTracking">
+       <bool>false</bool>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;record all serial received data in NMEA/*.log&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>SAVE</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QCheckBox" name="checkBox_logcos">
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;record CORS data in NMEA/*.cors &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>CORS</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="3">
+     <widget class="QCheckBox" name="checkBox_autoScoll">
+      <property name="mouseTracking">
+       <bool>false</bool>
+      </property>
+      <property name="toolTip">
+       <string>auto scroll</string>
+      </property>
+      <property name="text">
+       <string>SCOL</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QCheckBox" name="checkBox_dummy1">
+      <property name="text">
+       <string>DMY</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QCheckBox" name="checkBox_dummy2">
+      <property name="text">
+       <string>DMY2</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QCheckBox" name="checkBox_dummy3">
+      <property name="text">
+       <string>DMY3</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="3">
+     <widget class="QCheckBox" name="checkBox_dummy4">
+      <property name="text">
+       <string>DMY4</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>
