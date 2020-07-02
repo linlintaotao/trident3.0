@@ -18,7 +18,7 @@ from streams.Ntrip import NtripClient
 import serial
 import serial.tools.list_ports
 
-from PyQt5.QtCore import QTimer, QCoreApplication,Qt
+from PyQt5.QtCore import QTimer, QCoreApplication, Qt
 from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
@@ -346,7 +346,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             else:
                 self._term_ntrip()
                 if len(self.ntrip.get_mountpoint()) > 0:
-                    self.comboBox_mount.removeItem(0)
+                    self.comboBox_mount.clear()
                     for port in self.ntrip.get_mountpoint():
                         self.comboBox_mount.addItem(port)
                     self.ntrip.clear()
@@ -414,10 +414,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.com = SerialThread(iport=self.cbsport.currentText(),
                                     baudRate=int(self.cbsbaud.currentText()), coldStart=coldRestart)
             self.com.signal.connect(self.read_ser_data)
-            try:
-                self.com.start()
-            except serial.SerialException as e:
-                QMessageBox.critical(self, "error", f"can not open serial {self.cbsport.currentText()}")
+            self.com.start()
+
             if self.checkBox_savenmea.isChecked():
                 self.com.setFile(on=True)
 
@@ -425,8 +423,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self.ntrip.register(self.com)
 
             self.set_ser_params(False)
-            self.pushButton_open.setText(CLOSE)
-            self.pushButton_refresh.setEnabled(False)
+            # self.pushButton_open.setText(CLOSE)
+            # self.pushButton_refresh.setEnabled(False)
             self.textEdit_recv.clear()
         elif self.pushButton_open.text() == CLOSE:
 
@@ -434,10 +432,16 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             if self.ntrip is not None:
                 self.ntrip.unregister(self.com)
             self.set_ser_params(True)
-            self.pushButton_open.setText(OPEN)
-            self.pushButton_refresh.setEnabled(True)
+            # self.pushButton_open.setText(OPEN)
+            # self.pushButton_refresh.setEnabled(True)
 
     def read_ser_data(self, data):
+
+        if 'STOP SERIAL' in str(data):
+            self.set_ser_params(True)
+            QMessageBox.critical(self, "error", f"can not open serial {self.cbsport.currentText()}")
+            return
+
         """
         serial port reading
         :return:
@@ -537,6 +541,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.cbsport.setEnabled(enable)
         self.cbsbaud.setEnabled(enable)
         self.cbsdata.setEnabled(enable)
+        self.pushButton_open.setText(OPEN if enable else CLOSE)
+        self.pushButton_refresh.setEnabled(enable)
 
     def set_ntrip_params(self, enable):
         self.comboBox_caster.setEnabled(enable)
@@ -555,6 +561,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             caster = self.comboBox_caster.currentText()
             port = int(self.comboBox_port.currentText())
             mount = self.comboBox_mount.currentText()
+            print('mount', mount)
             if self.lineEdit_user.text() == '' or self.lineEdit_pwd.text() == '':
                 user, passwd = 'feyman-user', '123456'
             else:
@@ -563,8 +570,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
             self._port = port
             self._caster = caster
-            if 'clik' in mount:
-                mount = ''
             self.ntrip = NtripClient(ip=self._caster, port=self._port, user=user, password=passwd, mountPoint=mount)
 
             if self.checkBox_logcos.isChecked():
@@ -697,11 +702,11 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     # stop all stream
     def stop_all(self):
-        self.pushButton_refresh.setEnabled(True)
+        # self.pushButton_refresh.setEnabled(True)
         if self.com is not None and self.com.is_running():
             self.com.stop()
             self.set_ser_params(True)
-            self.pushButton_open.setText(OPEN)
+            # self.pushButton_open.setText(OPEN)
         self._term_ntrip()
 
     # terminate ntrip connection

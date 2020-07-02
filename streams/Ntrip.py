@@ -13,7 +13,7 @@ import os
 
 class NtripClient(Publisher):
 
-    def __init__(self, ip='ntrips.feymani.cn', port=2102, user='feyman-user', password="123456", mountPoint='Obs',
+    def __init__(self, ip='ntrips.feymani.cn', port=2102, user='feyman-user', password="123456", mountPoint='',
                  latitude=40, longitude=116, altitude=54.6):
         Publisher.__init__(self)
         '''
@@ -47,6 +47,7 @@ class NtripClient(Publisher):
 
         self._file = None
         self._mountPointList = []
+        self.writeFile = False
 
     def setCallback(self, callback):
         self._callback = callback
@@ -62,15 +63,19 @@ class NtripClient(Publisher):
 
     def setLogFile(self, on):
         if on:
-            if self._file is None:
-                path = os.path.join(os.path.abspath('.'),
-                                    'NMEA/' + 'CORS_' + datetime.datetime.now().strftime(
-                                        '%Y%m%d_%H%M%S') + '.dat')
-                self._file = open(path, 'wb')
+            self.writeFile = True
         else:
+            self.writeFile = False
             if self._file is not None:
                 self._file.close()
                 self._file = None
+
+    def createFile(self):
+        if self.writeFile and self._file is None:
+            path = os.path.join(os.path.abspath('.'),
+                                'NMEA/' + 'CORS_' + datetime.datetime.now().strftime(
+                                    '%Y%m%d_%H%M%S') + '.dat')
+            self._file = open(path, 'wb')
 
     def setPosition(self, lat, lon):
         self.flagN = "N"
@@ -101,6 +106,7 @@ class NtripClient(Publisher):
         return self._mountPointList
 
     def set_mount_info(self, mnt):
+        mnt = mnt.replace(' ', '')
         user = b64encode((self._user + ":" + str(self._password)).encode('utf-8')).decode()
         mountPointString = "GET /%s HTTP/1.1\r\n" \
                            "User-Agent: %s\r\n" \
@@ -118,7 +124,6 @@ class NtripClient(Publisher):
                      self.flagE, self._height)
         checksum = self.check_sum(ggaString)
         ggaStr = "$%s*%s\r\n" % (ggaString, checksum)
-        print('sendGGAString', ggaStr)
         return ggaStr.encode()
 
     def check_sum(self, stringToCheck):
@@ -156,7 +161,7 @@ class NtripClient(Publisher):
 
         except Exception as e:
             self._isRunning = False
-            # print("start exp", e)
+            print("start exp", e)
 
     def stop(self):
         self._isRunning = False
@@ -173,13 +178,14 @@ class NtripClient(Publisher):
             self._socket = None
 
     def receive_data(self):
-        head = ""
+        head = b''
         try:
-            head = self._socket.recv(1024)
+            data = self._socket.recv(204800)
+            head += data
         except Exception as e:
-            print(e)
+            self.paraValid = False
+            self._isRunning = False
             return
-        print(head)
         if b'ICY 200 OK' in head:
             self.start_check()
         elif b'SOURCETABLE 200 OK' in head:
@@ -193,7 +199,6 @@ class NtripClient(Publisher):
         else:
             self.paraValid = False
             self._isRunning = False
-            # self._callback(False)
             return
 
         while self._isRunning:
@@ -206,19 +211,16 @@ class NtripClient(Publisher):
                     # 通知所有的串口进行刷新
                     self._receiveDataLength += len(data)
                     self.notifyAll(data)
-
+                    self.createFile()
                     if self._file:
                         self._file.write(data)
 
-                # print(data)
             except Exception as e:
                 self._reconnect = True
                 self._reconnectLimit += 5
-                print('ntrip', e)
                 break
 
     def reconnect(self):
-
         self._isRunning = False
         self._reconnectLimit = 0
         self._socket.close()

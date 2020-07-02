@@ -22,29 +22,32 @@ class SerialThread(QThread):
         self._file = None
         self._isRunning = True
         self._coldStart = coldStart
+        self.writefile = False
 
     def getPort(self):
         return self._port
 
     def setFile(self, on=True):
         if on:
-            if self._file is None:
-                path = os.path.join(os.path.abspath('.'),
-                                    'NMEA/' + self._port.split('/')[-1] + '_' + datetime.datetime.now().strftime(
-                                        '%Y%m%d_%H%M%S') + '.nmea')
-                self._file = open(path, 'wb')
+            self.writefile = True
         else:
+            self.writefile = False
             if self._file is not None:
                 self._file.close()
                 self._file = None
+
+    def createFile(self):
+        if self.writefile and self._file is None:
+            path = os.path.join(os.path.abspath('.'),
+                                'NMEA/' + self._port.split('/')[-1] + '_' + datetime.datetime.now().strftime(
+                                    '%Y%m%d_%H%M%S') + '.nmea')
+            self._file = open(path, 'wb')
 
     def is_running(self):
         return self._entity is not None and self._entity.isOpen() and self._isRunning
 
     def open_serial(self):
-
         self._entity = serial.Serial(self._port, self._baudRate, timeout=1)
-        self._entity.flushInput()
         if self._coldStart:
             self._entity.write('AT+COLD_RESET\r\n'.encode())
 
@@ -65,17 +68,20 @@ class SerialThread(QThread):
             if self._entity.is_open & self._isRunning:
                 self._entity.write(data)
         except Exception as e:
-            print('notify',e)
+            print('notify', e)
 
     def run(self):
         if self._entity is None:
             try:
                 self.open_serial()
             except Exception as e:
+                self.signal.emit(b'STOP SERIAL')
+                print(e)
                 return
         while self._isRunning and self._entity.is_open:
             try:
                 data = self._entity.readline()
+                self.createFile()
                 if self._file:
                     self._file.write(data)
                     self._file.flush()
