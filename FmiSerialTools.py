@@ -18,7 +18,7 @@ from streams.Ntrip import NtripClient
 import serial
 import serial.tools.list_ports
 
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, QCoreApplication,Qt
 from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
@@ -764,6 +764,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
 
 if __name__ == '__main__':
+    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     app = QApplication(argv)
     nst = NtripSerialTool()
     nst.show()
