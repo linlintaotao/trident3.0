@@ -133,10 +133,8 @@ class NtripClient(Publisher):
         return "%02X" % xsum_calc
 
     def start(self):
-
         if self._isRunning is True:
             return
-        self._reconnect = False
         thread = Thread(target=self.run)
         thread.start()
 
@@ -188,6 +186,7 @@ class NtripClient(Publisher):
             return
         if b'ICY 200 OK' in head:
             self.start_check()
+            pass
         elif b'SOURCETABLE 200 OK' in head:
             resp_list = bytes(head).decode().split("\r\n")[6:]
             self._mountPointList = []
@@ -224,7 +223,7 @@ class NtripClient(Publisher):
         self._isRunning = False
         self._reconnectLimit = 0
         self._socket.close()
-        sleep(3)
+        sleep(2)
         self.start()
 
     def check(self):
@@ -239,6 +238,7 @@ class NtripClient(Publisher):
             except Exception as e:
                 print('check', e)
             sleep(5)
+            print('check', " running after 5")
 
     def start_check(self):
         if self.check_thread is None:

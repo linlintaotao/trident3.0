@@ -291,7 +291,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     def __init__(self, parent=None):
         super(NtripSerialTool, self).__init__(parent)
         self.setWindowIcon(QIcon("./gui/i.svg"))
-        self.setFixedSize(950, 590)
+        # self.setFixedSize(950, 590)
         self._imgfile = None
         self._nmeaf = None
         self._fn = ''
@@ -415,30 +415,24 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                                     baudRate=int(self.cbsbaud.currentText()), coldStart=coldRestart)
             self.com.signal.connect(self.read_ser_data)
             self.com.start()
-
             if self.checkBox_savenmea.isChecked():
                 self.com.setFile(on=True)
-
             if self.ntrip is not None:
                 self.ntrip.register(self.com)
-
             self.set_ser_params(False)
-            # self.pushButton_open.setText(CLOSE)
-            # self.pushButton_refresh.setEnabled(False)
             self.textEdit_recv.clear()
         elif self.pushButton_open.text() == CLOSE:
-
             self.com.stop()
             if self.ntrip is not None:
                 self.ntrip.unregister(self.com)
             self.set_ser_params(True)
-            # self.pushButton_open.setText(OPEN)
-            # self.pushButton_refresh.setEnabled(True)
 
     def read_ser_data(self, data):
 
         if 'STOP SERIAL' in str(data):
             self.set_ser_params(True)
+            if self.ntrip is not None:
+                self.ntrip.register(self.com)
             QMessageBox.critical(self, "error", f"can not open serial {self.cbsport.currentText()}")
             return
 
@@ -556,12 +550,13 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         if self.pushButton_conn.text() == CONNECT:
 
             if self.ntrip is not None and self.ntrip.isRunning():
+                self.ntrip.stop()
+                self.ntrip = None
                 return
 
             caster = self.comboBox_caster.currentText()
             port = int(self.comboBox_port.currentText())
             mount = self.comboBox_mount.currentText()
-            print('mount', mount)
             if self.lineEdit_user.text() == '' or self.lineEdit_pwd.text() == '':
                 user, passwd = 'feyman-user', '123456'
             else:
@@ -711,7 +706,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     # terminate ntrip connection
     def _term_ntrip(self):
-        if self.ntrip is not None and self.ntrip.isRunning():
+        if self.ntrip is not None:
             self.ntrip.stop()
         NTRIP[0] = None
         self.ntripDataTimer.stop()

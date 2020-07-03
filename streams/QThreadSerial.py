@@ -76,7 +76,7 @@ class SerialThread(QThread):
                 self.open_serial()
             except Exception as e:
                 self.signal.emit(b'STOP SERIAL')
-                print(e)
+                print('Exception', e)
                 return
         while self._isRunning and self._entity.is_open:
             try:

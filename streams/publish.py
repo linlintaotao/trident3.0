@@ -13,11 +13,12 @@ class Publisher:
     def register(self, observer):
         if observer not in self._observers:
             self._observers.append(observer)
-            print(self._observers)
+            print('Publisher register', self._observers)
 
     def unregister(self, observer):
         if observer in self._observers:
             self._observers.remove(observer)
+            print('Publisher unregister', self._observers)
 
     def unregisterAll(self):
         for observer in self._observers:
