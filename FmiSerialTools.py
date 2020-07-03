@@ -432,7 +432,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         if 'STOP SERIAL' in str(data):
             self.set_ser_params(True)
             if self.ntrip is not None:
-                self.ntrip.register(self.com)
+                self.ntrip.unregister(self.com)
             QMessageBox.critical(self, "error", f"can not open serial {self.cbsport.currentText()}")
             return
 

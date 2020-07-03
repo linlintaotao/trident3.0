@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_widget(object):
     def setupUi(self, widget):
         widget.setObjectName("widget")
-        widget.resize(920, 578)
+        widget.resize(930, 581)
         widget.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.textEdit_recv = QtWidgets.QTextEdit(widget)
         self.textEdit_recv.setGeometry(QtCore.QRect(9, 9, 641, 391))
@@ -550,7 +550,7 @@ class Ui_widget(object):
 
     def retranslateUi(self, widget):
         _translate = QtCore.QCoreApplication.translate
-        widget.setWindowTitle(_translate("widget", "Trident v2.0 (for any support contact fmi@feyman.cn)"))
+        widget.setWindowTitle(_translate("widget", "Trident v1.6 (for any support contact fmi@feyman.cn)"))
         self.textEdit_recv.setHtml(_translate("widget", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"

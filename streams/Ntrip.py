@@ -180,13 +180,15 @@ class NtripClient(Publisher):
         try:
             data = self._socket.recv(204800)
             head += data
+            print(head)
         except Exception as e:
             self.paraValid = False
             self._isRunning = False
             return
         if b'ICY 200 OK' in head:
             self.start_check()
-            pass
+            self._isRunning = True
+            # pass
         elif b'SOURCETABLE 200 OK' in head:
             resp_list = bytes(head).decode().split("\r\n")[6:]
             self._mountPointList = []
@@ -203,6 +205,7 @@ class NtripClient(Publisher):
         while self._isRunning:
             try:
                 data = self._socket.recv(1024)
+                print(data)
                 if len(data) <= 0:
                     self._reconnectLimit += 1
                 else:
@@ -215,12 +218,13 @@ class NtripClient(Publisher):
                         self._file.write(data)
 
             except Exception as e:
+                print('_isRunning',e)
                 self._reconnect = True
                 self._reconnectLimit += 5
                 break
 
     def reconnect(self):
-        self._isRunning = False
+        # self._isRunning = False
         self._reconnectLimit = 0
         self._socket.close()
         sleep(2)
