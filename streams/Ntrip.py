@@ -155,7 +155,7 @@ class NtripClient(Publisher):
             self.read_thread.start()
 
             self._socket.send(self.set_mount_info(self._mountPoint))
-            self._socket.send(self.getGGAString())
+
 
         except Exception as e:
             self._isRunning = False
@@ -188,7 +188,7 @@ class NtripClient(Publisher):
         if b'ICY 200 OK' in head:
             self.start_check()
             self._isRunning = True
-            # pass
+            self._socket.send(self.getGGAString())
         elif b'SOURCETABLE 200 OK' in head:
             resp_list = bytes(head).decode().split("\r\n")[6:]
             self._mountPointList = []
