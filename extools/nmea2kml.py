@@ -327,12 +327,12 @@ def nmeaFileTodev(f):
 
 
 def main():
-    fn = "../NMEA/20191220.txt"
+    fn = "../NMEA/F9P.txt"
     fo = open(fn + '.kml', 'w')
 
     fi = open(fn, 'r', encoding='utf-8')
     coords = nmeaFileToCoords(fi, 'GGA')
-    kml_str = genKmlStr(coords, 'GGA')
+    kml_str,info= genKmlStr(coords, 'GGA')
 
     fo.write(kml_str)
     fi.close()

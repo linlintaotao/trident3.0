@@ -31,12 +31,12 @@ def toDecimalDegrees(ddmm):
 def _float(s):
     """
     Returns the float value of string s if it exists,
-    or None if s is an empty string.
+    or None if s is 0.
     """
     if s:
         return float(s)
     else:
-        return None
+        return 0
 
 
 def _int(s):
@@ -47,7 +47,7 @@ def _int(s):
     if s:
         return int(s)
     else:
-        return None
+        return 0
 
 
 def calcCheckSum(line):
@@ -59,6 +59,7 @@ def calcCheckSum(line):
     for c in line[1:-3]:
         s = s ^ ord(c)
     return s
+
 
 def parseFMI(fields):
     """
@@ -75,9 +76,9 @@ def parseFMI(fields):
     sow = _float(fields[2])
 
     insec = int(sow)
-    secs = week*604800+insec-18
-    milsec = (sow-insec)*1e3
-    micsec = (sow-insec)*1e6-milsec*1e3
+    secs = week * 604800 + insec - 18
+    milsec = (sow - insec) * 1e3
+    micsec = (sow - insec) * 1e6 - milsec * 1e3
     data['UtcTime'] = (GPS_EPOCH + timedelta(seconds=secs, milliseconds=milsec, microseconds=micsec)).strftime(
         '%m/%d/%Y %H%M%S.%f')[:-4]
     data['week'] = week
@@ -115,7 +116,7 @@ def parseGGA(fields):
     data['PositionFix'] = fields[6]
     data['SatellitesUsed'] = _int(fields[7])
     data['HorizontalDilutionOfPrecision'] = _float(fields[8])
-    data['MslAltitude'] = _float(fields[9])+_float(fields[11])
+    data['MslAltitude'] = _float(fields[9]) + _float(fields[11])
     data['MslAltitudeUnits'] = fields[10]
     data['GeoidSeparation'] = _float(fields[11])
     data['GeoidSeparationUnits'] = fields[12]
@@ -127,6 +128,7 @@ def parseGGA(fields):
         data['Latitude'] *= -1.0
     if data['EwIndicator'] == 'W':
         data['Longitude'] *= -1.0
+
 
 def parseGLL(fields):
     """
@@ -151,6 +153,7 @@ def parseGLL(fields):
         data['Latitude'] *= -1.0
     if data['EwIndicator'] == 'W':
         data['Longitude'] *= -1.0
+
 
 def parseGSA(fields):
     """
@@ -244,6 +247,7 @@ def parseGSV(fields):
             del data['Snr'][nn]
             nn += 1
 
+
 def parseRMC(fields):
     """
     Parses the Recommended Minimum Specific GNSS Data sentence fields.
@@ -277,6 +281,7 @@ def parseRMC(fields):
         data['Latitude'] *= -1.0
     if data['EwIndicator'] == 'W':
         data['Longitude'] *= -1.0
+
 
 def parseVTG(fields):
     """
@@ -330,6 +335,7 @@ def parseLine(line, check=False):
     parseFunc(line[:-3].split(','))
     # Return the type of sentence that was parsed
     return line[3:6]
+
 
 def getField(fieldname):
     """
