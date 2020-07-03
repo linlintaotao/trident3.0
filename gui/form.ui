@@ -14,7 +14,7 @@
    <enum>Qt::ClickFocus</enum>
   </property>
   <property name="windowTitle">
-   <string>Trident v1.6 (for any support contact fmi@feyman.cn)</string>
+   <string>Trident v2.1 (for any support contact fmi@feyman.cn)</string>
   </property>
   <widget class="QTextEdit" name="textEdit_recv">
    <property name="geometry">
@@ -596,71 +596,6 @@ p, li { white-space: pre-wrap; }
       <item>
        <property name="text">
         <string>AT+LEVER_ARM=0.01,-0.027,-0.1</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>$JASC,</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>$JATT,</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>$JBAUD,</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>$JBIN,</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>$JBOOT,</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>$JDIFF,</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>$JNMEA,</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>$JOFF,</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>$JPOS,</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>$JQUERY,</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>$JRTCM3,</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>$JRTK,</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>$JSHOW,</string>
        </property>
       </item>
      </widget>

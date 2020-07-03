@@ -54,6 +54,8 @@ COLOR_TAB = {'0': 'gray', '1': 'red', '2': '#55aaff', '3': 'black', '4': 'green'
 
 NTRIP = [None]
 
+LAT_LON = [40, 60]
+
 
 ###################################################################
 
@@ -489,6 +491,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                     else:
                         a = int(lat_deg / 100) + (lat_deg % 100) / 60
                         o = int(lon_deg / 100) + (lon_deg % 100) / 60
+                        LAT_LON[0] = a
+                        LAT_LON[1] = o
                         if self.ntrip is not None:
                             self.ntrip.setPosition(lat=a, lon=o)
                         latdm, londm = "%.7f" % a, "%.7f" % o
@@ -566,7 +570,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
             self._port = port
             self._caster = caster
-            self.ntrip = NtripClient(ip=self._caster, port=self._port, user=user, password=passwd, mountPoint=mount)
+            self.ntrip = NtripClient(ip=self._caster, port=self._port, user=user, password=passwd, mountPoint=mount,
+                                     latitude=LAT_LON[0], longitude=LAT_LON[1])
 
             if self.checkBox_logcos.isChecked():
                 self.ntrip.setLogFile(True)
