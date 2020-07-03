@@ -10,6 +10,9 @@ from time import sleep
 import datetime
 import os
 
+DISCONNECT = 'Disconnect'
+RECONNECT = 'Reconnect'
+
 
 class NtripClient(Publisher):
 
@@ -102,6 +105,10 @@ class NtripClient(Publisher):
     def clear(self):
         self._mountPointList.clear()
 
+    def getState(self):
+
+        return RECONNECT if self._reconnect else DISCONNECT
+
     def get_mountpoint(self):
         return self._mountPointList
 
@@ -133,7 +140,7 @@ class NtripClient(Publisher):
         return "%02X" % xsum_calc
 
     def start(self):
-        if self._isRunning is True:
+        if self._isRunning is True and not self._reconnect:
             return
         thread = Thread(target=self.run)
         thread.start()
@@ -188,6 +195,7 @@ class NtripClient(Publisher):
         if b'ICY 200 OK' in head:
             self.start_check()
             self._isRunning = True
+            self._reconnect = False
             self._socket.send(self.getGGAString())
         elif b'SOURCETABLE 200 OK' in head:
             resp_list = bytes(head).decode().split("\r\n")[6:]
@@ -202,7 +210,7 @@ class NtripClient(Publisher):
             self._isRunning = False
             return
 
-        while self._isRunning:
+        while self._isRunning and not self._reconnect:
             try:
                 data = self._socket.recv(1024)
                 print(data)
@@ -218,7 +226,7 @@ class NtripClient(Publisher):
                         self._file.write(data)
 
             except Exception as e:
-                print('_isRunning',e)
+                print('_isRunning', e)
                 self._reconnect = True
                 self._reconnectLimit += 5
                 break

@@ -342,6 +342,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self._val = 0 if self._val > 100 else self._val
                 self.progressBar.setValue(self._val)
                 self.lineEdit_stx.setText(str(self._stxbs))
+                self.pushButton_conn.setText(self.ntrip.getState())
 
             else:
                 self._term_ntrip()
@@ -389,7 +390,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.com.setFile(self.checkBox_savenmea.isChecked())
 
     def save_cors(self):
-        if self.ntrip is not None:
+        if self.ntrip is not None and self.ntrip.isRunning():
             self.ntrip.setLogFile(self.checkBox_logcos.isChecked())
 
     def ser_refresh(self):
@@ -417,7 +418,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.com.start()
             if self.checkBox_savenmea.isChecked():
                 self.com.setFile(on=True)
-            if self.ntrip is not None:
+            if self.ntrip is not None and self.ntrip.isRunning():
                 self.ntrip.register(self.com)
             self.set_ser_params(False)
             self.textEdit_recv.clear()
@@ -575,7 +576,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.set_ntrip_params(False)
             self.ntripDataTimer.start(1200)
             self.pushButton_conn.setText(DISCONNECT)
-        elif self.pushButton_conn.text() == DISCONNECT:
+        else:
             self._term_ntrip()
 
     # at command button handle
@@ -708,6 +709,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     def _term_ntrip(self):
         if self.ntrip is not None:
             self.ntrip.stop()
+
         NTRIP[0] = None
         self.ntripDataTimer.stop()
         self.set_ntrip_params(True)
