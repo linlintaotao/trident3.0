@@ -250,7 +250,6 @@ class NtripClient(Publisher):
             except Exception as e:
                 print('check', e)
             sleep(5)
-            print('check', " running after 5")
 
     def start_check(self):
         if self.check_thread is None:

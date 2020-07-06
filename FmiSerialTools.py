@@ -770,6 +770,10 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         dialog.show()
 
 
+    def closeEvent(self, QCloseEvent):
+        self.close_all()
+
+
 if __name__ == '__main__':
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     app = QApplication(argv)
