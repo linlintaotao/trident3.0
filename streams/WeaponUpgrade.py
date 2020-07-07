@@ -59,6 +59,7 @@ class UpgradeManager(QThread):
     def __init__(self, listener, port, file):
         super().__init__()
         self.repeatTimes = 0
+        self.nothing_read_times = 100
         self._sendByte = 0
         self._byteList = []
         self._isUpdating = False
@@ -67,7 +68,7 @@ class UpgradeManager(QThread):
         self._serial = serial.Serial(baudrate=115200, timeout=1)
         self._serial.setPort(port)
         self._file = file
-        self.readThread = Thread(target=self.readSerial)
+        self.readThread = Thread(target=self.readSerial, daemon=True)
 
     def run(self):
         self._isUpdating = True
@@ -98,7 +99,7 @@ class UpgradeManager(QThread):
                 self._serial.flush()
             else:
                 break
-            print(''.join(['%02X ' % b for b in bytes(trans_buff)]))
+            # print(''.join(['%02X ' % b for b in bytes(trans_buff)]))
             self._listener(True, self._sendByte)
 
         for i in range(3):
@@ -108,30 +109,36 @@ class UpgradeManager(QThread):
         print('==>', ''.join(['%02X ' % b for b in bytes(response)]))
         if response is None or len(response) <= 0:
             return
-        if self.repeatTimes > 20:
+        if len(response) <= 0:
+            self.nothing_read_times -= 1
+        if self.repeatTimes > 20 or self.nothing_read_times <= 0:
             self._isUpdating = False
+            if self._listener is not None:
+                self._listener(False, b'Oops! update failed... ')
             self._serial.close()
             return
+
+        if b'Saving OK' in response:
+            if self._listener is not None:
+                self._listener(False, b'update success!!!')
+            self._serial.close()
+
         for i in range(len(response) - 3):
             if response[i] == 0x55 and response[i + 1] == 0xAA and response[i + 2] == 0x10:
                 frame = response[i + 3:]
 
                 if frame[2] == 0x01:
-                    self._isUpdating = False
-                    if self._listener is not None:
-                        self._listener(False, self._sendByte)
-                    self._serial.close()
-                    break
+                    # self._isUpdating = False
+                    #
+                    # self._serial.close()
+                    return
 
                 elif frame[2] == 0x02:  # resend
                     length = byteToint_16(frame[0:1])
                     if length > len(frame):
                         return
                     size = byteToint_16(frame[3:5])
-                    print(size)
                     self._sendByte -= (size * SUBFRAME_LEN)
-                    for i in range(size):
-                        print(byteToint_16(frame[(i + 5):(i + 7)]))
                     self._serial.write(self._byteList[byteToint_16(frame[(i + 5):(i + 7)])])
                     self._sendByte += SUBFRAME_LEN
                     self._listener(True, self._sendByte)
@@ -142,7 +149,7 @@ class UpgradeManager(QThread):
                 else:
                     print(frame[0], '0: failed')
                     if self._listener is not None:
-                        self._listener(False, self._sendByte)
+                        self._listener(False, b'Oops! update failed...')
                     self._isUpdating = False
                     self._serial.close()
                     break
@@ -151,8 +158,8 @@ class UpgradeManager(QThread):
         while self._isUpdating:
             try:
                 if self._serial.isOpen():
-                    bytesData = self._serial.readline()
-                    time.sleep(0.5)
+                    bytesData = self._serial.readall()
+                    time.sleep(0.1)
                     self.parseResponse(bytesData)
             except Exception as e:
                 print(e)

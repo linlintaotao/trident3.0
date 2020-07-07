@@ -48,6 +48,9 @@ class SerialThread(QThread):
 
     def open_serial(self):
         self._entity = serial.Serial(self._port, self._baudRate, timeout=1)
+        if self._entity.isOpen():
+            self._entity.close()
+        self._entity.open()
         if self._coldStart:
             self._entity.write('AT+COLD_RESET\r\n'.encode())
 
@@ -98,5 +101,4 @@ class SerialThread(QThread):
         if self._entity is not None:
             self._entity.close()
         if self._file:
-            self._file.flush()
             self._file.close()

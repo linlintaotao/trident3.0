@@ -51,6 +51,7 @@ class NtripClient(Publisher):
         self._file = None
         self._mountPointList = []
         self.writeFile = False
+        self._working = True
 
     def setCallback(self, callback):
         self._callback = callback
@@ -142,7 +143,7 @@ class NtripClient(Publisher):
     def start(self):
         if self._isRunning is True and not self._reconnect:
             return
-        thread = Thread(target=self.run)
+        thread = Thread(target=self.run, daemon=True)
         thread.start()
 
     def run(self):
@@ -158,17 +159,17 @@ class NtripClient(Publisher):
             if self.read_thread is not None:
                 self.read_thread = None
 
-            self.read_thread = Thread(target=self.receive_data)
+            self.read_thread = Thread(target=self.receive_data, daemon=True)
             self.read_thread.start()
 
             self._socket.send(self.set_mount_info(self._mountPoint))
-
 
         except Exception as e:
             self._isRunning = False
             print("start exp", e)
 
     def stop(self):
+        self._working = False
         self._isRunning = False
         self._stopByUser = True
         self.unregisterAll()
@@ -210,7 +211,7 @@ class NtripClient(Publisher):
             self._isRunning = False
             return
 
-        while self._isRunning and not self._reconnect:
+        while self._isRunning and not self._reconnect and self._working:
             try:
                 data = self._socket.recv(1024)
                 print(data)
@@ -240,7 +241,7 @@ class NtripClient(Publisher):
 
     def check(self):
 
-        while self._stopByUser is False and self.paraValid:
+        while self._stopByUser is False and self.paraValid and self._working:
             self._reconnectLimit += 1
             if (self._reconnectLimit > 5) | self._reconnect is True:
                 self.reconnect()
@@ -253,8 +254,11 @@ class NtripClient(Publisher):
 
     def start_check(self):
         if self.check_thread is None:
-            self.check_thread = Thread(target=self.check)
+            self.check_thread = Thread(target=self.check, daemon=True)
             self.check_thread.start()
+
+    def __del__(self):
+        self._working = False
 
 
 if __name__ == '__main__':

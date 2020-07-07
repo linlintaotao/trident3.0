@@ -76,12 +76,6 @@ def refresh_ser() -> list:
     return port_list
 
 
-def updateTrans(isUpdateing, sendBytes):
-    global SEND_BYTES, SERIAL_WRITE_MUTEX
-    SERIAL_WRITE_MUTEX = isUpdateing
-    SEND_BYTES = sendBytes
-
-
 class MultiSerial(QMainWindow, Multiser_Ui_widget):
     def __init__(self, parent=None):
         global ENABLE_TOOL_BTN
@@ -121,9 +115,11 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
         self.cbsport = [self.cs_port_1, self.cs_port_2, self.cs_port_3, self.cs_port_4]
         self.cbsbaud = [self.cs_baud_1, self.cs_baud_2, self.cs_baud_3, self.cs_baud_4]
         self.cbsattr = [self.cs_attrs_1, self.cs_attrs_2, self.cs_attrs_3, self.cs_attrs_4]
-        self.com = [serial.Serial() for _ in range(nsers)]
+        self.btnConntet = [self.pushButton_open_1, self.pushButton_open_2, self.pushButton_open_3,
+                           self.pushButton_open_4]
+        self.com = [None for _ in range(nsers)]
 
-        self.ReadSerTimer = [QTimer() for _ in range(nsers)]
+        # self.ReadSerTimer = [QTimer() for _ in range(nsers)]
         self.LEllh = [self.lineEdit_llh1, self.lineEdit_llh2, self.lineEdit_llh3, self.lineEdit_llh4]
         self.LEstat = [self.lineEdit_stat1, self.lineEdit_stat2, self.lineEdit_stat3, self.lineEdit_stat4]
         self.LBshow = [self.label, self.label_2, self.label_3, self.label_4]
@@ -149,84 +145,112 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
         btn = btntup[0]
         spn = btntup[1]
         if btn.text() == OPEN:
-            self.com[spn].port = self.cbsport[spn].currentText()
-            self.com[spn].baudrate = int(self.cbsbaud[spn].currentText())
 
-            attrs = self.cbsattr[spn].currentText().split('/')
-            self.com[spn].bytesize = int(attrs[0])
-            self.com[spn].stopbits = int(attrs[2])
-            self.com[spn].parity = attrs[1]
-            self.com[spn].timeout = 0
+            self.com[spn] = SerialThread(iport=self.cbsport[spn].currentText(),
+                                         baudRate=int(self.cbsbaud[spn].currentText()))
 
-            self.com[spn].close()
-            try:
-                self.com[spn].open()
-                SERIAL_SET[spn] = self.com[spn]
-            except serial.SerialException:
-                QMessageBox.critical(self, "error", f"can not open serial {self.com[spn].port}")
-            else:
-                if NTRIP[0] is not None:
-                    NTRIP[0].register(self.com[spn])
-                self.set_ser_params(False, spn)
-                btn.setText(CLOSE)
-                self.ReadSerTimer[spn].timeout.connect(partial(self.on_read, (self.com[spn], spn)))
-                self.ReadSerTimer[spn].start(20)
-                self._text[spn].clear()
+            # self.com[spn].port = self.cbsport[spn].currentText()
+            # self.com[spn].baudrate = int(self.cbsbaud[spn].currentText())
+
+            # attrs = self.cbsattr[spn].currentText().split('/')
+            # self.com[spn].bytesize = int(attrs[0])
+            # self.com[spn].stopbits = int(attrs[2])
+            # self.com[spn].parity = attrs[1]
+            # self.com[spn].timeout = 1
+
+            # self.com[spn].start()
+            if spn == 0:
+                self.com[spn].signal.connect(self.read_ser0)
+            elif spn == 1:
+                self.com[spn].signal.connect(self.read_ser1)
+            elif spn == 2:
+                self.com[spn].signal.connect(self.read_ser2)
+            elif spn == 3:
+                self.com[spn].signal.connect(self.read_ser3)
+            self.com[spn].setFile()
+            self.com[spn].start()
+            SERIAL_SET[spn] = self.com[spn]
+            if NTRIP[0] is not None:
+                NTRIP[0].register(self.com[spn])
+            self.set_ser_params(False, spn)
+            btn.setText(CLOSE)
+            self._text[spn].clear()
 
         elif btn.text() == CLOSE:
-            if NTRIP[0] is not None:
-                NTRIP[0].unregister(self.com[spn])
-            self.ReadSerTimer[spn].stop()
-            self.com[spn].close()
-            self.LBshow[spn].setText("closed")
-            self.set_ser_params(True, spn)
-            self._fh = [None for _ in range(4)]
-            self._fn = ['' for _ in range(4)]
-            btn.setText(OPEN)
+            self.onClose((self.com[spn], spn))
 
-    def on_read(self, stup):
-        global SAVE_NMEA
-        s = stup[0]
-        n = stup[1]
+    def onClose(self, serialTuple):
+        spn = serialTuple[1]
+        if NTRIP[0] is not None:
+            NTRIP[0].unregister(serialTuple[0])
+        self.com[spn].stop()
+        self.LBshow[spn].setText("closed")
+        self.set_ser_params(True, spn)
+        self._fh = [None for _ in range(4)]
+        self._fn = ['' for _ in range(4)]
+        self.btnConntet[spn].setText(OPEN)
 
-        if not s.isOpen(): return
-        data = s.readline()
+    def read_ser0(self, data):
+        self.read_ser(data, 0)
 
-        if data != b'':
-            if SAVE_NMEA:
-                if self._fh[n] is None:
-                    if self._fn[n] == '':
-                        self._fn[n] = DIR + s.port.split('/')[-1] + '_' + gettstr()
-                    self._fh[n] = open(self._fn[n] + '.nmea', 'wb')
-                else:
-                    self._fh[n].write(data)
-                    self._fh[n].flush()
-            else:
-                self._fn = ['' for _ in range(4)]
-                for f in self._fh:
-                    if f is not None:
-                        f.write(data)
-                        f.flush()
-                self._fh = [None for _ in range(4)]
+    def read_ser1(self, data):
+        self.read_ser(data, 1)
 
-            # decode received data
-            data = data.decode("utf-8", "ignore")
-            self._text[n].insertPlainText(data)
-            self.LBshow[n].setText("serial recv...")
+    def read_ser2(self, data):
+        self.read_ser(data, 2)
 
-            # display info
-            if data.startswith(('$GNGGA', '$GPGGA')):
-                self.disp_gga(data, n)
+    def read_ser3(self, data):
+        self.read_ser(data, 3)
 
-            # check firmware update
-            if self._check[n].isChecked():
-                FIRM_UPDATE_LIST[n] = True
-                LABEL_SHOW_LIST[n] = self.LBshow[n]
-            else:
-                FIRM_UPDATE_LIST[n] = False
-                LABEL_SHOW_LIST[n] = None
+    # def on_read(self, stup):
+    #
+    #     s = stup[0]
+    #     n = stup[1]
+    #     try:
+    #         # global SAVE_NMEA
+    #
+    #         # if not s.isOpen(): return
+    #         # data = s.readline()
+    #
+    #         if data != b'':
+    #             # if SAVE_NMEA:
+    #             #     if self._fh[n] is None:
+    #             #         if self._fn[n] == '':
+    #             #             self._fn[n] = DIR + s.port.split('/')[-1] + '_' + gettstr()
+    #             #         self._fh[n] = open(self._fn[n] + '.nmea', 'wb')
+    #             #     else:
+    #             #         self._fh[n].write(data)
+    #             #         self._fh[n].flush()
+    #             # else:
+    #             #     self._fn = ['' for _ in range(4)]
+    #             #     for f in self._fh:
+    #             #         if f is not None:
+    #             #             f.write(data)
+    #             #             f.flush()
+    #             #     self._fh = [None for _ in range(4)]
+    #
+    #             # decode received data
+    #             data = data.decode("utf-8", "ignore")
+    #             self._text[n].insertPlainText(data)
+    #             self.LBshow[n].setText("serial recv...")
+    #
+    #             # display info
+    #             if data.startswith(('$GNGGA', '$GPGGA')):
+    #                 self.disp_gga(data, n)
+    #
+    #             # check firmware update
+    #             if self._check[n].isChecked():
+    #                 FIRM_UPDATE_LIST[n] = True
+    #                 LABEL_SHOW_LIST[n] = self.LBshow[n]
+    #             else:
+    #                 FIRM_UPDATE_LIST[n] = False
+    #                 LABEL_SHOW_LIST[n] = None
+    #     except Exception as e:
+    #         self.onClose((self.com[n], n))
+    #         print(e)
 
-    def disp_gga(self, data, n):
+    def read_ser(self, data, n):
+        data = data.decode("utf-8", "ignore")
         """
         display gga string
         :param data: gga string
@@ -235,18 +259,19 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
         if data.startswith(('$GNGGA', '$GPGGA')) and data.endswith("\r\n"):
             seg = data.strip("\r\n").split(",")
             if len(seg) < 14: return
-
+            print(seg)
             now, latdm = seg[1:3]
             londm = seg[4]
             solstat, nsats, dop, hgt = seg[6:10]
             dage = seg[-2]
             dage = dage if dage != '' else '0'
-
+            print(latdm, londm)
             if latdm != '' and londm != '':
                 try:
                     lat_deg = float(latdm)
                     lon_deg = float(londm)
-                except TypeError as e:
+                except Exception as e:
+                    print(e)
                     return
                 else:
                     a = int(lat_deg / 100) + (lat_deg % 100) / 60
@@ -255,7 +280,7 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
 
                 stat = "{0:8s},{1:2d},{2:1d},{3:<3s}".format(now, int(nsats), int(solstat), dage)
                 self.LEstat[n].setText(stat)
-
+                self._text[n].insertPlainText(data)
                 if float(dage) > 30:
                     self.LEstat[n].setStyleSheet('background-color:#ff557f; color:white')
                 else:
@@ -277,7 +302,9 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
         for f in self._fh:
             if f is not None:
                 f.flush()
-
+        for com in self.com:
+            if com is not None:
+                com.stop()
         global ENABLE_TOOL_BTN
         ENABLE_TOOL_BTN = True
         self._exit = True
@@ -578,6 +605,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.ntrip.start()
             self.ntrip.register(self.com)
             NTRIP[0] = self.ntrip
+            for entity in SERIAL_SET:
+                self.ntrip.register(entity)
             self.set_ntrip_params(False)
             self.ntripDataTimer.start(1200)
             self.pushButton_conn.setText(DISCONNECT)
@@ -586,6 +615,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     # at command button handle
     def atcmd_send_btclik(self):
+        pass
         if not SERIAL_WRITE_MUTEX:
             cmd = self.cbatcmd.currentText() + "\r\n"
             if not cmd.startswith(('AT+', '$J')):
@@ -611,20 +641,20 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                     if self.com.is_running():
                         self.com.send_data(cmd.encode("utf-8", "ignore"))
 
-                for s in SERIAL_SET:
-                    # support all serial port config
-                    if _port[0] == 'all':
-                        if s is not None and s.isOpen():
-                            s.write(_cmd.encode("utf-8", "ignore"))
-                    else:
-                        # port list must startswith 'com
-                        for p in _port:
-                            if not p.startswith('com'):
-                                QMessageBox.warning(self, "Warning", "cmd as: AT+THIS_PORT>coma,comb")
-                                return
-                        # config each specified serial port
-                        if s is not None and s.isOpen() and s.port.lower() in _port:
-                            s.write(_cmd.encode("utf-8", "ignore"))
+                # for s in SERIAL_SET:
+                #     # support all serial port config
+                #     if _port[0] == 'all':
+                #         if s is not None and s.isOpen():
+                #             s.write(_cmd.encode("utf-8", "ignore"))
+                #     else:
+                #         # port list must startswith 'com
+                #         for p in _port:
+                #             if not p.startswith('com'):
+                #                 QMessageBox.warning(self, "Warning", "cmd as: AT+THIS_PORT>coma,comb")
+                #                 return
+                #         # config each specified serial port
+                #         if s is not None and s.isOpen() and s.port.lower() in _port:
+                #             s.write(_cmd.encode("utf-8", "ignore"))
             else:
                 if self.com.is_running():
                     self.com.send_data(cmd.encode("utf-8", "ignore"))
@@ -763,12 +793,19 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             QMessageBox.information(self, "Info", f"{fnkml} done\n"
                                                   f"Statistics\n{info}")
 
+    def updateTrans(self, isUpdateing, sendBytes):
+        global SEND_BYTES, SERIAL_WRITE_MUTEX
+        SERIAL_WRITE_MUTEX = isUpdateing
+        if not SERIAL_WRITE_MUTEX:
+            self.textEdit_recv.insertPlainText(sendBytes.decode('utf-8', 'ignore'))
+            return
+        SEND_BYTES = sendBytes
+
     def mulser_control(self):
         # check  toolButton is valid
         if not ENABLE_TOOL_BTN: return
         dialog = MultiSerial()
         dialog.show()
-
 
     def closeEvent(self, QCloseEvent):
         self.close_all()
