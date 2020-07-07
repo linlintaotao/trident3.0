@@ -598,6 +598,11 @@ p, li { white-space: pre-wrap; }
         <string>AT+LEVER_ARM=0.01,-0.027,-0.1</string>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>AT+UPDATE_MODE_H=460800</string>
+       </property>
+      </item>
      </widget>
     </item>
     <item row="0" column="1">

@@ -17,7 +17,7 @@ from struct import pack
 from streams.Ntrip import NtripClient
 import serial
 import serial.tools.list_ports
-
+import time
 from PyQt5.QtCore import QTimer, QCoreApplication, Qt
 from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtNetwork import QTcpSocket
@@ -74,6 +74,21 @@ def refresh_ser() -> list:
     """
     port_list = list(serial.tools.list_ports.comports())
     return port_list
+
+
+def sendser(file, serhd):
+    global SERIAL_WRITE_MUTEX, SEND_BYTES
+
+    if file is None or serhd is None:
+        return False
+
+    SERIAL_WRITE_MUTEX = True
+    with open(file, "rb") as f:
+        for line in f:
+            serhd.send_data(line, sleepTime=0)
+            SEND_BYTES += len(line)
+    time.sleep(1)
+    SERIAL_WRITE_MUTEX = False
 
 
 class MultiSerial(QMainWindow, Multiser_Ui_widget):
@@ -192,60 +207,15 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
     def read_ser3(self, data):
         self.read_ser(data, 3)
 
-    # def on_read(self, stup):
-    #
-    #     s = stup[0]
-    #     n = stup[1]
-    #     try:
-    #         # global SAVE_NMEA
-    #
-    #         # if not s.isOpen(): return
-    #         # data = s.readline()
-    #
-    #         if data != b'':
-    #             # if SAVE_NMEA:
-    #             #     if self._fh[n] is None:
-    #             #         if self._fn[n] == '':
-    #             #             self._fn[n] = DIR + s.port.split('/')[-1] + '_' + gettstr()
-    #             #         self._fh[n] = open(self._fn[n] + '.nmea', 'wb')
-    #             #     else:
-    #             #         self._fh[n].write(data)
-    #             #         self._fh[n].flush()
-    #             # else:
-    #             #     self._fn = ['' for _ in range(4)]
-    #             #     for f in self._fh:
-    #             #         if f is not None:
-    #             #             f.write(data)
-    #             #             f.flush()
-    #             #     self._fh = [None for _ in range(4)]
-    #
-    #             # decode received data
-    #             data = data.decode("utf-8", "ignore")
-    #             self._text[n].insertPlainText(data)
-    #             self.LBshow[n].setText("serial recv...")
-    #
-    #             # display info
-    #             if data.startswith(('$GNGGA', '$GPGGA')):
-    #                 self.disp_gga(data, n)
-    #
-    #             # check firmware update
-    #             if self._check[n].isChecked():
-    #                 FIRM_UPDATE_LIST[n] = True
-    #                 LABEL_SHOW_LIST[n] = self.LBshow[n]
-    #             else:
-    #                 FIRM_UPDATE_LIST[n] = False
-    #                 LABEL_SHOW_LIST[n] = None
-    #     except Exception as e:
-    #         self.onClose((self.com[n], n))
-    #         print(e)
-
     def read_ser(self, data, n):
         data = data.decode("utf-8", "ignore")
 
         if 'STOP SERIAL' in data:
             self.onClose((self.com[n], n))
-            QMessageBox.critical(self, "error", f"can not open serial {self.cbsport.currentText()}")
+            QMessageBox.critical(self, "error", f"can not open serial {self.cbsport[n].currentText()}")
             return
+        elif 'READ STOP' in data:
+            self.onClose((self.com[n], n))
         """
         display gga string
         :param data: gga string
@@ -342,6 +312,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.ser_refresh()
         self.com = None
         self.ntrip = None
+
+        self._update_H = False
         if not path.exists(DIR):
             makedirs(DIR)
 
@@ -434,6 +406,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         :return:
         """
         if self.pushButton_open.text() == OPEN:
+            if not coldRestart:
+                self.textEdit_recv.clear()
             self.com = SerialThread(iport=self.cbsport.currentText(),
                                     baudRate=int(self.cbsbaud.currentText()), coldStart=coldRestart)
             self.com.signal.connect(self.read_ser_data)
@@ -443,7 +417,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             if self.ntrip is not None and self.ntrip.isRunning():
                 self.ntrip.register(self.com)
             self.set_ser_params(False)
-            self.textEdit_recv.clear()
         elif self.pushButton_open.text() == CLOSE:
             self.com.stop()
             if self.ntrip is not None:
@@ -457,6 +430,11 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             if self.ntrip is not None:
                 self.ntrip.unregister(self.com)
             QMessageBox.critical(self, "error", f"can not open serial {self.cbsport.currentText()}")
+            return
+        elif 'READ STOP' in str(data):
+            self.set_ser_params(True)
+            if self.ntrip is not None:
+                self.ntrip.unregister(self.com)
             return
 
         """
@@ -697,26 +675,31 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
             file_size = stat(self._imgfile).st_size
             self.file_transbar.setRange(0, file_size)
-            self.ser_open_btclik()
-            Thread(target=self.update_firm2, args=(self._imgfile, info)).start()
 
-            # # _com = (serial, update firm check box)
-            # for _port in mulcom_list:
-            #     Thread(target=update_mulfirmware, args=(self._imgfile, _port[0][0], _port[1])).start()
-
+            if 'AT+UPDATE_MODE_H=460800' in self.cbatcmd.currentText():
+                self.ser_open_btclik()
+                self._update_H = True
+                Thread(target=self.update_firm2, args=(self._imgfile, info)).start()
+            else:
+                self._update_H = False
+                Thread(target=sendser, args=(self._imgfile, self.com)).start()
+                # sendser(self._imgfile, self.com)
             self.FileTrans.start(1200)
             self.file_transbar.setValue(0)
 
     def ShowFilepBarr(self):
         if SERIAL_WRITE_MUTEX:
+            print(SEND_BYTES)
             self.file_transbar.setValue(SEND_BYTES)
         else:
-            self.file_transbar.setValue(SEND_BYTES)
             self.FileTrans.stop()
-            self.changeBaudrate()
+            self.updateComplete()
 
-    def changeBaudrate(self):
-        self.ser_open_btclik(coldRestart=True)
+    def updateComplete(self):
+        if self._update_H:
+            self.ser_open_btclik(coldRestart=True)
+        else:
+            self.com.send_data('AT+COLD_RESET\r\n')
 
     # close window
     def close_all(self):

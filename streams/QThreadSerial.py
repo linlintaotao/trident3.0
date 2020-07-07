@@ -63,8 +63,10 @@ class SerialThread(QThread):
             if type(data) is str:
                 data = data.encode()
             self._entity.write(data)
-            sleep(sleepTime)
+            self._entity.flush()
+            # sleep(sleepTime)
         self.mutex.unlock()
+        return
 
     def notify(self, data):
         try:
@@ -92,7 +94,7 @@ class SerialThread(QThread):
                     self.signal.emit(data)
 
             except Exception as e:
-                print('serial', e)
+                self.signal.emit(b'READ STOP')
                 self._isRunning = False
                 continue
 
