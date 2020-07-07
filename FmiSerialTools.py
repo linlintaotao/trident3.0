@@ -148,17 +148,6 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
 
             self.com[spn] = SerialThread(iport=self.cbsport[spn].currentText(),
                                          baudRate=int(self.cbsbaud[spn].currentText()))
-
-            # self.com[spn].port = self.cbsport[spn].currentText()
-            # self.com[spn].baudrate = int(self.cbsbaud[spn].currentText())
-
-            # attrs = self.cbsattr[spn].currentText().split('/')
-            # self.com[spn].bytesize = int(attrs[0])
-            # self.com[spn].stopbits = int(attrs[2])
-            # self.com[spn].parity = attrs[1]
-            # self.com[spn].timeout = 1
-
-            # self.com[spn].start()
             if spn == 0:
                 self.com[spn].signal.connect(self.read_ser0)
             elif spn == 1:
@@ -184,6 +173,7 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
         if NTRIP[0] is not None:
             NTRIP[0].unregister(serialTuple[0])
         self.com[spn].stop()
+        SERIAL_PORT_LIST[spn] = None
         self.LBshow[spn].setText("closed")
         self.set_ser_params(True, spn)
         self._fh = [None for _ in range(4)]
@@ -251,6 +241,11 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
 
     def read_ser(self, data, n):
         data = data.decode("utf-8", "ignore")
+
+        if 'STOP SERIAL' in data:
+            self.onClose((self.com[n], n))
+            QMessageBox.critical(self, "error", f"can not open serial {self.cbsport.currentText()}")
+            return
         """
         display gga string
         :param data: gga string
@@ -259,13 +254,11 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
         if data.startswith(('$GNGGA', '$GPGGA')) and data.endswith("\r\n"):
             seg = data.strip("\r\n").split(",")
             if len(seg) < 14: return
-            print(seg)
             now, latdm = seg[1:3]
             londm = seg[4]
             solstat, nsats, dop, hgt = seg[6:10]
             dage = seg[-2]
             dage = dage if dage != '' else '0'
-            print(latdm, londm)
             if latdm != '' and londm != '':
                 try:
                     lat_deg = float(latdm)
@@ -615,7 +608,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
 
     # at command button handle
     def atcmd_send_btclik(self):
-        pass
         if not SERIAL_WRITE_MUTEX:
             cmd = self.cbatcmd.currentText() + "\r\n"
             if not cmd.startswith(('AT+', '$J')):
@@ -688,7 +680,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         if file is None or serhd is None:
             return
         SERIAL_WRITE_MUTEX = True
-        self.upgrade = UpgradeManager(listener=updateTrans, port=serhd, file=file)
+        self.upgrade = UpgradeManager(listener=self.updateTrans, port=serhd, file=file)
         self.upgrade.start()
 
     # send file to serial

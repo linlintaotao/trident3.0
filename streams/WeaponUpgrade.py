@@ -118,19 +118,15 @@ class UpgradeManager(QThread):
             self._serial.close()
             return
 
-        if b'Saving OK' in response:
-            if self._listener is not None:
-                self._listener(False, b'update success!!!')
-            self._serial.close()
-
         for i in range(len(response) - 3):
             if response[i] == 0x55 and response[i + 1] == 0xAA and response[i + 2] == 0x10:
                 frame = response[i + 3:]
 
                 if frame[2] == 0x01:
-                    # self._isUpdating = False
-                    #
-                    # self._serial.close()
+                    self._isUpdating =False
+                    if self._listener is not None:
+                        self._listener(False, b'update success!!!')
+                    self._serial.close()
                     return
 
                 elif frame[2] == 0x02:  # resend

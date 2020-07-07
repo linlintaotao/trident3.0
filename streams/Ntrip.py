@@ -214,7 +214,6 @@ class NtripClient(Publisher):
         while self._isRunning and not self._reconnect and self._working:
             try:
                 data = self._socket.recv(1024)
-                print(data)
                 if len(data) <= 0:
                     self._reconnectLimit += 1
                 else:
