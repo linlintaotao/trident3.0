@@ -45,7 +45,7 @@ def spliceData(packs, index, buff_data):
 
 def getDataFromFile(file):
     file_size = os.stat(file).st_size
-    print(file_size)
+
     file_buff = b''
     with open(file, "rb") as f:
         for line in f:
@@ -62,22 +62,21 @@ class UpgradeManager(QThread):
         self.nothing_read_times = 100
         self._sendByte = 0
         self._byteList = []
-        self._isUpdating = False
         self._serial = None
         self._listener = listener
-        self._serial = serial.Serial(baudrate=115200, timeout=1)
+        self._serial = serial.Serial(baudrate=115200, timeout=0.5)
         self._serial.setPort(port)
         self._file = file
+        self._isUpdating = True
         self.readThread = Thread(target=self.readSerial, daemon=True)
+        self.updateSucess =False
 
     def run(self):
-        self._isUpdating = True
         file_buffer, file_size = getDataFromFile(self._file)
         # fill trans buffer
         packs = file_size // SUBFRAME_LEN
         if file_size % SUBFRAME_LEN != 0:
             packs += 1
-        print(self._serial)
         self._serial.open()
         self._serial.write('AT+UPDATE_MODE_H=460800\r\n'.encode())
         time.sleep(2)
@@ -101,7 +100,6 @@ class UpgradeManager(QThread):
                 break
             # print(''.join(['%02X ' % b for b in bytes(trans_buff)]))
             self._listener(True, self._sendByte)
-
         for i in range(3):
             self._serial.write(sendCompleteOrder)
 
@@ -124,10 +122,9 @@ class UpgradeManager(QThread):
 
                 if frame[2] == 0x01:
                     if self._listener is not None:
-                        self._listener(False, b'Update success!!! \r\nAuto cold reset,Please waiting...\r\n')
-                    QThread.msleep(1)
+                        self._listener(True, self._sendByte)
                     self._isUpdating = False
-                    self._serial.close()
+                    self.updateSucess = True
                     return
 
                 elif frame[2] == 0x02:  # resend
@@ -157,7 +154,7 @@ class UpgradeManager(QThread):
         while self._isUpdating:
             try:
                 if self._serial.isOpen():
-                    bytesData = self._serial.readall()
+                    bytesData = self._serial.read(512)
                     time.sleep(0.1)
                     if len(bytesData) > 0:
                         self.parseResponse(bytesData)
@@ -168,8 +165,13 @@ class UpgradeManager(QThread):
                             if self._listener is not None:
                                 self._listener(False, b'Oops! update failed... ')
                             break
+                else:
+                    break
             except Exception as e:
                 print('read serial', e)
+        self._serial.close()
+        self._listener(False, b'Update success!!! \r\n' if self.updateSucess else b'please try again\r\n')
+        self._isUpdating = False
 
 
 if __name__ == '__main__':

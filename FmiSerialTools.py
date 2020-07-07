@@ -406,8 +406,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         :return:
         """
         if self.pushButton_open.text() == OPEN:
-            if not coldRestart:
-                self.textEdit_recv.clear()
             self.com = SerialThread(iport=self.cbsport.currentText(),
                                     baudRate=int(self.cbsbaud.currentText()), coldStart=coldRestart)
             self.com.signal.connect(self.read_ser_data)
@@ -417,6 +415,9 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             if self.ntrip is not None and self.ntrip.isRunning():
                 self.ntrip.register(self.com)
             self.set_ser_params(False)
+            if not coldRestart:
+                self.textEdit_recv.clear()
+
         elif self.pushButton_open.text() == CLOSE:
             self.com.stop()
             if self.ntrip is not None:
@@ -684,12 +685,11 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self._update_H = False
                 Thread(target=sendser, args=(self._imgfile, self.com)).start()
                 # sendser(self._imgfile, self.com)
-            self.FileTrans.start(1200)
+            self.FileTrans.start(200)
             self.file_transbar.setValue(0)
 
     def ShowFilepBarr(self):
         if SERIAL_WRITE_MUTEX:
-            print(SEND_BYTES)
             self.file_transbar.setValue(SEND_BYTES)
         else:
             self.FileTrans.stop()
