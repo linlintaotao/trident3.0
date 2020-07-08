@@ -18,7 +18,7 @@ from streams.Ntrip import NtripClient
 import serial
 import serial.tools.list_ports
 import time
-from PyQt5.QtCore import QTimer, QCoreApplication, Qt
+from PyQt5.QtCore import QTimer, QCoreApplication, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
@@ -28,6 +28,7 @@ from gui.form import Ui_widget
 from gui.multiser import Multiser_Ui_widget
 from streams.WeaponUpgrade import UpgradeManager
 import platform
+import sys, traceback
 
 from streams.QThreadSerial import SerialThread
 
@@ -686,6 +687,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 Thread(target=sendser, args=(self._imgfile, self.com)).start()
                 # sendser(self._imgfile, self.com)
             self.FileTrans.start(200)
+            SEND_BYTES = file_size // 100
             self.file_transbar.setValue(0)
 
     def ShowFilepBarr(self):
@@ -698,8 +700,8 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     def updateComplete(self):
         if self._update_H:
             self.ser_open_btclik(coldRestart=True)
-        else:
-            self.com.send_data('AT+COLD_RESET\r\n')
+        # else:
+        #     self.com.send_data('AT+COLD_RESET\r\n')
 
     # close window
     def close_all(self):
@@ -786,7 +788,34 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.close_all()
 
 
+def my_excepthook(ex_cls, ex, tb):
+    # import traceback
+    error.start()
+
+
+def showDialog():
+    errBox = QMessageBox(QMessageBox.Critical, 'ERROR', 'Oops!!! \r\n'
+                                                        'There’s something wrong with Trident !!!\r\n'
+                                                        'You can send err.log under NMEA to FMI for repair ！')
+    app.exit(errBox.exec_())
+
+
+class Error(QThread):
+    signal = pyqtSignal()
+
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        traceback.print_last(file=open('NMEA/err.log', 'w+'))
+        self.signal.emit()
+
+
 if __name__ == '__main__':
+    sys.excepthook = my_excepthook
+    error = Error()
+    error.signal.connect(showDialog)
+
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     app = QApplication(argv)
     nst = NtripSerialTool()
