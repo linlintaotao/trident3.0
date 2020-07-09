@@ -227,7 +227,6 @@ class NtripClient(Publisher):
                         self._file.write(data)
 
             except Exception as e:
-                print('_isRunning', e)
                 self._reconnect = True
                 self._reconnectLimit += 5
                 break
