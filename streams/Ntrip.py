@@ -132,6 +132,7 @@ class NtripClient(Publisher):
                      self.flagE, self._height)
         checksum = self.check_sum(ggaString)
         ggaStr = "$%s*%s\r\n" % (ggaString, checksum)
+        print(ggaStr)
         return ggaStr.encode()
 
     def check_sum(self, stringToCheck):
@@ -247,6 +248,7 @@ class NtripClient(Publisher):
             try:
                 if self._socket is not None:
                     self._socket.send(self.getGGAString())
+                pass
             except Exception as e:
                 print('check', e)
             sleep(5)
@@ -261,5 +263,9 @@ class NtripClient(Publisher):
 
 
 if __name__ == '__main__':
-    ntrip = NtripClient(ip='lab.ntrip.qxwz.com', port=8002, user="stmicro0010", password='50fcc29', mountPoint='', )
+    ntrip = NtripClient(ip='lab.ntrip.qxwz.com', port=8002, user="stmicro005", password='633f86e',
+                        mountPoint='SH_GALILEO', )
     ntrip.start()
+    while True:
+        sleep(5)
+        pass

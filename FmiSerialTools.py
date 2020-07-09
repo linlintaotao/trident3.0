@@ -54,7 +54,7 @@ COLOR_TAB = {'0': 'gray', '1': 'red', '2': '#55aaff', '3': 'black', '4': 'green'
 
 NTRIP = [None]
 
-LAT_LON = [40, 60]
+LAT_LON = [40, 116]
 
 
 ###################################################################
@@ -593,7 +593,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 QMessageBox.warning(self, "Warning", "Only support Feynman and H command")
                 return
             # while in firmware update mode, terminate ntrip first
-            if cmd in ["AT+UPDATE_MODE\r\n", "AT+UPDATE_SHELL\r\n", "AT+UPDATE_MODE_H=115200\r\n"]:
+            if cmd in ["AT+UPDATE_MODE\r\n", "AT+UPDATE_SHELL\r\n", "AT+UPDATE_MODE_H\r\n"]:
                 self._term_ntrip()
 
             # re-direct to other serial port
@@ -677,14 +677,14 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             file_size = stat(self._imgfile).st_size
             self.file_transbar.setRange(0, file_size)
 
-            if 'AT+UPDATE_MODE_H=460800' in self.cbatcmd.currentText():
-                self.ser_open_btclik()
-                self._update_H = True
-                Thread(target=self.update_firm2, args=(self._imgfile, info)).start()
-            else:
+            if 'AT+UPDATE_MODE' in self.cbatcmd.currentText() or 'AT+UPDATE_SHELL' in self.cbatcmd.currentText():
                 self._update_H = False
                 Thread(target=sendser, args=(self._imgfile, self.com)).start()
                 # sendser(self._imgfile, self.com)
+            else:
+                self.ser_open_btclik()
+                self._update_H = True
+                Thread(target=self.update_firm2, args=(self._imgfile, info)).start()
             self.FileTrans.start(200)
             self.file_transbar.setValue(0)
 
