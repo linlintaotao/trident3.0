@@ -69,7 +69,7 @@ class UpgradeManager(QThread):
         self._file = file
         self._isUpdating = True
         self.readThread = Thread(target=self.readSerial, daemon=True)
-        self.updateSucess =False
+        self.updateSucess = False
 
     def run(self):
         file_buffer, file_size = getDataFromFile(self._file)
@@ -129,7 +129,7 @@ class UpgradeManager(QThread):
 
                 elif frame[2] == 0x02:  # resend
                     length = byteToint_16(frame[0:2])
-                    if length > len(frame):
+                    if length >= len(frame):
                         return
                     size = byteToint_16(frame[3:5])
                     self._sendByte -= (size * SUBFRAME_LEN)
@@ -138,6 +138,8 @@ class UpgradeManager(QThread):
                     self._sendByte += SUBFRAME_LEN
                     for j in range(3):
                         self._serial.write(sendCompleteOrder)
+
+                    self._serial.flush()
                     self.repeatTimes += 1
                     continue
 
@@ -171,7 +173,7 @@ class UpgradeManager(QThread):
                 print('read serial', e)
         self._serial.close()
         self._listener(False, b'Update success!!! \r\n' if self.updateSucess else b'please try again\r\n')
-        self._isUpdating = False
+        # self._isUpdating = False
 
 
 if __name__ == '__main__':

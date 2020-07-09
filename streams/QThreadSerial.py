@@ -48,8 +48,9 @@ class SerialThread(QThread):
 
     def open_serial(self):
         self._entity = serial.Serial(self._port, self._baudRate, timeout=1)
-        if self._coldStart:
-            self._entity.write('AT+COLD_RESET\r\n'.encode())
+        # if self._entity.isOpen():
+        #     self._entity.close()
+        # self._entity.open()
 
     def send_data(self, data, sleepTime=0):
         if self._entity is None:
@@ -83,13 +84,16 @@ class SerialThread(QThread):
             try:
                 data = self._entity.readline()
                 self.createFile()
+
                 if self._file:
                     self._file.write(data)
                     self._file.flush()
                 if data is not None and len(data) > 0:
                     self.signal.emit(data)
-                    if self._coldStart and b'OK' in data:
+                    if self._coldStart and b'Please Reset' in data:
                         self._coldStart = False
+                        sleep(0.5)
+                        self._entity.write('AT+COLD_RESET\r\n'.encode())
                         self.signal.emit(b'Auto cold reset,Please waiting...\r\n')
 
             except Exception as e:
