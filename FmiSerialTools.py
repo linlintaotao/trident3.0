@@ -761,10 +761,10 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             kmlparser = KmlParse(fn, header)
             kmlparser.singal.connect(self.showMessage)
             kmlparser.start()
+            kmlparser.exec()
 
     def showMessage(self, info):
-        print(info)
-        QMessageBox.information(self, "Info", f" kml done\n"
+        QMessageBox.information(self, "Info", f"Parse KML done\n"
                                               f"Statistics\n{info}")
 
     def updateTrans(self, isUpdateing, sendBytes):

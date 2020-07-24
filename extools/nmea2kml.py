@@ -357,12 +357,10 @@ class KmlParse(QThread):
         kml_str, info = None, None
         try:
             fnkml = self.fn + '.kml'
-            print(fnkml)
             fo = open(fnkml, 'w')
             with open(self.fn, 'r', encoding='utf-8') as f:
                 coords = nmeaFileToCoords(f, self.head)
                 kml_str, info = genKmlStr(coords, self.head)
-                print(info)
                 fo.write(kml_str)
                 fo.flush()
                 fo.close()
