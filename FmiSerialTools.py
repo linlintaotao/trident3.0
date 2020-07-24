@@ -628,7 +628,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 #         if s is not None and s.isOpen() and s.port.lower() in _port:
                 #             s.write(_cmd.encode("utf-8", "ignore"))
             else:
-                if self.com.is_running():
+                if self.com is not None and self.com.is_running():
                     self.com.send_data(cmd.encode("utf-8", "ignore"))
                 else:
                     QMessageBox.warning(self, "Warning", "Open serial port first! ")

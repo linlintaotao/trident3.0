@@ -14,7 +14,7 @@
    <enum>Qt::ClickFocus</enum>
   </property>
   <property name="windowTitle">
-   <string>Trident v2.1 (for any support contact fmi@feyman.cn)</string>
+   <string>Trident v2.2 (for any support contact fmi@feyman.cn)</string>
   </property>
   <widget class="QTextEdit" name="textEdit_recv">
    <property name="geometry">

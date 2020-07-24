@@ -269,7 +269,8 @@ def nmeaFileToCoords(f, header: str) -> dict:
         if header == 'GGA':
             if line.startswith(("$GNGGA", "$GPGGA")):
                 nmeagram.parseLine(line)
-                if int(nmeagram.getField("Longitude")) == 0 or int(nmeagram.getField("Latitude")) == 0:
+                if int(nmeagram.getField("Longitude")) == 0 or int(nmeagram.getField("Latitude")) == 0 or int(
+                        nmeagram.getField("PositionFix")) == 0:
                     continue
                 utc = nmeagram.getField('UtcTime')
                 if utc in data.keys():  # if gga first len = 9 else len = 10(rmc first)
@@ -292,6 +293,9 @@ def nmeaFileToCoords(f, header: str) -> dict:
         elif header == 'FMI':
             if line.startswith(("$GPFMI", "$GPFPD")):
                 nmeagram.parseLine(line)
+                if int(nmeagram.getField("Longitude")) == 0 or int(nmeagram.getField("Latitude")) == 0 or int(
+                        nmeagram.getField("PositionFix")) == 0:
+                    continue
                 utc = nmeagram.getField('UtcTime')
                 data[utc].append(nmeagram.getField("Longitude"))
                 data[utc].append(nmeagram.getField("Latitude"))
@@ -327,12 +331,12 @@ def nmeaFileTodev(f):
 
 
 def main():
-    fn = "../NMEA/F9P.txt"
+    fn = "../NMEA/COM3_20200723_175744.nmea"
     fo = open(fn + '.kml', 'w')
 
     fi = open(fn, 'r', encoding='utf-8')
     coords = nmeaFileToCoords(fi, 'GGA')
-    kml_str,info= genKmlStr(coords, 'GGA')
+    kml_str, info = genKmlStr(coords, 'GGA')
 
     fo.write(kml_str)
     fi.close()

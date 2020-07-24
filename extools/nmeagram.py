@@ -316,7 +316,7 @@ def parseLine(line, check=False):
     line = line.rstrip()
 
     # Validate the sentence using the checksum
-    if check == True:
+    if check:
         assert calcCheckSum(line) == int(line[-2:], 16)
 
     # Pick the proper parsing function

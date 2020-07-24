@@ -53,24 +53,22 @@ class SerialThread(QThread):
         # self._entity.open()
 
     def send_data(self, data, sleepTime=0):
-        if self._entity is None:
-            return
-        self.mutex.lock()
-        if self._entity.is_open and self._isRunning:
-            print("send data = %s" % str(data))
-            if type(data) is str:
-                data = data.encode()
-            self._entity.write(data)
-            self._entity.flush()
-        self.mutex.unlock()
+        # self.mutex.lock()
+        self.notify(data)
+        # self.mutex.unlock()
         return
 
     def notify(self, data):
+        self.mutex.lock()
         try:
             if self._entity is not None and self._entity.is_open and self._isRunning:
+                if type(data) is str:
+                    data = data.encode()
                 self._entity.write(data)
+                self._entity.flush()
         except Exception as e:
             print('notify', e)
+        self.mutex.unlock()
 
     def run(self):
         if self._entity is None:
