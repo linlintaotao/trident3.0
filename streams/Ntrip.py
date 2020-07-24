@@ -132,7 +132,7 @@ class NtripClient(Publisher):
                      self.flagE, self._height)
         checksum = self.check_sum(ggaString)
         ggaStr = "$%s*%s\r\n" % (ggaString, checksum)
-        print(ggaStr)
+        # print(ggaStr)
         return ggaStr.encode()
 
     def check_sum(self, stringToCheck):
@@ -166,7 +166,8 @@ class NtripClient(Publisher):
             self._socket.send(self.set_mount_info(self._mountPoint))
 
         except Exception as e:
-            self._isRunning = False
+            if not self._reconnect:
+                self._isRunning = False
             print("start exp", e)
 
     def stop(self):
@@ -212,6 +213,7 @@ class NtripClient(Publisher):
             self._isRunning = False
             return
 
+        self._receiveDataLength = 0
         while self._isRunning and not self._reconnect and self._working:
             try:
                 data = self._socket.recv(1024)

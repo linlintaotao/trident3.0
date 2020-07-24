@@ -332,8 +332,9 @@ class NtripSerialTool(QMainWindow, Ui_widget):
     def ntp_state(self):
         if not SERIAL_WRITE_MUTEX:
             if self.ntrip.isRunning():
-                self._stxbs = self.ntrip.receiveDataLength()
-                self._val += 5
+                if self._stxbs != self.ntrip.receiveDataLength():
+                    self._stxbs = self.ntrip.receiveDataLength()
+                    self._val += 5
                 self._val = 0 if self._val > 100 else self._val
                 self.progressBar.setValue(self._val)
                 self.lineEdit_stx.setText(str(self._stxbs))
