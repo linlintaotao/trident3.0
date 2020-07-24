@@ -1168,37 +1168,12 @@ p, li { white-space: pre-wrap; }
       </item>
       <item>
        <property name="text">
-        <string>2 - Convert fmi to .kml</string>
+        <string>2 - Convert FMI to .kml</string>
        </property>
       </item>
       <item>
        <property name="text">
-        <string>3 - NMEA statistics</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>4 - Deviation map view</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>5 - Ground truth compare</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>6 - Receiver obs analysis</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>7 - FMI convert</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>8 - To be continued...</string>
+        <string>3 - To be continued...</string>
        </property>
       </item>
      </widget>

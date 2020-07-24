@@ -468,11 +468,6 @@ class Ui_widget(object):
         self.comboBox_extools.addItem("")
         self.comboBox_extools.addItem("")
         self.comboBox_extools.addItem("")
-        self.comboBox_extools.addItem("")
-        self.comboBox_extools.addItem("")
-        self.comboBox_extools.addItem("")
-        self.comboBox_extools.addItem("")
-        self.comboBox_extools.addItem("")
         self.gridLayout_6.addWidget(self.comboBox_extools, 0, 0, 1, 2)
         self.gen_kml = QtWidgets.QPushButton(self.Extools)
         self.gen_kml.setObjectName("gen_kml")
@@ -538,7 +533,7 @@ class Ui_widget(object):
 
     def retranslateUi(self, widget):
         _translate = QtCore.QCoreApplication.translate
-        widget.setWindowTitle(_translate("widget", "Trident v2.1b (for any support contact fmi@feyman.cn)"))
+        widget.setWindowTitle(_translate("widget", "Trident v2.2 (for any support contact fmi@feyman.cn)"))
         self.textEdit_recv.setHtml(_translate("widget", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
@@ -558,7 +553,7 @@ class Ui_widget(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -FMI Px series board firmware upgrade.</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">iv. Extools</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -Only support NEMA or $GPFMI to .kml in standard version.</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">    -Only support NMEA or $GPFMI to .kml in standard version.</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Any bugs or issues feel free to contact fmi@feyman.cn</p></body></html>"))
         self.Serial.setTitle(_translate("widget", "Serial"))
@@ -653,13 +648,8 @@ class Ui_widget(object):
         self.Extools.setTitle(_translate("widget", "Extools"))
         self.comboBox_extools.setToolTip(_translate("widget", "<html><head/><body><p>For more extern tool requirements, please feel free to contact us</p><p>Email:fmi@feyman.cn, Web site:<a href=\"http://www.feymani.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">http://www.feymani.com/</span></a></p></body></html>"))
         self.comboBox_extools.setItemText(0, _translate("widget", "1 - Convert nmea to .kml"))
-        self.comboBox_extools.setItemText(1, _translate("widget", "2 - Convert fmi to .kml"))
-        self.comboBox_extools.setItemText(2, _translate("widget", "3 - NMEA statistics"))
-        self.comboBox_extools.setItemText(3, _translate("widget", "4 - Deviation map view"))
-        self.comboBox_extools.setItemText(4, _translate("widget", "5 - Ground truth compare"))
-        self.comboBox_extools.setItemText(5, _translate("widget", "6 - Receiver obs analysis"))
-        self.comboBox_extools.setItemText(6, _translate("widget", "7 - FMI convert"))
-        self.comboBox_extools.setItemText(7, _translate("widget", "8 - To be continued..."))
+        self.comboBox_extools.setItemText(1, _translate("widget", "2 - Convert FMI to .kml"))
+        self.comboBox_extools.setItemText(2, _translate("widget", "3 - To be continued..."))
         self.gen_kml.setText(_translate("widget", "Exec"))
         self.open_nmea_file.setText(_translate("widget", "File"))
         self.pushButton_close.setText(_translate("widget", "Close"))

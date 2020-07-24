@@ -23,7 +23,7 @@ from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 
-from extools.nmea2kml import nmeaFileToCoords, genKmlStr
+from extools.nmea2kml import nmeaFileToCoords, genKmlStr, KmlParse
 from gui.form import Ui_widget
 from gui.multiser import Multiser_Ui_widget
 from streams.WeaponUpgrade import UpgradeManager
@@ -758,17 +758,14 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             over_write = QMessageBox.Yes
 
         if over_write == QMessageBox.Yes:
-            fo = open(fnkml, 'w')
-            with open(fn, 'r', encoding='utf-8') as f:
-                coords = nmeaFileToCoords(f, header)
-                kml_str, info = genKmlStr(coords, header)
+            kmlparser = KmlParse(fn, header)
+            kmlparser.singal.connect(self.showMessage)
+            kmlparser.start()
 
-            fo.write(kml_str)
-            fo.flush()
-            fo.close()
-
-            QMessageBox.information(self, "Info", f"{fnkml} done\n"
-                                                  f"Statistics\n{info}")
+    def showMessage(self, info):
+        print(info)
+        QMessageBox.information(self, "Info", f" kml done\n"
+                                              f"Statistics\n{info}")
 
     def updateTrans(self, isUpdateing, sendBytes):
         global SEND_BYTES, SERIAL_WRITE_MUTEX

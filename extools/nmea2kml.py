@@ -9,6 +9,8 @@
 @date: 12/18/2019
 @author: Chey
 """
+from PyQt5.QtCore import QThread, pyqtSignal
+
 from extools import nmeagram
 from datetime import datetime
 from collections import defaultdict
@@ -341,6 +343,32 @@ def main():
     fo.write(kml_str)
     fi.close()
     fo.close()
+
+
+class KmlParse(QThread):
+    singal = pyqtSignal(str)
+
+    def __init__(self, fileName, header='GGA'):
+        super().__init__()
+        self.fn = fileName
+        self.head = header
+
+    def run(self):
+        kml_str, info = None, None
+        try:
+            fnkml = self.fn + '.kml'
+            print(fnkml)
+            fo = open(fnkml, 'w')
+            with open(self.fn, 'r', encoding='utf-8') as f:
+                coords = nmeaFileToCoords(f, self.head)
+                kml_str, info = genKmlStr(coords, self.head)
+                print(info)
+                fo.write(kml_str)
+                fo.flush()
+                fo.close()
+        except Exception as e:
+            print(e)
+        self.singal.emit(info)
 
 
 if __name__ == "__main__":
