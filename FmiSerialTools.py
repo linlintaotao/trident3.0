@@ -688,7 +688,6 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                 self._update_H = True
                 Thread(target=self.update_firm2, args=(self._imgfile, info)).start()
             self.FileTrans.start(200)
-            SEND_BYTES = file_size // 100
             self.file_transbar.setValue(0)
 
     def ShowFilepBarr(self):
