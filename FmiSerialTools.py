@@ -313,6 +313,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         self.ser_refresh()
         self.com = None
         self.ntrip = None
+        self.clearLimit = 200
 
         self._update_H = False
         if not path.exists(DIR):
@@ -446,10 +447,12 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         """
         if data != b'':
             self._curgga = data
+            self.clearLimit -= 1
+            if self.clearLimit == 0:
+                self.textEdit_recv.clear()
+                self.clearLimit = 200
             self._srxbs += len(data)
             data = data.decode("utf-8", "ignore")
-            self.textEdit_recv.insertPlainText(data)
-            self.lineEdit_srx.setText(str(self._srxbs))
             try:
                 if data.startswith(('$GNGGA', '$GPGGA')):
                     self.disp_gga(data)
@@ -459,6 +462,9 @@ class NtripSerialTool(QMainWindow, Ui_widget):
                     self._cold_reseted = False
             except Exception as e:
                 print(e)
+            data = data.strip("\r\n")
+            self.textEdit_recv.append(data)
+            self.lineEdit_srx.setText(str(self._srxbs))
 
     def set_lebf_color(self, bg, fg):
         self.lineEdit_rovlat.setStyleSheet('background-color:' + bg + '; color:' + fg)
@@ -686,16 +692,21 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             else:
                 self.ser_open_btclik()
                 self._update_H = True
+                print(self._imgfile)
                 Thread(target=self.update_firm2, args=(self._imgfile, info)).start()
             self.FileTrans.start(200)
             self.file_transbar.setValue(0)
 
     def ShowFilepBarr(self):
-        if SERIAL_WRITE_MUTEX:
-            self.file_transbar.setValue(SEND_BYTES)
-        else:
-            self.FileTrans.stop()
-            self.updateComplete()
+        try:
+            if SERIAL_WRITE_MUTEX:
+                self.file_transbar.setValue(SEND_BYTES)
+            else:
+                self.FileTrans.stop()
+                self.updateComplete()
+        except KeyboardInterrupt as e:
+
+            print(e)
 
     def updateComplete(self):
         if self._update_H:
@@ -771,7 +782,7 @@ class NtripSerialTool(QMainWindow, Ui_widget):
         global SEND_BYTES, SERIAL_WRITE_MUTEX
         SERIAL_WRITE_MUTEX = isUpdateing
         if not SERIAL_WRITE_MUTEX:
-            self.textEdit_recv.insertPlainText(sendBytes.decode('utf-8', 'ignore'))
+            self.textEdit_recv.append(sendBytes.decode('utf-8', 'ignore'))
             return
         SEND_BYTES = sendBytes
 
