@@ -877,6 +877,11 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <property name="text">
+               <string>vrs.sixents.com</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
                <string>219.142.87.107</string>
               </property>
              </item>
