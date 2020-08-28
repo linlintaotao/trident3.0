@@ -547,7 +547,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     def set_ser_params(self, enable):
         self.cbsport.setEnabled(enable)
         self.cbsbaud.setEnabled(enable)
-        self.cbsdata.setEnabled(enable)
+        # self.cbsdata.setEnabled(enable)
         self.pushButton_open.setText(OPEN if enable else CLOSE)
         self.pushButton_refresh.setEnabled(enable)
 
@@ -693,9 +693,9 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 ret = QMessageBox.warning(self, "Warning", f"Is this Evk support Blue-Tooth?",
                                           QMessageBox.No,
                                           QMessageBox.Yes)
-                baudrate = 460800
+                baudrate = 115200
                 if ret == QMessageBox.No:
-                    baudrate = 115200
+                    baudrate = 460800
                 self.ser_open_btclik()
                 self._update_H = True
                 Thread(target=self.update_firm2, args=(self._imgfile, info, baudrate)).start()
