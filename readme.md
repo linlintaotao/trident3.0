@@ -32,3 +32,5 @@ serial parameters then "Open" the serial port.
 ## States
 
 - board info display
+
+pyuic5 -o Fmi.py pro.ui 
