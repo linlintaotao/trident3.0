@@ -24,7 +24,6 @@ from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 
 from extools.nmea2kml import nmeaFileToCoords, genKmlStr, KmlParse
-from gui.form import Ui_widget
 from gui.mainwindow import Ui_Trident
 from gui.multiser import Multiser_Ui_widget
 from streams.WeaponUpgrade import UpgradeManager

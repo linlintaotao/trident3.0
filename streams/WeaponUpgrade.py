@@ -82,9 +82,10 @@ class UpgradeManager(QThread):
         self._serial.open()
         self._serial.write(f'AT+UPDATE_MODE_H={self.updateBaudrate}\r\n'.encode())
         time.sleep(1)
-        self._serial.close()
-        self._serial.baudrate = self.updateBaudrate
-        self._serial.open()
+        if self.updateBaudrate is not 115200:
+            self._serial.close()
+            self._serial.baudrate = self.updateBaudrate
+            self._serial.open()
 
         self.readThread.start()
         for i in range(packs):
@@ -108,7 +109,7 @@ class UpgradeManager(QThread):
                 return
             if self._serial.isOpen():
                 self._serial.write(bytesData)
-                print('==>', ''.join(['%02X ' % b for b in bytesData]))
+                print('write ==>', ''.join(['%02X ' % b for b in bytesData]))
                 self._serial.flush()
         except Exception as e:
             print(e)
@@ -116,7 +117,7 @@ class UpgradeManager(QThread):
     def parseResponse(self, response):
         if response is None or len(response) <= 0:
             return
-        print('==>', ''.join(['%02X ' % b for b in bytes(response)]))
+        print('reponse ==>', ''.join(['%02X ' % b for b in bytes(response)]))
         if len(response) <= 0:
             self.nothing_read_times -= 1
         if self.repeatTimes > 20 or self.nothing_read_times <= 0:
@@ -162,7 +163,7 @@ class UpgradeManager(QThread):
                     break
 
     def readSerial(self):
-        readSerialMax = 100
+        readSerialMax = 1200
         try:
             while self._isUpdating:
                 if self._serial.isOpen():
