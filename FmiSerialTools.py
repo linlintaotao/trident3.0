@@ -25,6 +25,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 
 from extools.nmea2kml import nmeaFileToCoords, genKmlStr, KmlParse
 from gui.form import Ui_widget
+from gui.mainwindow import Ui_Trident
 from gui.multiser import Multiser_Ui_widget
 from streams.WeaponUpgrade import UpgradeManager
 import platform
@@ -275,7 +276,7 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
 
 
 ############################################################################################
-class NtripSerialTool(QMainWindow, Ui_widget):
+class NtripSerialTool(QMainWindow, Ui_Trident):
     """
     Ntrip serial tool for testing FMI P20 comb board
     """
@@ -662,12 +663,12 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             self.lineEdit_filename.setText(filename)
             self._imgfile = filename
 
-    def update_firm2(self, file: str, serhd) -> None:
+    def update_firm2(self, file: str, serhd, baudrate) -> None:
         global SERIAL_WRITE_MUTEX
         if file is None or serhd is None:
             return
         SERIAL_WRITE_MUTEX = True
-        self.upgrade = UpgradeManager(listener=self.updateTrans, port=serhd, file=file)
+        self.upgrade = UpgradeManager(listener=self.updateTrans, port=serhd, file=file, updateBaudrate=baudrate)
         self.upgrade.start()
 
     # send file to serial
@@ -678,22 +679,26 @@ class NtripSerialTool(QMainWindow, Ui_widget):
             QMessageBox.warning(self, "Warning", f".enc file first plz!")
         else:
             info = self.cbsport.currentText()
-            ret = QMessageBox.warning(self, "Warning", f"update serial {info}", QMessageBox.No, QMessageBox.Yes)
-            if ret == QMessageBox.No:
-                return
-
             file_size = stat(self._imgfile).st_size
             self.file_transbar.setRange(0, file_size)
 
             if 'AT+UPDATE_MODE' in self.cbatcmd.currentText() or 'AT+UPDATE_SHELL' in self.cbatcmd.currentText():
                 self._update_H = False
+                ret = QMessageBox.warning(self, "Warning", f"update serial {info}", QMessageBox.No, QMessageBox.Yes)
+                if ret == QMessageBox.No:
+                    return
                 Thread(target=sendser, args=(self._imgfile, self.com)).start()
                 # sendser(self._imgfile, self.com)
             else:
+                ret = QMessageBox.warning(self, "Warning", f"Is this Evk support Blue-Tooth?",
+                                          QMessageBox.No,
+                                          QMessageBox.Yes)
+                baudrate = 460800
+                if ret == QMessageBox.No:
+                    baudrate = 115200
                 self.ser_open_btclik()
                 self._update_H = True
-                print(self._imgfile)
-                Thread(target=self.update_firm2, args=(self._imgfile, info)).start()
+                Thread(target=self.update_firm2, args=(self._imgfile, info, baudrate)).start()
             self.FileTrans.start(200)
             self.file_transbar.setValue(0)
 
