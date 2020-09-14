@@ -321,7 +321,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             makedirs(DIR)
 
     def resizeEvent(self, QResizeEvent):
-        print("========================>>>>>>>>>>>>>>")
 
         if self.Infos.width() < self.Infos.minimumWidth() + 200:
             ## 隐藏平方差
