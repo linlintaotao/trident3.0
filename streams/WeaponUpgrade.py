@@ -109,7 +109,7 @@ class UpgradeManager(QThread):
                 return
             if self._serial.isOpen():
                 self._serial.write(bytesData)
-                print('write ==>', ''.join(['%02X ' % b for b in bytesData]))
+                # print('write ==>', ''.join(['%02X ' % b for b in bytesData]))
                 self._serial.flush()
         except Exception as e:
             print(e)
@@ -117,7 +117,7 @@ class UpgradeManager(QThread):
     def parseResponse(self, response):
         if response is None or len(response) <= 0:
             return
-        print('reponse ==>', ''.join(['%02X ' % b for b in bytes(response)]))
+        # print('reponse ==>', ''.join(['%02X ' % b for b in bytes(response)]))
         if len(response) <= 0:
             self.nothing_read_times -= 1
         if self.repeatTimes > 20 or self.nothing_read_times <= 0:

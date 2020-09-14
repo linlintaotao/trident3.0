@@ -311,6 +311,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self.create_items()
         self.create_sigslots()
         self.ser_refresh()
+        # self.resizeEvent(self, e)
         self.com = None
         self.ntrip = None
         self.clearLimit = 200
@@ -318,6 +319,46 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self._update_H = False
         if not path.exists(DIR):
             makedirs(DIR)
+
+    def resizeEvent(self, QResizeEvent):
+        print("========================>>>>>>>>>>>>>>")
+
+        if self.Infos.width() < self.Infos.minimumWidth() + 200:
+            ## 隐藏平方差
+            self.lat_std.setVisible(False)
+            self.lon_std.setVisible(False)
+            self.alt_std.setVisible(False)
+            self.v_std.setVisible(False)
+            self.label_lat.setVisible(False)
+            self.label_lon.setVisible(False)
+            self.label_alt.setVisible(False)
+            self.label_v_std.setVisible(False)
+
+            self.label_R.setVisible(False)
+            self.label_P.setVisible(False)
+            self.label_Y.setVisible(False)
+            self.r_std.setVisible(False)
+            self.p_std.setVisible(False)
+            self.y_std.setVisible(False)
+            pass
+        else:
+            ## 显示平方差
+            self.lat_std.setVisible(True)
+            self.lon_std.setVisible(True)
+            self.alt_std.setVisible(True)
+            self.v_std.setVisible(True)
+            self.label_lat.setVisible(True)
+            self.label_lon.setVisible(True)
+            self.label_alt.setVisible(True)
+            self.label_v_std.setVisible(True)
+
+            self.label_R.setVisible(True)
+            self.label_P.setVisible(True)
+            self.label_Y.setVisible(True)
+            self.r_std.setVisible(True)
+            self.p_std.setVisible(True)
+            self.y_std.setVisible(True)
+            pass
 
     def create_items(self):
         """
@@ -529,10 +570,22 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         seg = data.strip("\r\n").split(",")
         if len(seg) < 14: return
         week, sow = seg[1:3]
-        y, p, r = seg[3:6]
-        # seg[6:9]
-        ve, vn, vu = seg[9:12]
-        bl = seg[12]
+        lat, lon, alt = seg[3:6]
+        latstd, lonstd, altstd = seg[6:9]
+        ve, vn, vu, vstd = seg[9:13]
+        y, p, r = seg[13:16]
+        ystd, pstd, rstd = seg[16, 19]
+        bl = seg[19]
+
+        if self.lat_std.isVisible():
+            self.lat_std.setText(latstd)
+            self.lon_std.setText(lonstd)
+            self.alt_std.setText(altstd)
+            self.v_std.setText(vstd)
+            self.y_std.setText(ystd)
+            self.p_std.setText(pstd)
+            self.r_std.setText(rstd)
+
         self.lineEdit_wk.setText(week)
         self.lineEdit_sow.setText(sow)
         self.lineEdit_yaw.setText(y)
