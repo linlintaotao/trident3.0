@@ -490,7 +490,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             self.clearLimit -= 1
             if self.clearLimit == 0:
                 self.textEdit_recv.clear()
-                self.clearLimit = 200
+                self.clearLimit = 300
             self._srxbs += len(data)
             data = data.decode("utf-8", "ignore")
             try:
@@ -650,7 +650,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         if not SERIAL_WRITE_MUTEX:
             cmd = self.cbatcmd.currentText() + "\r\n"
             if not cmd.startswith(('AT+', '$J')):
-                QMessageBox.warning(self, "Warning", "Only support Feynman and H command")
+                QMessageBox.warning(self, "Warning", "Only support Feyman and H command")
                 return
             # while in firmware update mode, terminate ntrip first
             if cmd in ["AT+UPDATE_MODE\r\n", "AT+UPDATE_SHELL\r\n", "AT+UPDATE_MODE_H\r\n"]:
