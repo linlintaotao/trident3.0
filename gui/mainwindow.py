@@ -443,6 +443,8 @@ class Ui_Trident(object):
         self.comboBox_port.addItem("")
         self.comboBox_port.addItem("")
         self.comboBox_port.addItem("")
+        self.comboBox_port.addItem("")
+        self.comboBox_port.addItem("")
         self.gridLayout_2.addWidget(self.comboBox_port, 1, 1, 1, 1)
         self.comboBox_mount = QtWidgets.QComboBox(self.Ntrip)
         self.comboBox_mount.setEditable(True)
@@ -630,7 +632,7 @@ class Ui_Trident(object):
 
     def retranslateUi(self, Trident):
         _translate = QtCore.QCoreApplication.translate
-        Trident.setWindowTitle(_translate("Trident", "Trident v2.3"))
+        Trident.setWindowTitle(_translate("Trident", "Trident v2.3.1 fmi@feyman.cn"))
         self.textEdit_recv.setHtml(_translate("Trident",
                                               "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
                                               "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
@@ -707,9 +709,11 @@ class Ui_Trident(object):
         self.pushButton_conn.setText(_translate("Trident", "Connect"))
         self.lnport.setText(_translate("Trident", "Port"))
         self.comboBox_port.setItemText(0, _translate("Trident", "2102"))
-        self.comboBox_port.setItemText(1, _translate("Trident", "8002"))
-        self.comboBox_port.setItemText(2, _translate("Trident", "2101"))
-        self.comboBox_port.setItemText(3, _translate("Trident", "81"))
+        self.comboBox_port.setItemText(1, _translate("Trident", "8001"))
+        self.comboBox_port.setItemText(2, _translate("Trident", "8002"))
+        self.comboBox_port.setItemText(3, _translate("Trident", "8003"))
+        self.comboBox_port.setItemText(4, _translate("Trident", "2101"))
+        self.comboBox_port.setItemText(5, _translate("Trident", "81"))
         self.comboBox_mount.setToolTip(
             _translate("Trident", "<html><head/><body><p>drop and click to get mount point</p></body></html>"))
         self.comboBox_mount.setItemText(0, _translate("Trident", "Source Table"))

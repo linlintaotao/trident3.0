@@ -502,6 +502,14 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                     self.disp_fmi(data)
                 elif data.startswith("$GNTXT"):
                     self._cold_reseted = False
+
+                if data.startswith("$"):
+                    if len(self.params) > 0 and self.wait_para:
+                        self.wait_para = False
+                        QMessageBox.information(self, "read_para", self.params)
+                else:
+                    if self.wait_para:
+                        self.params += data
             except Exception as e:
                 print("parse exception", e)
             data = data.strip("\r\n")
@@ -521,9 +529,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         :return:
         """
         if data.startswith(('$GNGGA', '$GPGGA')) and data.endswith("\r\n"):
-            if len(self.params) > 0 and self.wait_para:
-                self.wait_para = False
-                QMessageBox.information(self, "read_para", self.params)
+
             seg = data.strip("\r\n").split(",")
             if len(seg) < 15:
                 return
@@ -569,21 +575,19 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                     self.lineEdit_sats.setStyleSheet('background-color:white;color:black')
             else:
                 pass  # lat, lon not a float string
-        elif data.endswith("\r\n"):
-            if self.wait_para:
-                self.params += data
 
     def disp_fmi(self, data):
         seg = data.strip("\r\n").split(",")
         if len(seg) < 14: return
-        week, sow = seg[1:3]
-        lat, lon, alt = seg[3:6]
-        latstd, lonstd, altstd = seg[6:9]
-        ve, vn, vu, vstd = seg[9:13]
-        y, p, r = seg[13:16]
-        ystd, pstd, rstd = seg[16, 19]
-        bl = seg[19]
+        week, sow = seg[2:4]
+        lat, lon, alt = seg[4:7]
+        latstd, lonstd, altstd = seg[7:10]
+        ve, vn, vu, vstd = seg[10:14]
+        y, p, r = seg[14:17]
+        ystd, pstd, rstd = seg[17:20]
+        bl = seg[20]
 
+        # print(week, sow, latstd, lonstd, altstd, ve, vn, vu, vstd, y, p, r, ystd, pstd, rstd)
         if self.lat_std.isVisible():
             self.lat_std.setText(latstd)
             self.lon_std.setText(lonstd)
