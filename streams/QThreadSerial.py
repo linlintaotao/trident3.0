@@ -42,6 +42,7 @@ class SerialThread(QThread):
                                 'NMEA/' + self._port.split('/')[-1] + '_' + datetime.datetime.now().strftime(
                                     '%Y%m%d_%H%M%S') + '.nmea')
             self._file = open(path, 'wb')
+            self._entity.write('AT+READ_PARA\r\n'.encode())
 
     def is_running(self):
         return self._entity is not None and self._entity.isOpen() and self._isRunning
@@ -53,10 +54,7 @@ class SerialThread(QThread):
         # self._entity.open()
 
     def send_data(self, data, sleepTime=0):
-        # self.mutex.lock()
         self.notify(data)
-        # self.mutex.unlock()
-        return
 
     def notify(self, data):
         self.mutex.lock()
@@ -76,8 +74,9 @@ class SerialThread(QThread):
                 self.open_serial()
             except Exception as e:
                 self.signal.emit(b'STOP SERIAL')
-                print('Exception', e)
+                print('serial_open', e)
                 return
+
         while self._isRunning and self._entity.is_open:
             try:
                 data = self._entity.readline()
@@ -95,6 +94,7 @@ class SerialThread(QThread):
                         self.signal.emit(b'Auto cold reset,Please waiting...\r\n')
 
             except Exception as e:
+                print('serial_read', e)
                 self.signal.emit(b'READ STOP')
                 self._isRunning = False
                 continue

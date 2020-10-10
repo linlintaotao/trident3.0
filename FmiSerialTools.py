@@ -319,6 +319,8 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self._update_H = False
         if not path.exists(DIR):
             makedirs(DIR)
+        self.params = ""
+        self.wait_para = False
 
     def resizeEvent(self, QResizeEvent):
 
@@ -501,7 +503,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 elif data.startswith("$GNTXT"):
                     self._cold_reseted = False
             except Exception as e:
-                print(e)
+                print("parse exception", e)
             data = data.strip("\r\n")
             self.textEdit_recv.append(data)
             self.lineEdit_srx.setText(str(self._srxbs))
@@ -519,6 +521,9 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         :return:
         """
         if data.startswith(('$GNGGA', '$GPGGA')) and data.endswith("\r\n"):
+            if len(self.params) > 0 and self.wait_para:
+                self.wait_para = False
+                QMessageBox.information(self, "read_para", self.params)
             seg = data.strip("\r\n").split(",")
             if len(seg) < 15:
                 return
@@ -564,6 +569,9 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                     self.lineEdit_sats.setStyleSheet('background-color:white;color:black')
             else:
                 pass  # lat, lon not a float string
+        elif data.endswith("\r\n"):
+            if self.wait_para:
+                self.params += data
 
     def disp_fmi(self, data):
         seg = data.strip("\r\n").split(",")
@@ -655,6 +663,9 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             # while in firmware update mode, terminate ntrip first
             if cmd in ["AT+UPDATE_MODE\r\n", "AT+UPDATE_SHELL\r\n", "AT+UPDATE_MODE_H\r\n"]:
                 self._term_ntrip()
+            elif 'AT+READ_PARA' in cmd:
+                self.params = ""
+                self.wait_para = True
 
             # re-direct to other serial port
             if '>' in cmd:
