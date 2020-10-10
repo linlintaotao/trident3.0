@@ -506,7 +506,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 if data.startswith("$"):
                     if len(self.params) > 0 and self.wait_para:
                         self.wait_para = False
-                        QMessageBox.information(self, "read_para", self.params)
+                        QMessageBox.information(self, "FMI_PARA", self.params)
                 else:
                     if self.wait_para:
                         self.params += data

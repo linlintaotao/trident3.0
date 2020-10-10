@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Trident v2.3</string>
+   <string>Trident v2.3.2 fmi@feyman.cn</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_7">
@@ -1128,22 +1128,32 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <property name="text">
-               <string>AT+UPDATE_MODE</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>AT+UPDATE_SHELL</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
                <string>AT+SAVE_ALL</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>AT+SELF_TEST=</string>
+               <string>AT+WORK_MODE=13</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>AT+ALIGN_VEL=</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>AT+ZUPT=ENABLE</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>AT+DR_TIME=120</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>AT+NAVI_RATE=</string>
               </property>
              </item>
              <item>
@@ -1168,12 +1178,22 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <property name="text">
-               <string>AT+ZUPT=ENABLE</string>
+               <string>AT+LEVER_ARM=0.01,-0.027,-0.1</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>AT+DR_TIME=120</string>
+               <string>AT+UPDATE_SHELL</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>AT+UPDATE_MODE</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>AT+SELF_TEST=</string>
               </property>
              </item>
              <item>
@@ -1199,11 +1219,6 @@ p, li { white-space: pre-wrap; }
              <item>
               <property name="text">
                <string>AT+ALT_PARA=-9.1,37,1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>AT+LEVER_ARM=0.01,-0.027,-0.1</string>
               </property>
              </item>
              <item>
