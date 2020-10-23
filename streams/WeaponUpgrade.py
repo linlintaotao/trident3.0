@@ -9,7 +9,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from threading import Thread
 
 sendCompleteOrder = [0x55, 0xAA, 0x02, 0x00, 0x00, 0x02]
-SUBFRAME_LEN = 2048
+SUBFRAME_LEN = 200  # 2048
 
 
 def check_sum(buff):
@@ -97,6 +97,7 @@ class UpgradeManager(QThread):
             self._byteList.append(trans_buff)
             self._sendByte += len(data)
             self.write(bytes(trans_buff))
+
             self._listener(True, self._sendByte)
             if not self._isUpdating:
                 break
@@ -111,6 +112,8 @@ class UpgradeManager(QThread):
                 self._serial.write(bytesData)
                 # print('write ==>', ''.join(['%02X ' % b for b in bytesData]))
                 self._serial.flush()
+                if SUBFRAME_LEN == 256:
+                    time.sleep(0.01)
         except Exception as e:
             print(e)
 
