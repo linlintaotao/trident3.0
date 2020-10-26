@@ -9,7 +9,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from threading import Thread
 
 sendCompleteOrder = [0x55, 0xAA, 0x02, 0x00, 0x00, 0x02]
-SUBFRAME_LEN = 200  # 2048
+SUBFRAME_LEN = 2048  # 2048
 
 
 def check_sum(buff):
@@ -81,6 +81,16 @@ class UpgradeManager(QThread):
             packs += 1
         self._serial.open()
         self._serial.write(f'AT+UPDATE_MODE_H={self.updateBaudrate}\r\n'.encode())
+        readtimes = 60
+        while readtimes > 0:
+            returnData = self._serial.readline()
+            if b"OK" in returnData:
+                break
+            if readtimes <= 10:
+                if self._listener is not None:
+                    self._listener(False, b'no response,pls try again!')
+                return
+
         time.sleep(1)
         if self.updateBaudrate is not 115200:
             self._serial.close()
@@ -110,20 +120,20 @@ class UpgradeManager(QThread):
                 return
             if self._serial.isOpen():
                 self._serial.write(bytesData)
-                # print('write ==>', ''.join(['%02X ' % b for b in bytesData]))
+                print('write ==>', ''.join(['%02X ' % b for b in bytesData]))
                 self._serial.flush()
-                if SUBFRAME_LEN == 256:
-                    time.sleep(0.01)
+                time.sleep(0.005)
         except Exception as e:
             print(e)
 
     def parseResponse(self, response):
         if response is None or len(response) <= 0:
             return
-        # print('reponse ==>', ''.join(['%02X ' % b for b in bytes(response)]))
+        print('reponse ==>', ''.join(['%02X ' % b for b in bytes(response)]))
         if len(response) <= 0:
             self.nothing_read_times -= 1
-        if self.repeatTimes > 20 or self.nothing_read_times <= 0:
+        if self.repeatTimes > 30 or self.nothing_read_times <= 0:
+            print("=======end==========")
             self._isUpdating = False
             if self._listener is not None:
                 self._listener(False, b'Oops! update failed... ')
@@ -148,7 +158,8 @@ class UpgradeManager(QThread):
                     size = byteToint_16(frame[3:5])
                     self._sendByte -= (size * SUBFRAME_LEN)
                     for i in range(size):
-                        self._serial.write(self._byteList[byteToint_16(frame[(i * 2 + 5):(i * 2 + 7)])])
+                        self.write(self._byteList[byteToint_16(frame[(i * 2 + 5):(i * 2 + 7)])])
+                        # self._serial.write(self._byteList[byteToint_16(frame[(i * 2 + 5):(i * 2 + 7)])])
                     self._sendByte += SUBFRAME_LEN
                     for j in range(3):
                         self._serial.write(sendCompleteOrder)
@@ -166,11 +177,11 @@ class UpgradeManager(QThread):
                     break
 
     def readSerial(self):
-        readSerialMax = 1200
+        readSerialMax = 999
         try:
             while self._isUpdating:
                 if self._serial.isOpen():
-                    bytesData = self._serial.read(512)
+                    bytesData = self._serial.read(1024)
                     time.sleep(0.1)
                     if len(bytesData) > 0:
                         self.parseResponse(bytesData)

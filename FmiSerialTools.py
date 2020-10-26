@@ -851,10 +851,10 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
 
     def updateTrans(self, isUpdateing, sendBytes):
         global SEND_BYTES, SERIAL_WRITE_MUTEX
-        SERIAL_WRITE_MUTEX = isUpdateing
         if not SERIAL_WRITE_MUTEX:
             self.textEdit_recv.append(sendBytes.decode('utf-8', 'ignore'))
             return
+        SERIAL_WRITE_MUTEX = isUpdateing
         SEND_BYTES = sendBytes
 
     def mulser_control(self):

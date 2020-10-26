@@ -1173,6 +1173,16 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <property name="text">
+               <string>AT+GPIMU=UART1,</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>AT+GPREF=UART1,</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
                <string>AT+GPSAT=UART1,</string>
               </property>
              </item>
