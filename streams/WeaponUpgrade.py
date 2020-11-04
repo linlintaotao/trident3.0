@@ -198,7 +198,7 @@ class UpgradeManager(QThread):
                 self._serial.close()
             self._listener(False, b'Update success!!! \r\n' if self.updateSucess else b'please try again\r\n')
         except Exception as e:
-            print('read serial', e)
+            print('read serial====', e)
         # self._isUpdating = False
 
 
