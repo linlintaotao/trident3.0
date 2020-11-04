@@ -269,6 +269,7 @@ def nmeaFileToCoords(f, header: str) -> dict:
     data = defaultdict(list)
     for line in f.readlines():
         if header == 'GGA':
+            # TODO find GGA string in mixed line strings
             if line.startswith(("$GNGGA", "$GPGGA")):
                 nmeagram.parseLine(line)
                 if int(nmeagram.getField("Longitude")) == 0 or int(nmeagram.getField("Latitude")) == 0 or int(
@@ -293,6 +294,12 @@ def nmeaFileToCoords(f, header: str) -> dict:
                 data[utc].append(nmeagram.getField("Date"))
 
         elif header == 'FMI':
+            vidx = line.find("$GPFMI")
+            if vidx == -1:
+                vidx = line.find("$GPFPD")
+            if vidx != -1:
+                line = line[vidx:]
+
             if line.startswith(("$GPFMI", "$GPFPD")):
                 nmeagram.parseLine(line)
                 if int(nmeagram.getField("Longitude")) == 0 or int(nmeagram.getField("Latitude")) == 0 or int(
@@ -354,9 +361,10 @@ class KmlParse(QThread):
         self.head = header
 
     def run(self):
-        kml_str, info = None, None
+        info = None
         try:
             fnkml = self.fn + '.kml'
+            fnkmz = self.fn + '.kmz'
             fo = open(fnkml, 'w')
             with open(self.fn, 'r', encoding='utf-8') as f:
                 coords = nmeaFileToCoords(f, self.head)
@@ -364,6 +372,11 @@ class KmlParse(QThread):
                 fo.write(kml_str)
                 fo.flush()
                 fo.close()
+            from os import remove
+            from zipfile import ZipFile, ZIP_DEFLATED
+            with ZipFile(fnkmz, 'w', compression=ZIP_DEFLATED) as kmz:
+                kmz.write(fnkml)
+            remove(fnkml)
         except Exception as e:
             print(e)
         self.singal.emit(info)

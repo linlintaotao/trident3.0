@@ -7,27 +7,22 @@
 """
 # TODO: more test case
 
-from base64 import b64encode
 from datetime import datetime
 from os import path, stat, makedirs
 from sys import argv, exit
 from threading import Thread
 from functools import partial
-from struct import pack
 from streams.Ntrip import NtripClient
 import serial
 import serial.tools.list_ports
-import time
 from PyQt5.QtCore import QTimer, QCoreApplication, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QIcon
-from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 
-from extools.nmea2kml import nmeaFileToCoords, genKmlStr, KmlParse
+from extools.nmea2kml import KmlParse
 from gui.mainwindow import Ui_Trident
 from gui.multiser import Multiser_Ui_widget
 from streams.WeaponUpgrade import UpgradeManager
-import platform
 import sys, traceback
 
 from streams.QThreadSerial import SerialThread
@@ -88,7 +83,7 @@ def sendser(file, serhd):
         for line in f:
             serhd.send_data(line, sleepTime=0)
             SEND_BYTES += len(line)
-    time.sleep(1)
+    QThread.sleep(1)
     SERIAL_WRITE_MUTEX = False
 
 
@@ -689,7 +684,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
 
                 # for s in SERIAL_SET:
                 #     # support all serial port config
-                #     if _port[0] == 'all':
+                #     if _port[0] == 'all':0
                 #         if s is not None and s.isOpen():
                 #             s.write(_cmd.encode("utf-8", "ignore"))
                 #     else:
@@ -703,7 +698,22 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 #             s.write(_cmd.encode("utf-8", "ignore"))
             else:
                 if self.com is not None and self.com.is_running():
-                    self.com.send_data(cmd.encode("utf-8", "ignore"))
+                    if 'AT+VEH_MODE' in cmd:
+                        for cmd in ['AT+NAVI_RATE=5\r\n', 'AT+GPGGA=UART1,1\r\n', 'AT+GPRMC=UART1,1\r\n',
+                                    'AT+GPREF=UART1,0.1\r\n', 'AT+WORK_MODE=13\r\n', 'AT+DR_TIME=600\r\n',
+                                    'AT+ALIGN_VEL=3\r\n', 'AT+RTK_DIFF=5\r\n', 'AT+SAVE_ALL\r\n',
+                                    'AT+READ_PARA\r\n', 'AT+WARM_RESET\r\n']:
+                            self.com.send_data(cmd.encode("utf-8", "ignore"))
+                            QThread.msleep(100)
+                    elif 'AT+UAV_MODE' in cmd:
+                        for cmd in ['AT+NAVI_RATE=10\r\n', 'AT+GPGGA=UART1,10\r\n', 'AT+GPRMC=UART1,10\r\n',
+                                    'AT+GPREF=UART1,0.1\r\n', 'AT+WORK_MODE=8\r\n', 'AT+DR_TIME=10\r\n',
+                                    'AT+ALIGN_VEL=0.5\r\n', 'AT+RTK_DIFF=5\r\n', 'AT+SAVE_ALL\r\n',
+                                    'AT+READ_PARA\r\n', 'AT+WARM_RESET\r\n']:
+                            self.com.send_data(cmd.encode("utf-8", "ignore"))
+                            QThread.msleep(100)
+                    else:
+                        self.com.send_data(cmd.encode("utf-8", "ignore"))
                 else:
                     QMessageBox.warning(self, "Warning", "Open serial port first! ")
         else:
