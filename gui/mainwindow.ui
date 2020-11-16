@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>Trident</class>
  <widget class="QMainWindow" name="Trident">
+  <property name="windowModality">
+   <enum>Qt::WindowModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -9,9 +12,6 @@
     <width>800</width>
     <height>636</height>
    </rect>
-  </property>
-  <property name="windowTitle">
-   <string>Trident v2.3.2 fmi@feyman.cn</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_7">
@@ -676,6 +676,55 @@ p, li { white-space: pre-wrap; }
            <property name="verticalSpacing">
             <number>6</number>
            </property>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="cbsport">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>120</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+             <property name="currentText">
+              <string>COM1</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>COM1</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QPushButton" name="pushButton_refresh">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Refresh</string>
+             </property>
+             <property name="autoDefault">
+              <bool>false</bool>
+             </property>
+             <property name="default">
+              <bool>false</bool>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="2">
             <widget class="QComboBox" name="cbsbaud">
              <property name="sizePolicy">
@@ -738,69 +787,7 @@ p, li { white-space: pre-wrap; }
              </item>
             </widget>
            </item>
-           <item row="0" column="1">
-            <widget class="QComboBox" name="cbsport">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>120</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="editable">
-              <bool>true</bool>
-             </property>
-             <property name="currentText">
-              <string>COM1</string>
-             </property>
-             <item>
-              <property name="text">
-               <string>COM1</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QPushButton" name="pushButton_refresh">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Refresh</string>
-             </property>
-             <property name="autoDefault">
-              <bool>false</bool>
-             </property>
-             <property name="default">
-              <bool>false</bool>
-             </property>
-             <property name="flat">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="2">
-            <widget class="QPushButton" name="pushButton_open">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Open</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
+           <item row="1" column="1">
             <widget class="QToolButton" name="toolButton">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -822,11 +809,30 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
+           <item row="3" column="1" colspan="2">
+            <widget class="QPushButton" name="pushButton_open">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Open</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
         <item>
          <widget class="QGroupBox" name="Ntrip">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -843,19 +849,26 @@ p, li { white-space: pre-wrap; }
            <string>Ntrip</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
-           <property name="leftMargin">
-            <number>4</number>
-           </property>
-           <property name="topMargin">
-            <number>4</number>
-           </property>
-           <property name="rightMargin">
-            <number>4</number>
-           </property>
-           <property name="bottomMargin">
-            <number>4</number>
-           </property>
-           <item row="2" column="0">
+           <item row="4" column="1" colspan="2">
+            <widget class="QLineEdit" name="lineEdit_pwd">
+             <property name="acceptDrops">
+              <bool>false</bool>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;password of your current ntrip connection&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="inputMask">
+              <string/>
+             </property>
+             <property name="text">
+              <string>123456</string>
+             </property>
+             <property name="echoMode">
+              <enum>QLineEdit::Password</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
             <widget class="QLabel" name="lnuser">
              <property name="text">
               <string>User</string>
@@ -865,7 +878,7 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
-           <item row="4" column="3" colspan="2">
+           <item row="5" column="2">
             <widget class="QPushButton" name="pushButton_conn">
              <property name="text">
               <string>Connect</string>
@@ -874,6 +887,45 @@ p, li { white-space: pre-wrap; }
               <bool>false</bool>
              </property>
              <property name="flat">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="lncaster">
+             <property name="text">
+              <string>Caster</string>
+             </property>
+             <property name="textInteractionFlags">
+              <set>Qt::NoTextInteraction</set>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1" colspan="2">
+            <widget class="QLineEdit" name="lineEdit_user">
+             <property name="acceptDrops">
+              <bool>false</bool>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Cause this is a Feynman Innovation ntrip serial tool, default user is feyman-user ofcourse&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>feyman-user</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0" colspan="2">
+            <widget class="QProgressBar" name="progressBar">
+             <property name="maximum">
+              <number>100</number>
+             </property>
+             <property name="value">
+              <number>0</number>
+             </property>
+             <property name="textVisible">
+              <bool>false</bool>
+             </property>
+             <property name="invertedAppearance">
               <bool>false</bool>
              </property>
             </widget>
@@ -888,48 +940,14 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
-            <widget class="QComboBox" name="comboBox_port">
-             <property name="editable">
-              <bool>true</bool>
-             </property>
-             <property name="currentIndex">
-              <number>0</number>
-             </property>
-             <item>
-              <property name="text">
-               <string>2102</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>8001</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>8002</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>8003</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>2101</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>81</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="1" column="3" colspan="2">
+           <item row="2" column="1" colspan="2">
             <widget class="QComboBox" name="comboBox_mount">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;drop and click to get mount point&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
@@ -943,7 +961,27 @@ p, li { white-space: pre-wrap; }
              </item>
             </widget>
            </item>
-           <item row="0" column="1" colspan="4">
+           <item row="2" column="0">
+            <widget class="QLabel" name="lnmount">
+             <property name="text">
+              <string>Mnt</string>
+             </property>
+             <property name="textInteractionFlags">
+              <set>Qt::NoTextInteraction</set>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="lnpwd">
+             <property name="text">
+              <string>Passwd</string>
+             </property>
+             <property name="textInteractionFlags">
+              <set>Qt::NoTextInteraction</set>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1" colspan="2">
             <widget class="QComboBox" name="comboBox_caster">
              <property name="editable">
               <bool>true</bool>
@@ -968,6 +1006,11 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <property name="text">
+               <string>ntrip.myliyadong.com</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
                <string>219.142.87.107</string>
               </property>
              </item>
@@ -978,82 +1021,50 @@ p, li { white-space: pre-wrap; }
              </item>
             </widget>
            </item>
-           <item row="4" column="0" colspan="3">
-            <widget class="QProgressBar" name="progressBar">
-             <property name="maximum">
-              <number>100</number>
+           <item row="1" column="1" colspan="2">
+            <widget class="QComboBox" name="comboBox_port">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
-             <property name="value">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+             <property name="currentIndex">
               <number>0</number>
              </property>
-             <property name="textVisible">
-              <bool>false</bool>
-             </property>
-             <property name="invertedAppearance">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1" colspan="4">
-            <widget class="QLineEdit" name="lineEdit_pwd">
-             <property name="acceptDrops">
-              <bool>false</bool>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;password of your current ntrip connection&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="inputMask">
-              <string/>
-             </property>
-             <property name="text">
-              <string>123456</string>
-             </property>
-             <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1" colspan="4">
-            <widget class="QLineEdit" name="lineEdit_user">
-             <property name="acceptDrops">
-              <bool>false</bool>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Cause this is a Feynman Innovation ntrip serial tool, default user is feyman-user ofcourse&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>feyman-user</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QLabel" name="lnmount">
-             <property name="text">
-              <string>Mnt</string>
-             </property>
-             <property name="textInteractionFlags">
-              <set>Qt::NoTextInteraction</set>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="lncaster">
-             <property name="text">
-              <string>Caster</string>
-             </property>
-             <property name="textInteractionFlags">
-              <set>Qt::NoTextInteraction</set>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="lnpwd">
-             <property name="text">
-              <string>Passwd</string>
-             </property>
-             <property name="textInteractionFlags">
-              <set>Qt::NoTextInteraction</set>
-             </property>
+             <item>
+              <property name="text">
+               <string>2102</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>2101</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>8001</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>8002</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>8003</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>81</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>

@@ -52,6 +52,8 @@ NTRIP = [None]
 
 LAT_LON = [40, 116]
 
+VERSION = "2.3.3"
+
 
 ###################################################################
 
@@ -279,7 +281,8 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     def __init__(self, parent=None):
         super(NtripSerialTool, self).__init__(parent)
         self.setWindowIcon(QIcon("./gui/i.svg"))
-        # self.setFixedSize(950, 590)
+        # self.setWindowIconText("Trident v2.3.3 fmi@feyman.cn")
+        self.setWindowTitle(f"Trident %s fmi@feyman.cn" % VERSION)
         self._imgfile = None
         self._nmeaf = None
         self._fn = ''
