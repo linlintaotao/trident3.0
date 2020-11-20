@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>636</height>
+    <height>678</height>
    </rect>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -1006,7 +1006,7 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <property name="text">
-               <string>ntrip.myliyadong.com</string>
+               <string>ntrip.mliyadong.com</string>
               </property>
              </item>
              <item>

@@ -168,7 +168,7 @@ class NtripClient(Publisher):
         except Exception as e:
             if not self._reconnect:
                 self._isRunning = False
-            print("start exp", e)
+            print(" ntrip start exp", e)
 
     def stop(self):
         self._working = False
@@ -190,7 +190,7 @@ class NtripClient(Publisher):
         try:
             data = self._socket.recv(204800)
             head += data
-            print(head)
+            print("receive_data : "+str(head))
         except Exception as e:
             self.paraValid = False
             self._isRunning = False
@@ -206,6 +206,7 @@ class NtripClient(Publisher):
             for mnt in resp_list:
                 if mnt.startswith('STR;'):
                     self._mountPointList.append(mnt.split(';')[1])
+                    print(mnt.split(';')[1])
             self._isRunning = False
             return
         else:
@@ -243,7 +244,6 @@ class NtripClient(Publisher):
     def check(self):
 
         while self._stopByUser is False and self.paraValid and self._working:
-            self._reconnectLimit += 1
             if (self._reconnectLimit > 5) | self._reconnect is True:
                 self.reconnect()
             try:
