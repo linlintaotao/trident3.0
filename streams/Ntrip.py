@@ -190,7 +190,7 @@ class NtripClient(Publisher):
         try:
             data = self._socket.recv(204800)
             head += data
-            print("receive_data : "+str(head))
+            print("receive_data : " + str(head))
         except Exception as e:
             self.paraValid = False
             self._isRunning = False
@@ -244,6 +244,7 @@ class NtripClient(Publisher):
     def check(self):
 
         while self._stopByUser is False and self.paraValid and self._working:
+            self._reconnectLimit += 1
             if (self._reconnectLimit > 5) | self._reconnect is True:
                 self.reconnect()
             try:
