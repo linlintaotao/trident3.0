@@ -188,9 +188,14 @@ class NtripClient(Publisher):
     def receive_data(self):
         head = b''
         try:
-            data = self._socket.recv(204800)
+            data = self._socket.recv(2048)
             head += data
-            print("receive_data : " + str(head))
+            if b'SOURCETABLE 200 OK' in data and b'ENDSOURCETABLE' not in data:
+                while b'ENDSOURCETABLE' not in head:
+                    readData = self._socket.recv(2048)
+                    if len(readData) <= 0:
+                        break
+                    head += readData
         except Exception as e:
             self.paraValid = False
             self._isRunning = False
@@ -215,8 +220,8 @@ class NtripClient(Publisher):
             return
 
         self._receiveDataLength = 0
-        while self._isRunning and not self._reconnect and self._working:
-            try:
+        try:
+            while self._isRunning and not self._reconnect and self._working:
                 data = self._socket.recv(1024)
                 if len(data) <= 0:
                     self._reconnectLimit += 1
@@ -228,11 +233,9 @@ class NtripClient(Publisher):
                     self.createFile()
                     if self._file:
                         self._file.write(data)
-
-            except Exception as e:
-                self._reconnect = True
-                self._reconnectLimit += 5
-                break
+        except Exception as e:
+            self._reconnect = True
+            self._reconnectLimit += 5
 
     def reconnect(self):
         # self._isRunning = False

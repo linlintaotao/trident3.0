@@ -685,20 +685,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                     if self.com.is_running():
                         self.com.send_data(cmd.encode("utf-8", "ignore"))
 
-                # for s in SERIAL_SET:
-                #     # support all serial port config
-                #     if _port[0] == 'all':0
-                #         if s is not None and s.isOpen():
-                #             s.write(_cmd.encode("utf-8", "ignore"))
-                #     else:
-                #         # port list must startswith 'com
-                #         for p in _port:
-                #             if not p.startswith('com'):
-                #                 QMessageBox.warning(self, "Warning", "cmd as: AT+THIS_PORT>coma,comb")
-                #                 return
-                #         # config each specified serial port
-                #         if s is not None and s.isOpen() and s.port.lower() in _port:
-                #             s.write(_cmd.encode("utf-8", "ignore"))
             else:
                 if self.com is not None and self.com.is_running():
                     if 'AT+VEH_MODE' in cmd:
