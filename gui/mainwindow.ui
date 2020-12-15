@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>678</height>
+    <width>802</width>
+    <height>656</height>
    </rect>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -50,21 +50,26 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Trident a FMI ntrip serial tool&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;i. Serial&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;    -Click &amp;quot;Refresh&amp;quot; button all valid com ports connected to your PC lists in &amp;quot;Port&amp;quot; comb box, set proper baud rate and attributes(in Databits/Parity/Stopbits) then &amp;quot;Open&amp;quot;, serial received data shows in this area.&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;    -For multi serial interface, click &amp;quot;...&amp;quot; under the &amp;quot;Baud&amp;quot; text.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;  -Click &amp;quot;Refresh&amp;quot; button all valid com ports connected to your PC lists in &amp;quot;Port&amp;quot; comb box&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;  -Set proper baud rate and attributes(in Databits/Parity/Stopbits) &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;  -Click &amp;quot;Open&amp;quot; Button and Serial received data shows in this area.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;  -For multi serial interface, click &amp;quot;...&amp;quot; under the &amp;quot;COM&amp;quot; Spinner.&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;ii. Ntrip&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;    -Set ntrip caster host, port, mount point, user id and password.&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;    -If you do not know the mount point click &amp;quot;Connect&amp;quot; first, all monut points will list in &amp;quot;Mnt&amp;quot; comb box.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;  -Set ntrip caster host, port, mount point, user id and password.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;  -If you do not know the mount point click &amp;quot;Connect&amp;quot; first, all monut points will list in &amp;quot;Mnt&amp;quot; comb box.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;  -Support Ntrip parameter local record&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;iii. AT Cmd&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;    -Support FMI AT command and H $J cmd.&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;    -FMI Px series board firmware upgrade.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;iii. Cmd&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;  -Support FMI AT command and H $J cmd.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;  -FMI Px series board firmware upgrade.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;  -Add AT+VEH_MODE and AT+UAV_MODE cmd&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;  -Click &amp;quot;Return&amp;quot; can send cmd order also&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;iv. Extools&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;    -Only support NMEA or $GPFMI to .kml in standard version.&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Any bugs or issues feel free to contact fmi@feyman.cn&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;  -Only support NMEA or $GPFMI to .kml in standard version.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;  &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Any bugs or issues feel free to contact &lt;span style=&quot; text-decoration: underline;&quot;&gt;fmi@feyman.cn&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
          </widget>
         </item>
@@ -648,7 +653,7 @@ p, li { white-space: pre-wrap; }
           <property name="maximumSize">
            <size>
             <width>260</width>
-            <height>120</height>
+            <height>217</height>
            </size>
           </property>
           <property name="title">
@@ -828,15 +833,15 @@ p, li { white-space: pre-wrap; }
         <item>
          <widget class="QGroupBox" name="Ntrip">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
             <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
+            <verstretch>2</verstretch>
            </sizepolicy>
           </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>0</height>
+            <height>200</height>
            </size>
           </property>
           <property name="maximumSize">
@@ -1072,6 +1077,12 @@ p, li { white-space: pre-wrap; }
         </item>
         <item>
          <widget class="QGroupBox" name="ATCmd">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>1</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -1080,12 +1091,12 @@ p, li { white-space: pre-wrap; }
           </property>
           <property name="maximumSize">
            <size>
-            <width>260</width>
-            <height>103</height>
+            <width>259</width>
+            <height>122</height>
            </size>
           </property>
           <property name="title">
-           <string>AT Cmd</string>
+           <string>Cmd</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
            <property name="leftMargin">
@@ -1100,8 +1111,28 @@ p, li { white-space: pre-wrap; }
            <property name="bottomMargin">
             <number>4</number>
            </property>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="open_file">
+             <property name="text">
+              <string>File</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QPushButton" name="trans_file">
+             <property name="text">
+              <string>Trans</string>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="0">
             <widget class="QComboBox" name="cbatcmd">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="font">
               <font>
                <family>Calibri</family>
@@ -1124,6 +1155,11 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <property name="text">
+               <string>AT+SAVE_ALL</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
                <string>AT+WARM_RESET</string>
               </property>
              </item>
@@ -1139,22 +1175,12 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <property name="text">
-               <string>AT+SAVE_ALL</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
                <string>AT+WORK_MODE=13</string>
               </property>
              </item>
              <item>
               <property name="text">
                <string>AT+ALIGN_VEL=</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>AT+ZUPT=ENABLE</string>
               </property>
              </item>
              <item>
@@ -1244,7 +1270,7 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <property name="text">
-               <string>AT+UPDATE_MODE_H=115200</string>
+               <string>AT+ZUPT=ENABLE</string>
               </property>
              </item>
             </widget>
@@ -1258,15 +1284,14 @@ p, li { white-space: pre-wrap; }
            </item>
            <item row="1" column="0">
             <widget class="QLineEdit" name="lineEdit_filename">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="readOnly">
               <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QPushButton" name="open_file">
-             <property name="text">
-              <string>File</string>
              </property>
             </widget>
            </item>
@@ -1289,18 +1314,17 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
-            <widget class="QPushButton" name="trans_file">
-             <property name="text">
-              <string>Trans</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </widget>
         </item>
         <item>
          <widget class="QGroupBox" name="Extools">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>1</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -1310,7 +1334,7 @@ p, li { white-space: pre-wrap; }
           <property name="maximumSize">
            <size>
             <width>260</width>
-            <height>71</height>
+            <height>79</height>
            </size>
           </property>
           <property name="title">
@@ -1379,7 +1403,7 @@ p, li { white-space: pre-wrap; }
           <property name="sizeHint" stdset="0">
            <size>
             <width>20</width>
-            <height>40</height>
+            <height>20</height>
            </size>
           </property>
          </spacer>
@@ -1392,15 +1416,15 @@ p, li { white-space: pre-wrap; }
           <property name="maximumSize">
            <size>
             <width>16777</width>
-            <height>16777215</height>
+            <height>100</height>
            </size>
           </property>
           <layout class="QGridLayout" name="gridLayout_5">
            <property name="leftMargin">
-            <number>8</number>
+            <number>4</number>
            </property>
            <property name="topMargin">
-            <number>2</number>
+            <number>0</number>
            </property>
            <property name="rightMargin">
             <number>2</number>
@@ -1408,7 +1432,7 @@ p, li { white-space: pre-wrap; }
            <property name="bottomMargin">
             <number>2</number>
            </property>
-           <item row="1" column="1">
+           <item row="1" column="2">
             <widget class="QCheckBox" name="checkBox_savenmea">
              <property name="mouseTracking">
               <bool>false</bool>
@@ -1424,20 +1448,7 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
-           <item row="1" column="2">
-            <widget class="QCheckBox" name="checkBox_logcos">
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;record CORS data in NMEA/*.cors &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>CORS</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
+           <item row="1" column="1">
             <widget class="QCheckBox" name="checkBox_ggafmt">
              <property name="mouseTracking">
               <bool>false</bool>
@@ -1453,7 +1464,7 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
-           <item row="1" column="3">
+           <item row="1" column="4">
             <widget class="QCheckBox" name="checkBox_autoScoll">
              <property name="mouseTracking">
               <bool>false</bool>
@@ -1472,21 +1483,21 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="checkBox_reset">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;record CORS data in NMEA/*.cors &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>RESET</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">

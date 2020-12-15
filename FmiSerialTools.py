@@ -25,6 +25,8 @@ from gui.multiser import Multiser_Ui_widget
 from streams.WeaponUpgrade import UpgradeManager
 import sys, traceback
 
+from extools.FmiConfig import FMIConfig
+
 from streams.QThreadSerial import SerialThread
 
 ###################################################################
@@ -37,7 +39,7 @@ DISCONNECT = 'Disconnect'
 # SWITCH_ON = [0xA0, 0x01, 0x01, 0xA2]
 # SWITCH_OFF = [0xA0, 0x01, 0x00, 0xA1]
 ###################################################################
-SEND_BYTES = 0
+SEND_BYTES_LEN = 0
 SAVE_NMEA = True
 ENABLE_TOOL_BTN = True
 SERIAL_PORT_LIST = []
@@ -53,6 +55,8 @@ NTRIP = [None]
 LAT_LON = [40, 116]
 
 VERSION = "2.3.3"
+
+NTRIP_CONFIG = 'NTRIP'
 
 
 ###################################################################
@@ -75,7 +79,7 @@ def refresh_ser() -> list:
 
 
 def sendser(file, serhd):
-    global SERIAL_WRITE_MUTEX, SEND_BYTES
+    global SERIAL_WRITE_MUTEX, SEND_BYTES_LEN
 
     if file is None or serhd is None:
         return False
@@ -84,7 +88,7 @@ def sendser(file, serhd):
     with open(file, "rb") as f:
         for line in f:
             serhd.send_data(line, sleepTime=0)
-            SEND_BYTES += len(line)
+            SEND_BYTES_LEN += len(line)
     QThread.sleep(1)
     SERIAL_WRITE_MUTEX = False
 
@@ -281,12 +285,10 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     def __init__(self, parent=None):
         super(NtripSerialTool, self).__init__(parent)
         self.setWindowIcon(QIcon("./gui/i.svg"))
-        # self.setWindowIconText("Trident v2.3.3 fmi@feyman.cn")
         self.setWindowTitle(f"Trident %s fmi@feyman.cn" % VERSION)
         self._imgfile = None
         self._nmeaf = None
         self._fn = ''
-
         self._cold_reseted = False
         self._mnt_updated = False
         self._getmnt = b''
@@ -299,7 +301,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self._ntxbs = 0
         self._val = 0
         self.ntrip = None
-
         self._ggacnt = 0
         self._cold_resets = 0
 
@@ -309,16 +310,25 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self.create_items()
         self.create_sigslots()
         self.ser_refresh()
-        # self.resizeEvent(self, e)
         self.com = None
         self.ntrip = None
         self.clearLimit = 200
-
         self._update_H = False
         if not path.exists(DIR):
             makedirs(DIR)
         self.params = ""
         self.wait_para = False
+        self.loadConfig()
+
+    def loadConfig(self):
+        self.config = FMIConfig()
+        ntripIps = self.config.getGroupKeys(NTRIP_CONFIG)
+        if ntripIps is None:
+            return
+        casterChildren = self.comboBox_caster.children()
+        for ip in ntripIps:
+            if ip not in casterChildren:
+                self.comboBox_caster.addItem(ip)
 
     def resizeEvent(self, QResizeEvent):
 
@@ -363,7 +373,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         """
             timer instance
         """
-
         self.ntripDataTimer = QTimer(self)
         self.ntripDataTimer.timeout.connect(self.ntp_state)
 
@@ -400,35 +409,43 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self.pushButton_clear.clicked.connect(self.serecv_clear_btclik)
         self.pushButton_close.clicked.connect(self.close_all)
         self.pushButton_stop.clicked.connect(self.stop_all)
-
         # serial refresh button pressed
         self.pushButton_refresh.clicked.connect(self.ser_refresh)
-
         # tool button pressed
         self.toolButton.clicked.connect(self.mulser_control)
-
         # open image file and send it to P20 navi board
         self.open_file.clicked.connect(self.open_filed)
         self.trans_file.clicked.connect(self.trans_filed)
-
         # generate kml file
         self.open_nmea_file.clicked.connect(self.open_nmeaf)
         self.gen_kml.clicked.connect(self.write_kml)
-
         # s serial received text changed
         self.textEdit_recv.textChanged.connect(self.text_recv_changed)
-
         # save nmea、Cors
         self.checkBox_savenmea.clicked.connect(self.save_nmea)
-        self.checkBox_logcos.clicked.connect(self.save_cors)
+        # self.checkBox_logcos.clicked.connect(self.save_cors)
+        self.comboBox_caster.editTextChanged.connect(self.caster_change)
+
+    def caster_change(self):
+        casterStr = self.comboBox_caster.currentText()
+        value = self.config.getValue(NTRIP_CONFIG, key=casterStr)
+        if len(value) > 0:
+            listNtripInfo = value.split(":")
+            self.comboBox_port.setEditText(listNtripInfo[0])
+            self.comboBox_mount.setEditText(listNtripInfo[1])
+            self.lineEdit_user.setText(listNtripInfo[2])
+            self.lineEdit_pwd.setText(listNtripInfo[3])
+
+    def save_caster(self, key, value):
+        self.config.saveNtripValue(NTRIP_CONFIG, key, value)
 
     def save_nmea(self):
         if self.com is not None:
             self.com.setFile(self.checkBox_savenmea.isChecked())
 
-    def save_cors(self):
-        if self.ntrip is not None and self.ntrip.isRunning():
-            self.ntrip.setLogFile(self.checkBox_logcos.isChecked())
+    # def save_cors(self):
+    #     if self.ntrip is not None and self.ntrip.isRunning():
+    #         self.ntrip.setLogFile(self.checkBox_logcos.isChecked())
 
     def ser_refresh(self):
         """
@@ -641,9 +658,8 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             self._caster = caster
             self.ntrip = NtripClient(ip=self._caster, port=self._port, user=user, password=passwd, mountPoint=mount,
                                      latitude=LAT_LON[0], longitude=LAT_LON[1])
-
-            if self.checkBox_logcos.isChecked():
-                self.ntrip.setLogFile(True)
+            # if self.checkBox_logcos.isChecked():
+            self.ntrip.setLogFile(True)
             self.ntrip.start()
             self.ntrip.register(self.com)
             NTRIP[0] = self.ntrip
@@ -652,6 +668,11 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             self.set_ntrip_params(False)
             self.ntripDataTimer.start(1200)
             self.pushButton_conn.setText(DISCONNECT)
+
+            if len(mount) > 0 and "Source Table" not in mount:
+                value = f"%s:%s:%s:%s" % (port, mount, user, passwd)
+                self.save_caster(self._caster, value)
+
         else:
             self._term_ntrip()
 
@@ -659,9 +680,9 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     def atcmd_send_btclik(self):
         if not SERIAL_WRITE_MUTEX:
             cmd = self.cbatcmd.currentText() + "\r\n"
-            if not cmd.startswith(('AT+', '$J')):
-                QMessageBox.warning(self, "Warning", "Only support Feyman and H command")
-                return
+            # if not cmd.startswith(('AT+', '$J')):
+            #     QMessageBox.warning(self, "Warning", "Only support Feyman and H command")
+            #     return
             # while in firmware update mode, terminate ntrip first
             if cmd in ["AT+UPDATE_MODE\r\n", "AT+UPDATE_SHELL\r\n", "AT+UPDATE_MODE_H\r\n"]:
                 self._term_ntrip()
@@ -687,22 +708,30 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
 
             else:
                 if self.com is not None and self.com.is_running():
-                    if 'AT+VEH_MODE' in cmd:
-                        for cmd in ['AT+NAVI_RATE=5\r\n', 'AT+GPGGA=UART1,1\r\n', 'AT+GPRMC=UART1,1\r\n',
-                                    'AT+GPREF=UART1,0.1\r\n', 'AT+WORK_MODE=13\r\n', 'AT+DR_TIME=600\r\n',
-                                    'AT+ALIGN_VEL=3\r\n', 'AT+RTK_DIFF=5\r\n', 'AT+SAVE_ALL\r\n',
-                                    'AT+READ_PARA\r\n', 'AT+WARM_RESET\r\n']:
-                            self.com.send_data(cmd.encode("utf-8", "ignore"))
-                            QThread.msleep(100)
-                    elif 'AT+UAV_MODE' in cmd:
-                        for cmd in ['AT+NAVI_RATE=10\r\n', 'AT+GPGGA=UART1,10\r\n', 'AT+GPRMC=UART1,10\r\n',
-                                    'AT+GPREF=UART1,0.1\r\n', 'AT+WORK_MODE=8\r\n', 'AT+DR_TIME=10\r\n',
-                                    'AT+ALIGN_VEL=0.5\r\n', 'AT+RTK_DIFF=5\r\n', 'AT+SAVE_ALL\r\n',
-                                    'AT+READ_PARA\r\n', 'AT+WARM_RESET\r\n']:
+
+                    order = self.config.getCmdComb(cmd)
+                    if isinstance(order, list):
+                        for cmd in order:
                             self.com.send_data(cmd.encode("utf-8", "ignore"))
                             QThread.msleep(100)
                     else:
                         self.com.send_data(cmd.encode("utf-8", "ignore"))
+                    # if 'AT+VEH_MODE' in cmd:
+                    #     for cmd in ['AT+NAVI_RATE=5\r\n', 'AT+GPGGA=UART1,1\r\n', 'AT+GPRMC=UART1,1\r\n',
+                    #                 'AT+GPREF=UART1,0.1\r\n', 'AT+WORK_MODE=13\r\n', 'AT+DR_TIME=600\r\n',
+                    #                 'AT+ALIGN_VEL=3\r\n', 'AT+RTK_DIFF=5\r\n', 'AT+SAVE_ALL\r\n',
+                    #                 'AT+READ_PARA\r\n', 'AT+WARM_RESET\r\n']:
+                    #         self.com.send_data(cmd.encode("utf-8", "ignore"))
+                    #         QThread.msleep(100)
+                    # elif 'AT+UAV_MODE' in cmd:
+                    #     for cmd in ['AT+NAVI_RATE=10\r\n', 'AT+GPGGA=UART1,10\r\n', 'AT+GPRMC=UART1,10\r\n',
+                    #                 'AT+GPREF=UART1,0.1\r\n', 'AT+WORK_MODE=8\r\n', 'AT+DR_TIME=10\r\n',
+                    #                 'AT+ALIGN_VEL=0.5\r\n', 'AT+RTK_DIFF=5\r\n', 'AT+SAVE_ALL\r\n',
+                    #                 'AT+READ_PARA\r\n', 'AT+WARM_RESET\r\n']:
+                    #         self.com.send_data(cmd.encode("utf-8", "ignore"))
+                    #         QThread.msleep(100)
+                    # else:
+                    #     self.com.send_data(cmd.encode("utf-8", "ignore"))
                 else:
                     QMessageBox.warning(self, "Warning", "Open serial port first! ")
         else:
@@ -712,6 +741,10 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self._srxbs = 0
         self._stxbs = 0
         self.textEdit_recv.clear()
+
+    def keyPressEvent(self, QKeyEvent):
+        if QKeyEvent.key() == Qt.Key_Return:
+            self.atcmd_send_btclik()
 
     # text cursor at end
     def text_recv_changed(self):
@@ -733,13 +766,14 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         if file is None or serhd is None:
             return
         SERIAL_WRITE_MUTEX = True
-        self.upgrade = UpgradeManager(listener=self.updateTrans, port=serhd, file=file, updateBaudrate=baudrate)
+        self.upgrade = UpgradeManager(port=serhd, file=file, updateBaudrate=baudrate)
+        self.upgrade.signal.connect(self.updateTrans)
         self.upgrade.start()
 
     # send file to serial
     def trans_filed(self):
-        global SEND_BYTES
-        SEND_BYTES = 0
+        global SEND_BYTES_LEN
+        SEND_BYTES_LEN = 0
         if self._imgfile is None:
             QMessageBox.warning(self, "Warning", f".enc file first plz!")
         else:
@@ -768,19 +802,19 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             self.file_transbar.setValue(0)
 
     def ShowFilepBarr(self):
+        print(SERIAL_WRITE_MUTEX)
         try:
             if SERIAL_WRITE_MUTEX:
-                self.file_transbar.setValue(SEND_BYTES)
+                self.file_transbar.setValue(SEND_BYTES_LEN)
             else:
                 self.FileTrans.stop()
                 self.updateComplete()
         except KeyboardInterrupt as e:
-
             print(e)
 
     def updateComplete(self):
         if self._update_H:
-            self.ser_open_btclik(coldRestart=True)
+            self.ser_open_btclik(coldRestart=self.checkBox_reset.isChecked())
         # else:
         #     self.com.send_data('AT+COLD_RESET\r\n')
 
@@ -848,13 +882,12 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         QMessageBox.information(self, "Info", f"Parse KML done\n"
                                               f"Statistics\n{info}")
 
-    def updateTrans(self, isUpdateing, sendBytes):
-        global SEND_BYTES, SERIAL_WRITE_MUTEX
-        if not SERIAL_WRITE_MUTEX:
-            self.textEdit_recv.append(sendBytes.decode('utf-8', 'ignore'))
-            return
+    def updateTrans(self, isUpdateing, sendBytes, dataLen):
+        global SEND_BYTES_LEN, SERIAL_WRITE_MUTEX
         SERIAL_WRITE_MUTEX = isUpdateing
-        SEND_BYTES = sendBytes
+        if len(sendBytes) > 0:
+            self.textEdit_recv.append(sendBytes.decode('utf-8', 'ignore'))
+        SEND_BYTES_LEN = dataLen
 
     def mulser_control(self):
         # check  toolButton is valid

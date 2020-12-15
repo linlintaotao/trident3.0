@@ -11,7 +11,7 @@ import datetime
 class SerialThread(QThread):
     signal = pyqtSignal(bytes)
 
-    def __init__(self, iport, baudRate=115200, showLog=False, coldStart=False):
+    def __init__(self, iport, baudRate=115200, coldStart=False, showLog=False):
         super().__init__()
         self.mutex = QMutex()
         self._port = iport
@@ -36,7 +36,7 @@ class SerialThread(QThread):
                 self._file.close()
                 self._file = None
 
-    def createFile(self):
+    def writeReadData(self, data):
         if self.writefile and self._file is None:
             path = os.path.join(os.path.abspath('.'),
                                 'NMEA/' + self._port.split('/')[-1] + '_' + datetime.datetime.now().strftime(
@@ -44,14 +44,16 @@ class SerialThread(QThread):
             self._file = open(path, 'wb')
             self._entity.write('AT+READ_PARA\r\n'.encode())
 
+        if self._file:
+            self._file.write(data)
+            self._file.flush()
+
     def is_running(self):
         return self._entity is not None and self._entity.isOpen() and self._isRunning
 
     def open_serial(self):
         self._entity = serial.Serial(self._port, self._baudRate, timeout=1)
-        # if self._entity.isOpen():
-        #     self._entity.close()
-        # self._entity.open()
+        self._entity.write("AT+THIS_PORT\r\n".encode())
 
     def send_data(self, data, sleepTime=0):
         self.notify(data)
@@ -80,18 +82,17 @@ class SerialThread(QThread):
         while self._isRunning and self._entity.is_open:
             try:
                 data = self._entity.readline()
-                self.createFile()
 
-                if self._file:
-                    self._file.write(data)
-                    self._file.flush()
                 if data is not None and len(data) > 0:
                     self.signal.emit(data)
-                    if self._coldStart and b'Please Reset' in data:
+                    print(data)
+                    if self._coldStart in data:
                         self._coldStart = False
                         sleep(0.5)
                         self._entity.write('AT+COLD_RESET\r\n'.encode())
                         self.signal.emit(b'Auto cold reset,Please waiting...\r\n')
+
+                    self.writeReadData(data)
 
             except Exception as e:
                 print('serial_read', e)

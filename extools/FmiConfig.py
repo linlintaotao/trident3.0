@@ -8,11 +8,16 @@
 """
 from PyQt5.QtCore import QSettings
 
-ip = 0
-port = 0
-mount = 0
-userName
-password
+KEY_NTRIP = "Ntrip"
+
+VEH_MODE = ['AT+NAVI_RATE=5\r\n', 'AT+GPGGA=UART1,1\r\n', 'AT+GPRMC=UART1,1\r\n',
+            'AT+GPREF=UART1,0.1\r\n', 'AT+WORK_MODE=13\r\n', 'AT+DR_TIME=600\r\n',
+            'AT+ALIGN_VEL=3\r\n', 'AT+RTK_DIFF=5\r\n', 'AT+SAVE_ALL\r\n',
+            'AT+READ_PARA\r\n', 'AT+WARM_RESET\r\n']
+UAV_MODE = ['AT+NAVI_RATE=10\r\n', 'AT+GPGGA=UART1,10\r\n', 'AT+GPRMC=UART1,10\r\n',
+            'AT+GPREF=UART1,0.1\r\n', 'AT+WORK_MODE=8\r\n', 'AT+DR_TIME=10\r\n',
+            'AT+ALIGN_VEL=0.5\r\n', 'AT+RTK_DIFF=5\r\n', 'AT+SAVE_ALL\r\n',
+            'AT+READ_PARA\r\n', 'AT+WARM_RESET\r\n']
 
 
 class FMIConfig:
@@ -21,11 +26,44 @@ class FMIConfig:
         self.config = QSettings('FMI.ini', QSettings.IniFormat)
         pass
 
-    def saveValue(self, key, value):
+    def saveNtripValue(self, group, key, value):
+        self.config.beginGroup(group)
+        self.config.setValue(key, value)
+        self.config.endGroup()
         pass
 
-    def getValue(self, key):
+    def getValue(self, group, key):
+        self.config.beginGroup(group)
+        value = self.config.value(key, "")
+        self.config.endGroup()
+        return value
+
+    def getGroupKeys(self, group):
+        if self.config.contains(group):
+            self.config.beginGroup(group)
+            keys = self.config.childKeys()
+            self.config.endGroup()
+            return keys
+        return None
+
+    def clear(self):
+        self.config.clear()
         pass
 
-    def freshHistory(self):
+    def close(self):
         pass
+
+    def getCmdComb(self, CMD):
+        if "VEH_MODE" in CMD:
+            return VEH_MODE
+        elif "UAV_MODE" in CMD:
+            return UAV_MODE
+        return CMD
+
+
+if __name__ == '__main__':
+    fmiConfig = FMIConfig()
+
+    fmiConfig.saveNtripValue(NTRIP, "ntrip.feymani.cn2", "2102:Obs:feyman-user:123456")
+    fmiConfig.saveNtripValue(NTRIP, "ntrip.feymani.cn1", "2102:Obs:feyman-user:123451")
+    print(fmiConfig.getGroupKeys(NTRIP))
