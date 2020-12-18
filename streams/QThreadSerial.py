@@ -86,7 +86,7 @@ class SerialThread(QThread):
                 if data is not None and len(data) > 0:
                     self.signal.emit(data)
                     print(data)
-                    if self._coldStart in data:
+                    if self._coldStart and b"Reset" in data:
                         self._coldStart = False
                         sleep(0.5)
                         self._entity.write('AT+COLD_RESET\r\n'.encode())

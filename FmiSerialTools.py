@@ -429,7 +429,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     def caster_change(self):
         casterStr = self.comboBox_caster.currentText()
         value = self.config.getValue(NTRIP_CONFIG, key=casterStr)
-        if len(value) > 0:
+        if value is not None and len(value) > 0:
             listNtripInfo = value.split(":")
             self.comboBox_port.setEditText(listNtripInfo[0])
             self.comboBox_mount.setEditText(listNtripInfo[1])
