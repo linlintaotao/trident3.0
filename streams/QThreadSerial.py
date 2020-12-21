@@ -42,6 +42,7 @@ class SerialThread(QThread):
                                 'NMEA/' + self._port.split('/')[-1] + '_' + datetime.datetime.now().strftime(
                                     '%Y%m%d_%H%M%S') + '.nmea')
             self._file = open(path, 'wb')
+
             self._entity.write('AT+READ_PARA\r\n'.encode())
 
         if self._file:
@@ -53,8 +54,8 @@ class SerialThread(QThread):
 
     def open_serial(self):
         self._entity = serial.Serial(self._port, self._baudRate, timeout=1)
-        if self._entity.isOpen():
-            self._entity.write("AT+THIS_PORT\r\n".encode())
+        # if self._entity.isOpen():
+        #     self._entity.write("AT+THIS_PORT\r\n".encode())
 
     def send_data(self, data, sleepTime=0):
         self.notify(data)
