@@ -39,11 +39,13 @@ class FMIConfig:
         return value
 
     def getGroupKeys(self, group):
-        if self.config.contains(group):
+        try:
             self.config.beginGroup(group)
             keys = self.config.childKeys()
             self.config.endGroup()
             return keys
+        except Exception as e:
+            print(e)
         return None
 
     def clear(self):
@@ -63,7 +65,7 @@ class FMIConfig:
 
 if __name__ == '__main__':
     fmiConfig = FMIConfig()
-
+    NTRIP = "NRTRIP"
     fmiConfig.saveNtripValue(NTRIP, "ntrip.feymani.cn2", "2102:Obs:feyman-user:123456")
     fmiConfig.saveNtripValue(NTRIP, "ntrip.feymani.cn1", "2102:Obs:feyman-user:123451")
     print(fmiConfig.getGroupKeys(NTRIP))

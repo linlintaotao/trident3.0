@@ -54,7 +54,7 @@ NTRIP = [None]
 
 LAT_LON = [40, 116]
 
-VERSION = "2.3.3"
+VERSION = "2.4.0"
 
 NTRIP_CONFIG = 'NTRIP'
 
@@ -325,9 +325,13 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         ntripIps = self.config.getGroupKeys(NTRIP_CONFIG)
         if ntripIps is None:
             return
-        casterChildren = self.comboBox_caster.children()
+        comBoxList = []
+        for index in range(self.comboBox_caster.count()):
+            comBoxList.append(self.comboBox_caster.itemText(index))
+
+        # casterChildren = self.comboBox_caster.selecItems()
         for ip in ntripIps:
-            if ip not in casterChildren:
+            if ip not in comBoxList:
                 self.comboBox_caster.addItem(ip)
 
     def resizeEvent(self, QResizeEvent):
@@ -367,7 +371,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             self.r_std.setVisible(True)
             self.p_std.setVisible(True)
             self.y_std.setVisible(True)
-            pass
 
     def create_items(self):
         """
@@ -679,7 +682,9 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     # at command button handle
     def atcmd_send_btclik(self):
         if not SERIAL_WRITE_MUTEX:
-            cmd = self.cbatcmd.currentText() + "\r\n"
+            cmd = self.cbatcmd.currentText()
+            if cmd.startswith(("AT+", "$J")):
+                cmd += "\r\n"
             # if not cmd.startswith(('AT+', '$J')):
             #     QMessageBox.warning(self, "Warning", "Only support Feyman and H command")
             #     return

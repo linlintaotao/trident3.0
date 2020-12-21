@@ -147,12 +147,12 @@ class UpgradeManager(QThread):
 
                 elif frame[2] == 0x02:  # resend
                     length = byteToint_16(frame[0:2])
-                    print(length, "  0x02 ", len(frame))
+                    # print(length, "  0x02 ", len(frame))
                     if length > len(frame) - 3:
                         return
                     size = byteToint_16(frame[3:5])
                     self._sendByte -= (size * SUBFRAME_LEN)
-                    print(len(self._byteList))
+                    # print(len(self._byteList))
                     for i in range(size):
                         self.write(self._byteList[byteToint_16(frame[(i * 2 + 5):(i * 2 + 7)])])
                         # self._serial.write(self._byteList[byteToint_16(frame[(i * 2 + 5):(i * 2 + 7)])])
@@ -165,7 +165,7 @@ class UpgradeManager(QThread):
                     continue
 
                 else:
-                    print(frame[0], '0: failed')
+                    # print(frame[0], '0: failed')
                     self.signal.emit(False, b'Oops! update failed...', self._sendByteLen)
                     self._isUpdating = False
                     self._serial.close()
@@ -174,7 +174,7 @@ class UpgradeManager(QThread):
     def readSerial(self):
         readSerialMax = 800
         try:
-            while self._isUpdating :
+            while self._isUpdating:
                 if self._serial.isOpen():
                     bytesData = self._serial.read(2048)
                     time.sleep(0.1)
@@ -192,7 +192,8 @@ class UpgradeManager(QThread):
             if self._serial.isOpen():
                 self._serial.close()
 
-            self.signal.emit(False, b'update complete' if self.updateSucess else b'please try again', self._sendByteLen)
+            self.signal.emit(False, b'update complete!!!' if self.updateSucess else b'please try again',
+                             self._sendByteLen)
         except Exception as e:
             print('read serial====', e)
         self._isUpdating = False
