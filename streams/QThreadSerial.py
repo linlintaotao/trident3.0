@@ -53,7 +53,8 @@ class SerialThread(QThread):
 
     def open_serial(self):
         self._entity = serial.Serial(self._port, self._baudRate, timeout=1)
-        self._entity.write("AT+THIS_PORT\r\n".encode())
+        if self._entity.isOpen():
+            self._entity.write("AT+THIS_PORT\r\n".encode())
 
     def send_data(self, data, sleepTime=0):
         self.notify(data)

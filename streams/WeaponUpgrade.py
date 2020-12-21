@@ -117,7 +117,7 @@ class UpgradeManager(QThread):
                 return
             if self._serial.isOpen():
                 self._serial.write(bytesData)
-                print('write ==>', ''.join(['%02X ' % b for b in bytesData]))
+                # print('write ==>', ''.join(['%02X ' % b for b in bytesData]))
                 self._serial.flush()
                 time.sleep(0.005)
         except Exception as e:
@@ -127,7 +127,7 @@ class UpgradeManager(QThread):
         if response is None or len(response) <= 0:
             self.nothing_read_times -= 1
             return
-        print('reponse ==>', ''.join(['%02X ' % b for b in bytes(response)]))
+        # print('reponse ==>', ''.join(['%02X ' % b for b in bytes(response)]))
         if self.repeatTimes > 30 or self.nothing_read_times <= 0:
             # print("=======end==========")
             self._isUpdating = False
@@ -140,7 +140,7 @@ class UpgradeManager(QThread):
                 frame = response[i + 3:]
 
                 if frame[2] == 0x01:
-                    self.signal.emit(False, b'Update Success!!!', self._sendByteLen)
+                    self.signal.emit(True, b'Update Success!!!', self._sendByteLen)
                     self._isUpdating = False
                     self.updateSucess = True
                     return
@@ -174,8 +174,7 @@ class UpgradeManager(QThread):
     def readSerial(self):
         readSerialMax = 800
         try:
-            while self._isUpdating and self._isUpdating:
-                print('read serial========')
+            while self._isUpdating :
                 if self._serial.isOpen():
                     bytesData = self._serial.read(2048)
                     time.sleep(0.1)
@@ -192,8 +191,8 @@ class UpgradeManager(QThread):
                     break
             if self._serial.isOpen():
                 self._serial.close()
-            if not self.updateSucess:
-                self.signal.emit(False, b'please try again\r\n', self._sendByteLen)
+
+            self.signal.emit(False, b'update complete' if self.updateSucess else b'please try again', self._sendByteLen)
         except Exception as e:
             print('read serial====', e)
         self._isUpdating = False

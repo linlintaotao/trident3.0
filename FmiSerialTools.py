@@ -802,7 +802,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             self.file_transbar.setValue(0)
 
     def ShowFilepBarr(self):
-        print(SERIAL_WRITE_MUTEX)
+        # print(SERIAL_WRITE_MUTEX)
         try:
             if SERIAL_WRITE_MUTEX:
                 self.file_transbar.setValue(SEND_BYTES_LEN)
