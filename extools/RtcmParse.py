@@ -211,7 +211,7 @@ class RtcmParse(QObject):
             # self.signal.emit(f'{self._msg_type}, sync {sync}, sats {nsats:2}, sigs {siglist}')
             print(f'%s, sync %2d, sats %2d, sigs [%3s]' % (self._msg_type, sync, nsats, sigStr))
             self.signal.emit(
-                f'%s, sync %2d, sats %2d, sigs [ %3s ]' % (self._msg_type, sync, nsats, sigStr))
+                f'%s, sync %2d, sats %2d, sigs [%3s]' % (self._msg_type, sync, nsats, sigStr))
         else:
             # print(f'invalid msg header {self._msg_type}')
             pass
