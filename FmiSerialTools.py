@@ -17,14 +17,15 @@ import serial
 import serial.tools.list_ports
 from PyQt5.QtCore import QTimer, QCoreApplication, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QIcon
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QDialog
 
 from extools.nmea2kml import KmlParse
 from gui.mainwindow import Ui_Trident
 from gui.multiser import Multiser_Ui_widget
+from gui.showRtcm import Ui_Dialog
 from streams.WeaponUpgrade import UpgradeManager
 import sys, traceback
-
+from extools.RtcmParse import RtcmParse
 from extools.FmiConfig import FMIConfig
 
 from streams.QThreadSerial import SerialThread
@@ -329,7 +330,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         for index in range(self.comboBox_caster.count()):
             comBoxList.append(self.comboBox_caster.itemText(index))
 
-        # casterChildren = self.comboBox_caster.selecItems()
         for ip in ntripIps:
             if ip not in comBoxList:
                 self.comboBox_caster.addItem(ip)
@@ -428,6 +428,14 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self.checkBox_savenmea.clicked.connect(self.save_nmea)
         # self.checkBox_logcos.clicked.connect(self.save_cors)
         self.comboBox_caster.editTextChanged.connect(self.caster_change)
+        self.rtcm_analysis.clicked.connect(self.analysis_rtcm)
+
+    def analysis_rtcm(self):
+        if self.ntrip is not None and self.ntrip.isRunning():
+            rtcmDialog = RtcmDialog(self)
+            rtcmDialog.show()
+        else:
+            QMessageBox.warning(self, "Warning", f"Ntrip is not Running!!!")
 
     def caster_change(self):
         casterStr = self.comboBox_caster.currentText()
@@ -488,7 +496,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             self.set_ser_params(True)
 
     def read_ser_data(self, data):
-
         if 'STOP SERIAL' in str(data):
             self.set_ser_params(True)
             if self.ntrip is not None:
@@ -512,7 +519,8 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 self.textEdit_recv.clear()
                 self.clearLimit = 300
             self._srxbs += len(data)
-            data = data.decode("utf-8", "ignore")
+            if type(data) is not str:
+                data = data.decode("utf-8", "ignore")
             try:
                 if data.startswith(('$GNGGA', '$GPGGA')):
                     self.disp_gga(data)
@@ -900,6 +908,9 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         dialog = MultiSerial()
         dialog.show()
 
+    def getNtrip(self):
+        return self.ntrip
+
     def closeEvent(self, QCloseEvent):
         self.close_all()
 
@@ -925,6 +936,27 @@ class Error(QThread):
     def run(self):
         traceback.print_last(file=open('NMEA/err.log', 'w+'))
         self.signal.emit()
+
+
+class RtcmDialog(QDialog, Ui_Dialog):
+
+    def __init__(self, parent=None):
+        super(RtcmDialog, self).__init__(parent)
+        self.setupUi(self)
+        self.startParse()
+
+    def startParse(self):
+        self.rtcmParse = RtcmParse()
+        self.rtcmParse.signal.connect(self.connectSingal)
+        NTRIP[0].register(self.rtcmParse)
+
+    def connectSingal(self, data):
+        self.textEdit.append(data)
+
+    def closeEvent(self, QCloseEvent):
+        print("close")
+        if NTRIP[0] is not None and NTRIP[0].isRunning():
+            NTRIP[0].unregister(self.rtcmParse)
 
 
 if __name__ == '__main__':

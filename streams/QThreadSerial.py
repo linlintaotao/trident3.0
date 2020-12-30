@@ -78,7 +78,7 @@ class SerialThread(QThread):
                 self.signal.emit(b'STOP SERIAL')
                 print('serial_open', e)
                 return
-
+        # times = 0
         while self._isRunning and self._entity.is_open:
             try:
                 data = self._entity.readline()
@@ -92,6 +92,12 @@ class SerialThread(QThread):
                     self.signal.emit(data)
                     print(data)
                     self.writeReadData(data)
+
+                # if b'$GNGGA' in data:
+                #     times += 1
+                #     if times > 60:
+                #         times = 0
+                #         self.send_data("AT+COLD_RESET\r\n")
 
             except Exception as e:
                 print('serial_read', e)

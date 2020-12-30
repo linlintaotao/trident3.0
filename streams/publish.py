@@ -2,6 +2,7 @@
 # 观察者模式
 from streams.QThreadSerial import SerialThread
 from serial import Serial
+from extools.RtcmParse import RtcmParse
 
 
 class Publisher:
@@ -34,3 +35,5 @@ class Publisher:
                 obs.notify(self._data)
             elif isinstance(obs, Serial):
                 obs.write(self._data)
+            elif isinstance(obs, RtcmParse):
+                obs.decode(self._data)
