@@ -142,7 +142,7 @@ class RtcmParse(QObject):
             self._msg_type = sys_map[sys]
         else:
             return
-        self._msg_type += f' msm{msm}'
+        self._msg_type += f' msm {msm}'
         self._sys = sys
 
         if msm == 3:
@@ -171,9 +171,9 @@ class RtcmParse(QObject):
             i += 22
             posx, posy, posz = [format(self.getbits_38(i) * 1e-4, '.3f') for i in range(i, i + 40 * 3, 40)]
             # developer should show this info in GUI program, this base ECEF position in millimeters
-            print(f'msg {msgtype}, pos ecef {posx, posy, posz}, staid {staid}')
+            # print(f'msg {msgtype}, pos ecef {posx, posy, posz}, staid {staid}')
             # self.signal.emit(f'msg {msgtype}, pos ecef {posx, posy, posz}, staid {staid}')
-            self.signal.emit(f'msg %s, pos ecef [ %s, %s, %s ], staid %s' % (msgtype, posx, posy, posz, staid))
+            self.signal.emit(f'msg %s, pos ecef %s, %s, %s, staid %s' % (msgtype, posx, posy, posz, staid))
         else:
             print(f'msg {msgtype} length error!')
 
@@ -193,9 +193,21 @@ class RtcmParse(QObject):
         self._dump_msg_header()
 
     def _dump_msg_header(self):
+        tow=''
         i = 36
-        if i + 157 < self._len * 8:
-            i += 42
+        if i + 157 <= self._len * 8:
+            i += 12
+            if self._sys == 108:
+                _dow = self.getbitu(i, 3)
+                _tod = self.getbitu(i, 27)
+                _tow = _tod + _dow*86400000
+                tow = f'{_tow}'
+            else:
+                _tow = self.getbitu(i,30)
+                if self._sys == 112:
+                    _tow += 14000
+                tow = f'{_tow}'
+            i += 30
             sync = self.getbitu(i, 1)
             i += 19
             nsats = sum([self.getbitu(j, 1) for j in range(i, i + 64)])
@@ -209,9 +221,8 @@ class RtcmParse(QObject):
             # print(f'{self._msg_type}, sync {sync}, sats {nsats:2}, sigs {siglist}')
             sigStr = ",".join(f'%3s' % x for x in siglist)
             # self.signal.emit(f'{self._msg_type}, sync {sync}, sats {nsats:2}, sigs {siglist}')
-            print(f'%s, sync %2d, sats %2d, sigs [%3s]' % (self._msg_type, sync, nsats, sigStr))
-            self.signal.emit(
-                f'%s, sync %2d, sats %2d, sigs [%3s]' % (self._msg_type, sync, nsats, sigStr))
+            # print(f'%s, sync %2d, sats %2d, sigs [%3s]' % (self._msg_type, sync, nsats, sigStr))
+            self.signal.emit(f'%s, tow %s, sync %2d, sats %2d, sigs [%3s]' % (self._msg_type, tow, sync, nsats, sigStr))
         else:
             # print(f'invalid msg header {self._msg_type}')
             pass
