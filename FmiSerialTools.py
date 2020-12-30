@@ -951,7 +951,7 @@ class RtcmDialog(QDialog, Ui_Dialog):
         NTRIP[0].register(self.rtcmParse)
 
     def connectSingal(self, data):
-        self.textEdit.append(data)
+        self.textEdit.append(data.strip("\""))
 
     def closeEvent(self, QCloseEvent):
         print("close")

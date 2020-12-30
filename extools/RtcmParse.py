@@ -172,7 +172,8 @@ class RtcmParse(QObject):
             posx, posy, posz = [format(self.getbits_38(i) * 1e-4, '.3f') for i in range(i, i + 40 * 3, 40)]
             # developer should show this info in GUI program, this base ECEF position in millimeters
             print(f'msg {msgtype}, pos ecef {posx, posy, posz}, staid {staid}')
-            self.signal.emit(f'msg {msgtype}, pos ecef {posx, posy, posz}, staid {staid}')
+            # self.signal.emit(f'msg {msgtype}, pos ecef {posx, posy, posz}, staid {staid}')
+            self.signal.emit(f'msg %s, pos ecef [ %s, %s, %s ], staid %s' % (msgtype, posx, posy, posz, staid))
         else:
             print(f'msg {msgtype} length error!')
 
@@ -203,10 +204,14 @@ class RtcmParse(QObject):
             sigs = [self.getbitu(j, 1) for j in range(i, i + 32)]
             for j, sig in enumerate(sigs, 1):
                 if sig:
-                    siglist.append(sys_sig_map[self._sys][j - 1])
+                    siglist.append(str(sys_sig_map[self._sys][j - 1]))
             # developer should show this info in GUI program, these are satellites/signals of each msm messages
-            print(f'{self._msg_type}, sync {sync}, sats {nsats:2}, sigs {siglist}')
-            self.signal.emit(f'{self._msg_type}, sync {sync}, sats {nsats:2}, sigs {siglist}')
+            # print(f'{self._msg_type}, sync {sync}, sats {nsats:2}, sigs {siglist}')
+            sigStr = ",".join(f'%3s' % x for x in siglist)
+            # self.signal.emit(f'{self._msg_type}, sync {sync}, sats {nsats:2}, sigs {siglist}')
+            print(f'%s, sync %2d, sats %2d, sigs [%3s]' % (self._msg_type, sync, nsats, sigStr))
+            self.signal.emit(
+                f'%s, sync %2d, sats %2d, sigs [ %3s ]' % (self._msg_type, sync, nsats, sigStr))
         else:
             # print(f'invalid msg header {self._msg_type}')
             pass
@@ -238,5 +243,5 @@ def test(filepath):
 
 
 if __name__ == '__main__':
-    file = '../NMEA/CORS_20201215_155249.dat'
+    file = '../NMEA/CORS_20201229_172746.dat'
     test(file)
