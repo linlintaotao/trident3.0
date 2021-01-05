@@ -27,7 +27,7 @@ from streams.WeaponUpgrade import UpgradeManager
 import sys, traceback
 from extools.RtcmParse import RtcmParse
 from extools.FmiConfig import FMIConfig
-
+from extools.ubx import LogReader
 from streams.QThreadSerial import SerialThread
 
 ###################################################################
@@ -868,8 +868,17 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         elif select.startswith('2 - '):
             QMessageBox.information(self, "Info", f"Convert {self._nmeaf} fmi to kml")
             self.tokml(self._nmeaf, 'FMI')
+        elif select.startswith('3 - '):
+            QMessageBox.information(self, "Info", f"Convert {self._nmeaf} U to GGA")
+            self.convertUbx()
         else:
             QMessageBox.information(self, "Info", f"To be continued...")
+
+    def convertUbx(self):
+        ubxParse = LogReader(self._nmeaf)
+        ubxParse.signal.connect(self.showMessage)
+        ubxParse.start()
+        ubxParse.exec()
 
     # extools file browser
     def open_nmeaf(self):
@@ -892,7 +901,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             kmlparser.exec()
 
     def showMessage(self, info):
-        QMessageBox.information(self, "Info", f"Parse KML done\n"
+        QMessageBox.information(self, "Info", f"Parse file done\n"
                                               f"Statistics\n{info}")
 
     def updateTrans(self, isUpdateing, sendBytes, dataLen):
