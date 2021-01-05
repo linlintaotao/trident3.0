@@ -253,7 +253,6 @@ class RtcmParse(QObject):
                              (self._msg_type, self._tow, sync, nsats, mean_cno, sigStr))
             if sync == 0:
                 self.signal.emit("\n")
-            return ncells, i, nsats
         else:
             # print(f'invalid msg header {self._msg_type}')
             pass
