@@ -9,6 +9,8 @@
 from PyQt5.QtCore import pyqtSignal, QObject
 
 RTCM3_PREAM = 0xd3
+DAY_SECONDS = 86400
+WEEK_SECONDS = 604800
 msm_sig_gps = [
     "", "1C", "1P", "1W", "1Y", "1M", "", "2C", "2P", "2W", "2Y", "2M",
     "", "", "2S", "2L", "2X", "", "", "", "", "5I", "5Q", "5X",
@@ -106,6 +108,7 @@ class RtcmParse(QObject):
         self._nbyte = 0
         self._binstr = ''
         self._msg_type = 0
+        self._tow = ''
 
     def decode(self, _data):
         for byte in _data:
@@ -173,56 +176,84 @@ class RtcmParse(QObject):
             # developer should show this info in GUI program, this base ECEF position in millimeters
             # print(f'msg {msgtype}, pos ecef {posx, posy, posz}, staid {staid}')
             # self.signal.emit(f'msg {msgtype}, pos ecef {posx, posy, posz}, staid {staid}')
-            self.signal.emit(f'msg %s, pos ecef %s, %s, %s, staid %s' % (msgtype, posx, posy, posz, staid))
+            self.signal.emit(f'msg %s, pos %s, %s, %s, id %s' % (msgtype, posx, posy, posz, staid))
         else:
             print(f'msg {msgtype} length error!')
 
     def _dump_msm3(self):
-        self._dump_msg_header()
+        self._dump_msg_header(3)
 
     def _dump_msm4(self):
-        self._dump_msg_header()
+        self._dump_msg_header(4)
 
     def _dump_msm5(self):
-        self._dump_msg_header()
+        self._dump_msg_header(5)
 
     def _dump_msm6(self):
-        self._dump_msg_header()
+        self._dump_msg_header(6)
 
     def _dump_msm7(self):
-        self._dump_msg_header()
+        self._dump_msg_header(7)
 
-    def _dump_msg_header(self):
-        tow=''
+    def _dump_msg_header(self, msgtype):
         i = 36
         if i + 157 <= self._len * 8:
             i += 12
             if self._sys == 108:
                 _dow = self.getbitu(i, 3)
                 _tod = self.getbitu(i, 27)
-                _tow = _tod + _dow*86400000
-                tow = f'{_tow}'
             else:
                 _tow = self.getbitu(i,30)
                 if self._sys == 112:
                     _tow += 14000
-                tow = f'{_tow}'
+                self._tow = f'{_tow}'
+            # decode sync bit
             i += 30
             sync = self.getbitu(i, 1)
+            # get number of valid sats in current frame
             i += 19
             nsats = sum([self.getbitu(j, 1) for j in range(i, i + 64)])
+
+            # get signal list
             i += 64
             siglist = []
             sigs = [self.getbitu(j, 1) for j in range(i, i + 32)]
             for j, sig in enumerate(sigs, 1):
                 if sig:
                     siglist.append(str(sys_sig_map[self._sys][j - 1]))
+
+            # get number of cells of each frame
+            i += 32
+            ncells = sum([self.getbitu(j, 1) for j in range(i, i+nsats*len(siglist))])
+
+            # get CN0 of each cell
+            cnos = []
+            if msgtype == 4:
+                i += nsats*len(siglist) + nsats * 18 + ncells * 42
+                cnos = [self.getbitu(j, 6) for j in range(i, i + ncells * 6, 6)]
+            elif msgtype == 5:
+                i += nsats * len(siglist) + nsats * 36 + ncells * 42
+                cnos = [self.getbitu(j, 6) for j in range(i, i + ncells * 6, 6)]
+            elif msgtype == 6:
+                i += nsats * len(siglist) + nsats * 18 + ncells * 55
+                cnos = [self.getbitu(j, 6)*0.0625 for j in range(i, i + ncells * 10, 10)]
+            elif msgtype == 7:
+                i += nsats * len(siglist) + nsats * 36 + ncells * 55
+                cnos = [self.getbitu(j, 6) * 0.0625 for j in range(i, i + ncells * 10, 10)]
+            else:
+                cnos = [-1]
+            mean_cno = sum(cnos)/len(cnos)
+
             # developer should show this info in GUI program, these are satellites/signals of each msm messages
-            # print(f'{self._msg_type}, sync {sync}, sats {nsats:2}, sigs {siglist}')
             sigStr = ",".join(f'%3s' % x for x in siglist)
+
             # self.signal.emit(f'{self._msg_type}, sync {sync}, sats {nsats:2}, sigs {siglist}')
             # print(f'%s, sync %2d, sats %2d, sigs [%3s]' % (self._msg_type, sync, nsats, sigStr))
-            self.signal.emit(f'%s, tow %s, sync %2d, sats %2d, sigs [%3s]' % (self._msg_type, tow, sync, nsats, sigStr))
+            self.signal.emit(f'%s, tow %s, sync %2d, sats %2d, cno mean %2d, sigs [%3s]' %
+                             (self._msg_type, self._tow, sync, nsats, mean_cno, sigStr))
+            if sync == 0:
+                self.signal.emit("\n")
+            return ncells, i, nsats
         else:
             # print(f'invalid msg header {self._msg_type}')
             pass
