@@ -1387,7 +1387,12 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <property name="text">
-               <string>3 - To be continued...</string>
+               <string>3 - Convert  U To GGA</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>4 - To be continued...</string>
               </property>
              </item>
             </widget>
