@@ -320,6 +320,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self.params = ""
         self.wait_para = False
         self.loadConfig()
+        self.rtcmDialog = None
 
     def loadConfig(self):
         self.config = FMIConfig()
@@ -676,6 +677,8 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             NTRIP[0] = self.ntrip
             for entity in SERIAL_SET:
                 self.ntrip.register(entity)
+            if self.rtcmDialog is not None:
+                self.rtcmDialog.startParse()
             self.set_ntrip_params(False)
             self.ntripDataTimer.start(1200)
             self.pushButton_conn.setText(DISCONNECT)
@@ -690,9 +693,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     # at command button handle
     def atcmd_send_btclik(self):
         if not SERIAL_WRITE_MUTEX:
-            cmd = self.cbatcmd.currentText()
-            if cmd.startswith(("AT+", "$J")):
-                cmd += "\r\n"
+            cmd = self.cbatcmd.currentText()+"\r\n"
             # if not cmd.startswith(('AT+', '$J')):
             #     QMessageBox.warning(self, "Warning", "Only support Feyman and H command")
             #     return
@@ -952,15 +953,16 @@ class RtcmDialog(QDialog, Ui_Dialog):
     def __init__(self, parent=None):
         super(RtcmDialog, self).__init__(parent)
         self.setupUi(self)
+        self.setWindowFlag(Qt.WindowMinMaxButtonsHint)
+        self.rtcmParse = RtcmParse()
+        self.rtcmParse.signal.connect(self.connectSignal)
         self.startParse()
 
     def startParse(self):
-        self.rtcmParse = RtcmParse()
-        self.rtcmParse.signal.connect(self.connectSingal)
         NTRIP[0].register(self.rtcmParse)
 
-    def connectSingal(self, data):
-        self.textEdit.append(data.strip("\""))
+    def connectSignal(self, data):
+        self.textEdit.append(data)
 
     def closeEvent(self, QCloseEvent):
         print("close")
