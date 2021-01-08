@@ -168,7 +168,7 @@ class NtripClient(Publisher):
         except Exception as e:
             if not self._reconnect:
                 self._isRunning = False
-            print(" ntrip start exp", e)
+            print(f"ntrip start exp {e}")
 
     def stop(self):
         self._working = False

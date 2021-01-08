@@ -41,10 +41,15 @@ msm_sig_cmp = [
     "", "7I", "7Q", "7X", "", "", "", "", "", "5I", "5Q", "5X",
     "", "", "", "", "", "", "", ""
 ]
+msm_sig_irn = [
+    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+    "", "", "", "", "", "", "5A", "", "", "", "",
+    "", "", "", "", "", ""
+]
 
-sys_map = {107: "GPS", 108: "GLO", 109: "GAL", 110: "SBS", 111: "QZS", 112: "BDS"}
+sys_map = {107: "GPS", 108: "GLO", 109: "GAL", 110: "SBS", 111: "QZS", 112: "BDS", 113: "IRN"}
 sys_sig_map = {107: msm_sig_gps, 108: msm_sig_glo, 109: msm_sig_gal, 110: msm_sig_sbs,
-               111: msm_sig_qzs, 112: msm_sig_cmp}
+               111: msm_sig_qzs, 112: msm_sig_cmp, 113: msm_sig_irn}
 
 crc24table = (
     0x000000, 0x864CFB, 0x8AD50D, 0x0C99F6, 0x93E6E1, 0x15AA1A,
