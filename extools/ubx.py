@@ -50,7 +50,6 @@ class LogReader(QThread):
                 if b'>>> ubx' in lines[i]:
                     try:
                         dataline = re.split('[,\]]', str(lines[i]))
-                        print(dataline)
                         nowtime = int(dataline[1])
                         for j in range(20):
                             if b'$GNGGA' in lines[i + j]:
@@ -62,6 +61,7 @@ class LogReader(QThread):
                                 break
                     except Exception as e:
                         print(e)
+                        self.signal.emit("error timestamp in header !")
                         fw.write("error timestamp in header,can't match gga & ubx time\r\n")
                 i += 1
         self.signal.emit("parse Log data complete!")

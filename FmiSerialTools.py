@@ -55,7 +55,7 @@ NTRIP = [None]
 
 LAT_LON = [40, 116]
 
-VERSION = "2.4.0"
+VERSION = "2.4.1"
 
 NTRIP_CONFIG = 'NTRIP'
 
@@ -693,7 +693,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     # at command button handle
     def atcmd_send_btclik(self):
         if not SERIAL_WRITE_MUTEX:
-            cmd = self.cbatcmd.currentText()+"\r\n"
+            cmd = self.cbatcmd.currentText() + "\r\n"
             # if not cmd.startswith(('AT+', '$J')):
             #     QMessageBox.warning(self, "Warning", "Only support Feyman and H command")
             #     return
@@ -829,8 +829,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     def updateComplete(self):
         if self._update_H:
             self.ser_open_btclik(coldRestart=self.checkBox_reset.isChecked())
-        # else:
-        #     self.com.send_data('AT+COLD_RESET\r\n')
 
     # close window
     def close_all(self):
@@ -877,9 +875,12 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
 
     def convertUbx(self):
         ubxParse = LogReader(self._nmeaf)
-        ubxParse.signal.connect(self.showMessage)
+        ubxParse.signal.connect(self.showText)
         ubxParse.start()
         ubxParse.exec()
+
+    def showText(self, data):
+        self.textEdit_recv.append(data)
 
     # extools file browser
     def open_nmeaf(self):
@@ -902,7 +903,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             kmlparser.exec()
 
     def showMessage(self, info):
-        QMessageBox.information(self, "Info", f"Parse file done\n"
+        QMessageBox.information(self, "Info", f"Parse KML done\n"
                                               f"Statistics\n{info}")
 
     def updateTrans(self, isUpdateing, sendBytes, dataLen):
@@ -965,7 +966,6 @@ class RtcmDialog(QDialog, Ui_Dialog):
         self.textEdit.append(data)
 
     def closeEvent(self, QCloseEvent):
-        print("close")
         if NTRIP[0] is not None and NTRIP[0].isRunning():
             NTRIP[0].unregister(self.rtcmParse)
 
