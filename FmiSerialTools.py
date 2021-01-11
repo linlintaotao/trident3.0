@@ -7,28 +7,30 @@
 """
 # TODO: more test case
 
+import sys
+import traceback
 from datetime import datetime
+from functools import partial
 from os import path, stat, makedirs
 from sys import argv, exit
 from threading import Thread
-from functools import partial
-from streams.Ntrip import NtripClient
+
 import serial
 import serial.tools.list_ports
 from PyQt5.QtCore import QTimer, QCoreApplication, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QIcon
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QDialog
 
+from extools.FmiConfig import FMIConfig
+from extools.RtcmParse import RtcmParse
 from extools.nmea2kml import KmlParse
+from extools.ubx import LogReader
 from gui.mainwindow import Ui_Trident
 from gui.multiser import Multiser_Ui_widget
 from gui.showRtcm import Ui_Dialog
-from streams.WeaponUpgrade import UpgradeManager
-import sys, traceback
-from extools.RtcmParse import RtcmParse
-from extools.FmiConfig import FMIConfig
-from extools.ubx import LogReader
+from streams.Ntrip import NtripClient
 from streams.QThreadSerial import SerialThread
+from streams.WeaponUpgrade import UpgradeManager
 
 ###################################################################
 DIR = 'NMEA/'
@@ -55,7 +57,7 @@ NTRIP = [None]
 
 LAT_LON = [40, 116]
 
-VERSION = "2.4.1"
+VERSION = "2.4.2"
 
 NTRIP_CONFIG = 'NTRIP'
 
@@ -430,6 +432,14 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         # self.checkBox_logcos.clicked.connect(self.save_cors)
         self.comboBox_caster.editTextChanged.connect(self.caster_change)
         self.rtcm_analysis.clicked.connect(self.analysis_rtcm)
+        self.queryDirection.clicked.connect(self.sendOrder)
+
+    def sendOrder(self):
+        if self.queryDirection.isChecked():
+            self.com.send_data('AT+GPIMU=UART1,1\r\n')
+        else:
+            self.com.send_data('AT+GPIMU=UART1,0\r\n')
+            self.statusbar.showMessage("")
 
     def analysis_rtcm(self):
         if self.ntrip is not None and self.ntrip.isRunning():
@@ -527,6 +537,8 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                     self.disp_gga(data)
                 elif data.startswith("$GPFMI"):
                     self.disp_fmi(data)
+                elif data.startswith('$GPIMU'):
+                    self.parseIMU(data)
                 elif data.startswith("$GNTXT"):
                     self._cold_reseted = False
 
@@ -542,6 +554,23 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             data = data.strip("\r\n")
             self.textEdit_recv.append(data)
             self.lineEdit_srx.setText(str(self._srxbs))
+
+    def parseIMU(self, nmea):
+        splitData = nmea.split(',')
+        accX, accY, accZ = splitData[3:6]
+        self.statusbar.showMessage(
+            f'  Direction : x %s    y %s    z %s ' % (self.getAccD(accX), self.getAccD(accY), self.getAccD(accZ)))
+        # print(f'x %s    y %s    z %s ' % (self.getAccD(accX), self.getAccD(accY), self.getAccD(accZ)))
+
+    def getAccD(self, accData):
+        acc = float(accData)
+        if -0.2 < acc < 0.2:
+            return '—'
+        elif acc < -0.8:
+            return '↓'
+        elif acc > 0.8:
+            return '↑'
+        return "*"
 
     def set_lebf_color(self, bg, fg):
         self.lineEdit_rovlat.setStyleSheet('background-color:' + bg + '; color:' + fg)
