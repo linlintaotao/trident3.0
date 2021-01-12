@@ -435,6 +435,9 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self.queryDirection.clicked.connect(self.sendOrder)
 
     def sendOrder(self):
+        if self.com is None or not self.com.is_running():
+            QMessageBox.warning(self, "Warning", f"Please open serialport first !")
+            return
         if self.queryDirection.isChecked():
             self.com.send_data('AT+GPIMU=UART1,1\r\n')
         else:
@@ -501,6 +504,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 self.textEdit_recv.clear()
 
         elif self.pushButton_open.text() == CLOSE:
+            self.queryDirection.setChecked(False)
             self.com.stop()
             if self.ntrip is not None:
                 self.ntrip.unregister(self.com)
