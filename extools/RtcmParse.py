@@ -9,6 +9,7 @@
 from PyQt5.QtCore import pyqtSignal, QObject
 
 RTCM3_PREAM = 0xd3
+RTCM3_RESVMASK = 0xFC
 DAY_SECONDS = 86400
 WEEK_SECONDS = 604800
 msm_sig_gps = [
@@ -118,10 +119,11 @@ class RtcmParse(QObject):
     def decode(self, _data):
         for byte in _data:
             if self._nbyte == 0:
-                if byte != RTCM3_PREAM:
+                resv = _data[1]
+                if (byte != RTCM3_PREAM) or ((resv & RTCM3_RESVMASK) != 0x0):
                     continue
                 self._binstr += format(byte, '08b')
-                self._nbyte += 1
+                self._nbyte = 1
                 continue
             self._binstr += format(byte, '08b')
             self._nbyte += 1
@@ -177,7 +179,7 @@ class RtcmParse(QObject):
         if cond:
             staid = self.getbitu(i, 12)
             i += 22
-            posx, posy, posz = [format(self.getbits_38(i) * 1e-4, '.3f') for i in range(i, i + 40 * 3, 40)]
+            posx, posy, posz = [format(self.getbits_38(i) * 1e-4, '.4f') for i in range(i, i + 40 * 3, 40)]
             # developer should show this info in GUI program, this base ECEF position in millimeters
             # print(f'msg {msgtype}, pos ecef {posx, posy, posz}, staid {staid}')
             # self.signal.emit(f'msg {msgtype}, pos ecef {posx, posy, posz}, staid {staid}')
@@ -277,7 +279,10 @@ class RtcmParse(QObject):
     def getbits(self, _pos, _len):
         bits = self.getbitu(_pos, _len)
         if _len <= 0 or _len >= 32 or not (bits & (1 << (_len - 1))):
-            return int(bits)
+            if self._binstr[_pos] == '1':
+                return int(bits)-2**32
+            else:
+                return int(bits)
         return int(bits | (~0 << _len))
 
 
