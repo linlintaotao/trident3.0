@@ -93,11 +93,6 @@ class SerialThread(QThread):
                     print(data)
                     self.writeReadData(data)
 
-                # if b'$GNGGA' in data:
-                #     times += 1
-                #     if times > 60:
-                #         times = 0
-                #         self.send_data("AT+COLD_RESET\r\n")
 
             except Exception as e:
                 print('serial_read', e)

@@ -14,6 +14,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from extools import nmeagram
 from datetime import datetime
 from collections import defaultdict
+import os
 
 ###################################################################
 HEADKML1 = """<?xml version="1.0" encoding="UTF-8"?>"""
@@ -95,14 +96,14 @@ def genKmlTrack(llh: dict, header: str) -> str:
 
 def genKmlPoint(llh: dict, header: str) -> str:
     i = 1
-    s, tofo, tolo = '', '', ''
+    s, tofo, tolo, infomation = '', '', '', ''
     sol = {'0': 0, '1': 0, '2': 0, '4': 0, '5': 0, '6': 0}
     if header == 'GGA':
         for utc, val in llh.items():
             ln = len(val)
             # in-complate nmea info
-            if ln not in [6, 9, 10]: continue
-
+            if ln not in [6, 9, 10]:
+                continue
             s += f"""<Placemark>\n"""
             s += f"""<name>FMI Point {i}</name>"""
             if ln == 9:
@@ -235,12 +236,12 @@ def genKmlPoint(llh: dict, header: str) -> str:
             stolo = tolo_list[0] + ' ' + tolo_list[1][:2] + ':' + tolo_list[1][2:4] + ':' + tolo_list[1][4:]
             ts = datetime.strptime(tolo, '%m/%d/%Y %H%M%S.%f') - datetime.strptime(tofo, '%m/%d/%Y %H%M%S.%f')
 
-        info = f"Total points: {i - 1}\n" \
-               f"Time(UTC): {stofo} - {stolo}, duration {ts} \n" \
-               f"Solution state: SPP {sol['1']}({spp_ratio}%), DGPS {sol['2']}({dgps_ratio}%)\n" \
-               f"FIX {sol['4']}({fix_ratio}%), FLOAT {sol['5']}({float_ratio}%), DR {sol['6']}({dr_ratio}%)"
+        infomation = f"Total points: {i - 1}\n" \
+                     f"Time(UTC): {stofo} - {stolo}, duration {ts} \n" \
+                     f"Solution state: SPP {sol['1']}({spp_ratio}%), DGPS {sol['2']}({dgps_ratio}%)\n" \
+                     f"FIX {sol['4']}({fix_ratio}%), FLOAT {sol['5']}({float_ratio}%), DR {sol['6']}({dr_ratio}%)"
 
-    return s, info
+    return s, infomation
 
 
 def genKmlRear() -> str:
@@ -251,6 +252,8 @@ def genKmlRear() -> str:
 
 
 def genKmlStr(points, header) -> str:
+    kml = ''
+    info = ''
     s = genKmlHeader()
     try:
         s += genKmlTrack(points, header)
@@ -287,7 +290,8 @@ def nmeaFileToCoords(f, header: str) -> dict:
             elif line.startswith(("$GNRMC", "$GPRMC")):
                 nmeagram.parseLine(line)
                 utc = nmeagram.getField('UtcTime')
-                if int(nmeagram.getField("Longitude")) == 0 or int(nmeagram.getField("Latitude")) == 0:
+                if int(nmeagram.getField("Longitude")) == 0 or int(nmeagram.getField("Latitude")) == 0 \
+                        or int(nmeagram.getField("PositionFix")) == 0:
                     continue
                 data[utc].append(nmeagram.getField("SpeedOverGround"))
                 data[utc].append(nmeagram.getField("CourseOverGround"))
@@ -339,36 +343,43 @@ def nmeaFileTodev(f):
     return data
 
 
-def main():
-    fn = "../NMEA/COM3_20200723_175744.nmea"
-    fo = open(fn + '.kml', 'w')
-
-    fi = open(fn, 'r', encoding='utf-8')
-    coords = nmeaFileToCoords(fi, 'GGA')
-    kml_str, info = genKmlStr(coords, 'GGA')
-
-    fo.write(kml_str)
-    fi.close()
-    fo.close()
+def patternNMEA(inputfile):
+    import re
+    os.path.dirname(inputfile)
+    outputfile = os.path.join(os.path.dirname(inputfile), os.path.basename(inputfile) + '.nmea')
+    with open(inputfile, 'r', encoding='utf-8', errors='ignore')as rf:
+        logData = rf.readlines()
+    with open(outputfile, 'w', encoding='utf-8') as wf:
+        pattern = re.compile('\$G[A-Z0-9,.*-]+')
+        for line in logData:
+            nmea = pattern.findall(line)
+            for word in nmea:
+                wf.write(word)
+                wf.write("\r\n")
+        wf.close()
+    return outputfile
 
 
 class KmlParse(QThread):
     singal = pyqtSignal(str)
 
-    def __init__(self, fileName, header='GGA'):
+    def __init__(self, fileName, header='GGA', isNmeaLog=True):
         super().__init__()
         self.fn = fileName
         self.head = header
+        self.needPattern = isNmeaLog
 
     def run(self):
-        info = None
+        info_notice = None
         try:
+            if not self.needPattern:
+                self.fn = patternNMEA(self.fn)
             fnkml = self.fn + '.kml'
             fnkmz = self.fn + '.kmz'
             fo = open(fnkml, 'w')
-            with open(self.fn, 'r', encoding='utf-8') as f:
+            with open(self.fn, 'r', encoding='utf-8', errors='ignore') as f:
                 coords = nmeaFileToCoords(f, self.head)
-                kml_str, info = genKmlStr(coords, self.head)
+                kml_str, info_notice = genKmlStr(coords, self.head)
                 fo.write(kml_str)
                 fo.flush()
                 fo.close()
@@ -379,7 +390,15 @@ class KmlParse(QThread):
             remove(fnkml)
         except Exception as e:
             print(e)
-        self.singal.emit(info)
+        self.singal.emit(info_notice)
+
+
+def main():
+    fn = os.path.realpath("../NMEA/A013 (12).log")
+    patternNMEA(fn)
+    parse = KmlParse(fn, 'GGA', False)
+    parse.start()
+    parse.exec()
 
 
 if __name__ == "__main__":
