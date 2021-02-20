@@ -14,6 +14,13 @@ DISCONNECT = 'Disconnect'
 RECONNECT = 'Reconnect'
 
 
+def check_sum(stringToCheck):
+    xsum_calc = 0
+    for char in stringToCheck:
+        xsum_calc = xsum_calc ^ ord(char)
+    return "%02X" % xsum_calc
+
+
 class NtripClient(Publisher):
 
     def __init__(self, ip='ntrips.feymani.cn', port=2102, user='feyman-user', password="123456", mountPoint='',
@@ -130,16 +137,10 @@ class NtripClient(Publisher):
                     (now.hour, now.minute, now.second, self.latDeg, self.latMin, self.flagN, self.lonDeg,
                      self.lonMin,
                      self.flagE, self._height)
-        checksum = self.check_sum(ggaString)
+        checksum = check_sum(ggaString)
         ggaStr = "$%s*%s\r\n" % (ggaString, checksum)
         # print(ggaStr)
         return ggaStr.encode()
-
-    def check_sum(self, stringToCheck):
-        xsum_calc = 0
-        for char in stringToCheck:
-            xsum_calc = xsum_calc ^ ord(char)
-        return "%02X" % xsum_calc
 
     def start(self):
         if self._isRunning is True and not self._reconnect:
@@ -272,9 +273,5 @@ class NtripClient(Publisher):
 
 
 if __name__ == '__main__':
-    ntrip = NtripClient(ip='lab.ntrip.qxwz.com', port=8002, user="stmicro005", password='633f86e',
-                        mountPoint='SH_GALILEO', )
-    ntrip.start()
-    while True:
-        sleep(5)
-        pass
+    data = "GNGGA,010321.00,4003.8513176,N,11613.6874347,E,1,37,0.5,55.696,M,0.0,M,,"
+    print(check_sum(data))

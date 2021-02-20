@@ -14,7 +14,7 @@ class Ui_Trident(object):
     def setupUi(self, Trident):
         Trident.setObjectName("Trident")
         Trident.setWindowModality(QtCore.Qt.WindowModal)
-        Trident.resize(802, 680)
+        Trident.resize(803, 682)
         self.centralwidget = QtWidgets.QWidget(Trident)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_7 = QtWidgets.QGridLayout(self.centralwidget)
@@ -811,7 +811,7 @@ class Ui_Trident(object):
         self.comboBox_extools.setItemText(0, _translate("Trident", "1 - Convert nmea to .kml"))
         self.comboBox_extools.setItemText(1, _translate("Trident", "2 - Convert FMI to .kml"))
         self.comboBox_extools.setItemText(2, _translate("Trident", "3 - Convert  U To GGA"))
-        self.comboBox_extools.setItemText(3, _translate("Trident", "4 - To be continued..."))
+        self.comboBox_extools.setItemText(3, _translate("Trident", "4 - Convert LOG to .kml"))
         self.queryDirection.setText(_translate("Trident", "Query Direction"))
         self.rtcm_analysis.setText(_translate("Trident", "Analysis RTCM"))
         self.checkBox_savenmea.setToolTip(_translate("Trident", "<html><head/><body><p>record all serial received data in NMEA/*.log</p></body></html>"))

@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>802</width>
-    <height>680</height>
+    <width>803</width>
+    <height>682</height>
    </rect>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -1389,7 +1389,7 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <property name="text">
-               <string>4 - To be continued...</string>
+               <string>4 - Convert LOG to .kml</string>
               </property>
              </item>
             </widget>

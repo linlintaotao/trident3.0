@@ -903,6 +903,9 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         elif select.startswith('3 - '):
             QMessageBox.information(self, "Info", f"Convert {self._nmeaf} U to GGA")
             self.convertUbx()
+        elif select.startswith('4 - '):
+            QMessageBox.information(self, "Info", f"Convert {self._nmeaf} log to kml")
+            self.tokml(self._nmeaf, 'GGA', isNmea=False)
         else:
             QMessageBox.information(self, "Info", f"To be continued...")
 
@@ -922,7 +925,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             self._nmeaf = filename
 
     # extools nmea to kml
-    def tokml(self, fn, header='GGA'):
+    def tokml(self, fn, header='GGA', isNmea=True):
         fnkml = fn + '.kml'
         if path.exists(fnkml):
             over_write = QMessageBox.warning(self, "Warning", f"Over write {fnkml} ?", QMessageBox.No, QMessageBox.Yes)
@@ -930,7 +933,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             over_write = QMessageBox.Yes
 
         if over_write == QMessageBox.Yes:
-            kmlparser = KmlParse(fn, header)
+            kmlparser = KmlParse(fn, header, isNmea)
             kmlparser.singal.connect(self.showMessage)
             kmlparser.start()
             kmlparser.exec()

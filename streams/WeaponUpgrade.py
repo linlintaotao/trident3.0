@@ -147,16 +147,15 @@ class UpgradeManager(QThread):
 
                 elif frame[2] == 0x02:  # resend
                     length = byteToint_16(frame[0:2])
-                    # print(length, "  0x02 ", len(frame))
                     if length > len(frame) - 3:
                         return
                     size = byteToint_16(frame[3:5])
-                    self._sendByte -= (size * SUBFRAME_LEN)
+                    self._sendByteLen -= (size * SUBFRAME_LEN)
                     # print(len(self._byteList))
                     for i in range(size):
                         self.write(self._byteList[byteToint_16(frame[(i * 2 + 5):(i * 2 + 7)])])
                         # self._serial.write(self._byteList[byteToint_16(frame[(i * 2 + 5):(i * 2 + 7)])])
-                    self._sendByte += SUBFRAME_LEN
+                    self._sendByteLen += SUBFRAME_LEN
                     for j in range(3):
                         self._serial.write(sendCompleteOrder)
 
