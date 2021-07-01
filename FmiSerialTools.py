@@ -57,7 +57,7 @@ NTRIP = [None]
 
 LAT_LON = [40, 116]
 
-VERSION = "2.4.2"
+VERSION = "2.5.0"
 
 NTRIP_CONFIG = 'NTRIP'
 
@@ -288,7 +288,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     def __init__(self, parent=None):
         super(NtripSerialTool, self).__init__(parent)
         self.setWindowIcon(QIcon("./gui/i.svg"))
-        self.setWindowTitle(f"Trident %s fmi@feyman.cn" % VERSION)
+        self.setWindowTitle(f"Trident %s" % VERSION)
         self._imgfile = None
         self._nmeaf = None
         self._fn = ''
@@ -821,7 +821,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     def trans_filed(self):
         global SEND_BYTES_LEN
         SEND_BYTES_LEN = 0
-        if self._imgfile is None:
+        if self._imgfile is None or len(self._imgfile) <= 0:
             QMessageBox.warning(self, "Warning", f".enc file first plz!")
         else:
             info = self.cbsport.currentText()
@@ -836,6 +836,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 Thread(target=sendser, args=(self._imgfile, self.com)).start()
                 # sendser(self._imgfile, self.com)
             else:
+                self._term_ntrip()
                 ret = QMessageBox.warning(self, "Warning", f"Is this Evk support Blue-Tooth?",
                                           QMessageBox.No,
                                           QMessageBox.Yes)
@@ -970,7 +971,7 @@ def my_excepthook(ex_cls, ex, tb):
 def showDialog():
     errBox = QMessageBox(QMessageBox.Critical, 'ERROR', 'Oops!!! \r\n'
                                                         'There’s something wrong with Trident !!!\r\n'
-                                                        'You can send err.log under NMEA to FMI for repair ！')
+                                                        'You can send err.log under NMEA to us！')
     app.exit(errBox.exec_())
 
 

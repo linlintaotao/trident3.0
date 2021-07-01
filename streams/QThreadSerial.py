@@ -42,8 +42,8 @@ class SerialThread(QThread):
                                 'NMEA/' + self._port.split('/')[-1] + '_' + datetime.datetime.now().strftime(
                                     '%Y%m%d_%H%M%S') + '.nmea')
             self._file = open(path, 'wb')
-
-            self._entity.write('AT+READ_PARA\r\n'.encode())
+            if not self._coldStart:
+                self._entity.write('AT+READ_PARA\r\n'.encode())
 
         if self._file:
             self._file.write(data)
@@ -83,16 +83,15 @@ class SerialThread(QThread):
             try:
                 data = self._entity.readline()
 
-                if self._coldStart:
-                    self._coldStart = False
-                    self._entity.write('AT+COLD_RESET\r\n'.encode())
-                    self.signal.emit(b'Auto cold reset,Please waiting...\r\n')
-
                 if data is not None and len(data) > 0:
                     self.signal.emit(data)
                     print(data)
                     self.writeReadData(data)
 
+                if self._coldStart and (b'You Can Reset Now' in data or b'Extract Success,Please Reset' in data):
+                    self._coldStart = False
+                    self._entity.write('AT+COLD_RESET\r\n'.encode())
+                    self.signal.emit(b'Auto cold reset,Please waiting...\r\n')
 
             except Exception as e:
                 print('serial_read', e)

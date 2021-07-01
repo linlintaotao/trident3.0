@@ -363,11 +363,11 @@ def patternNMEA(inputfile):
 class KmlParse(QThread):
     singal = pyqtSignal(str)
 
-    def __init__(self, fileName, header='GGA', isNmeaLog=True):
+    def __init__(self, fileName, header='GGA', isNmea=True):
         super().__init__()
         self.fn = fileName
         self.head = header
-        self.needPattern = isNmeaLog
+        self.needPattern = isNmea
 
     def run(self):
         info_notice = None
