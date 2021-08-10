@@ -1233,16 +1233,6 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <property name="text">
-               <string>AT+UPDATE_SHELL</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>AT+UPDATE_MODE</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
                <string>AT+SELF_TEST=</string>
               </property>
              </item>
@@ -1268,12 +1258,12 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <property name="text">
-               <string>AT+ALT_PARA=-9.1,37,1</string>
+               <string>AT+PVE_MODE=</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>AT+ZUPT=ENABLE</string>
+               <string>AT+CORS_TYPE=0</string>
               </property>
              </item>
             </widget>

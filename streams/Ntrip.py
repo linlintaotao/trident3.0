@@ -123,9 +123,11 @@ class NtripClient(Publisher):
     def set_mount_info(self, mnt):
         mnt = mnt.replace(' ', '')
         user = b64encode((self._user + ":" + str(self._password)).encode('utf-8')).decode()
-        mountPointString = "GET /%s HTTP/1.1\r\n" \
+        mountPointString = "GET /%s HTTP/1.0\r\n" \
                            "User-Agent: %s\r\n" \
-                           "Authorization: Basic %s\r\n" % (
+                           "Authorization: Basic %s\r\n" \
+                           "Accept: */*\r\n"\
+                           "Connection: close\r\n" % (
                                mnt, "NTRIP FMIPythonClient/1.0", user)
         mountPointString += "\r\n"
         _mount_info = mountPointString.encode('utf-8')
