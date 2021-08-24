@@ -59,12 +59,12 @@ class UpgradeManager(QThread):
         self._sendByteLen = 0
         self._byteList = []
         self._serial = None
-        self._serial = serial.Serial(baudrate=115200, timeout=0.5)
-        self._serial.setPort(port)
         self._file = file
         self._isUpdating = True
-        self.readThread = Thread(target=self.readSerial, daemon=True)
         self.updateSucess = False
+        self._serial = serial.Serial(baudrate=115200, timeout=0.5)
+        self._serial.setPort(port)
+        self.readThread = Thread(target=self.readSerial, daemon=True)
         self.updateBaudrate = updateBaudrate
         # self.updateBaudrate = 921600
 

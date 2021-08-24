@@ -9,6 +9,7 @@ from streams.publish import Publisher
 from time import sleep
 import datetime
 import os
+from PyQt5.QtCore import QThread, pyqtSignal
 
 DISCONNECT = 'Disconnect'
 RECONNECT = 'Reconnect'
@@ -21,11 +22,13 @@ def check_sum(stringToCheck):
     return "%02X" % xsum_calc
 
 
-class NtripClient(Publisher):
+class NtripClient(Publisher, QThread):
+    signal = pyqtSignal(bytes)
 
     def __init__(self, ip='ntrips.feymani.cn', port=2102, user='feyman-user', password="123456", mountPoint='',
-                 latitude=40, longitude=116, altitude=54.6):
+                 latitude=40, longitude=116, altitude=54.6, useSignal=False):
         Publisher.__init__(self)
+        QThread.__init__(self, parent=None)
         '''
         parameters
         '''
@@ -59,6 +62,7 @@ class NtripClient(Publisher):
         self._mountPointList = []
         self.writeFile = False
         self._working = True
+        self.useSignal = useSignal
 
     def setCallback(self, callback):
         self._callback = callback
@@ -110,6 +114,12 @@ class NtripClient(Publisher):
         self.lonMin = (lon - self.lonDeg) * 60
         self.latMin = (lat - self.latDeg) * 60
 
+    def updateData(self, data):
+        if self.useSignal:
+            self.signal.emit(data)
+        else:
+            self.notifyAll(data)
+
     def clear(self):
         self._mountPointList.clear()
 
@@ -144,7 +154,7 @@ class NtripClient(Publisher):
         # print(ggaStr)
         return ggaStr.encode()
 
-    def start(self):
+    def start(self, **kwargs):
         if self._isRunning is True and not self._reconnect:
             return
         thread = Thread(target=self.run, daemon=True)
@@ -171,7 +181,7 @@ class NtripClient(Publisher):
         except Exception as e:
             if not self._reconnect:
                 self._isRunning = False
-            print(f"ntrip start exp {e}")
+            print(f"ntrip.py start exp {e}")
 
     def stop(self):
         self._working = False
@@ -194,7 +204,7 @@ class NtripClient(Publisher):
         try:
             data = self._socket.recv(2048)
             head += data
-            print(data)
+            print("receive data", data)
             if b'SOURCETABLE 200 OK' in data and b'ENDSOURCETABLE' not in data:
                 while b'ENDSOURCETABLE' not in head and limit > 0:
                     limit -= 1
@@ -235,7 +245,7 @@ class NtripClient(Publisher):
                     self._reconnectLimit = 0
                     # 通知所有的串口进行刷新
                     self._receiveDataLength += len(data)
-                    self.notifyAll(data)
+                    self.updateData(data)
                     self.createFile()
                     if self._file:
                         self._file.write(data)
@@ -245,7 +255,6 @@ class NtripClient(Publisher):
             self._reconnectLimit += 5
 
     def reconnect(self):
-        # self._isRunning = False
         self._reconnectLimit = 0
         self._socket.close()
         sleep(2)
@@ -275,5 +284,25 @@ class NtripClient(Publisher):
 
 
 if __name__ == '__main__':
-    data = "GNGGA,010321.00,4003.8513176,N,11613.6874347,E,1,37,0.5,55.696,M,0.0,M,,"
-    print(check_sum(data))
+    _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    _socket.connect(('47.92.236.193', 9002))
+    # _socket.connect(('ntrips.feymani.cn', 2102))
+
+    user = b64encode(("h9002" + ":" + 'h9002').encode('utf-8')).decode()
+
+    mountPointString = "GET /%s HTTP/1.0\r\n" \
+                       "User-Agent: %s\r\n" \
+                       "Authorization: Basic %s\r\n" \
+                       "Accept: */*\r\n" \
+                       "Connection: close\r\n" % (
+                           '', "NTRIP GNSSInternetRadio/1.4.10", user)
+    mountPointString += "\r\n"
+    print(mountPointString)
+    _mount_info = mountPointString.encode('utf-8')
+    _socket.sendall(_mount_info)
+
+    while True:
+        data = _socket.recv(1024)
+        if len(data) > 0:
+            print(data)

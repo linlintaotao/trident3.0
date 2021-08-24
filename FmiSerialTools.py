@@ -5,8 +5,6 @@
  @author : chey
  
 """
-# TODO: more test case
-
 import sys
 import traceback
 from datetime import datetime
@@ -28,9 +26,10 @@ from extools.ubx import LogReader
 from gui.mainwindow import Ui_Trident
 from gui.multiser import Multiser_Ui_widget
 from gui.showRtcm import Ui_Dialog
-from streams.Ntrip import NtripClient
+from streams.ntripClient import NtripClient
 from streams.QThreadSerial import SerialThread
 from streams.WeaponUpgrade import UpgradeManager
+from ui.ntriptool import NtripTool
 
 ###################################################################
 DIR = 'NMEA/'
@@ -329,9 +328,10 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         ntripIps = self.config.getGroupKeys(NTRIP_CONFIG)
         if ntripIps is None:
             return
-        comBoxList = []
-        for index in range(self.comboBox_caster.count()):
-            comBoxList.append(self.comboBox_caster.itemText(index))
+        comBoxList = [self.comboBox_caster.itemText(i)
+                      for i in range(self.comboBox_caster.count())]
+        # for index in range(self.comboBox_caster.count()):
+        #     comBoxList.append(self.comboBox_caster.itemText(index))
 
         for ip in ntripIps:
             if ip not in comBoxList:
@@ -561,7 +561,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
 
     def parseIMU(self, nmea):
         splitData = nmea.split(',')
-        accX, accY, accZ = splitData[3:6]
+        accX, accY, accZ = splitData[2:5]
         self.statusbar.showMessage(
             f'  Direction : x %s    y %s    z %s ' % (self.getAccD(accX), self.getAccD(accY), self.getAccD(accZ)))
         # print(f'x %s    y %s    z %s ' % (self.getAccD(accX), self.getAccD(accY), self.getAccD(accZ)))
@@ -703,7 +703,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             self._caster = caster
             self.ntrip = NtripClient(ip=self._caster, port=self._port, user=user, password=passwd, mountPoint=mount,
                                      latitude=LAT_LON[0], longitude=LAT_LON[1])
-            # if self.checkBox_logcos.isChecked():
             self.ntrip.setLogFile(True)
             self.ntrip.start()
             self.ntrip.register(self.com)
@@ -727,10 +726,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     def atcmd_send_btclik(self):
         if not SERIAL_WRITE_MUTEX:
             cmd = self.cbatcmd.currentText() + "\r\n"
-            # if not cmd.startswith(('AT+', '$J')):
-            #     QMessageBox.warning(self, "Warning", "Only support Feyman and H command")
-            #     return
-            # while in firmware update mode, terminate ntrip first
+            # while in firmware update mode, terminate ntrip.py first
             if cmd in ["AT+UPDATE_MODE\r\n", "AT+UPDATE_SHELL\r\n", "AT+UPDATE_MODE_H\r\n"]:
                 self._term_ntrip()
             elif 'AT+READ_PARA' in cmd:
@@ -821,8 +817,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 if ret == QMessageBox.No:
                     return
                 Thread(target=sendser, args=(self._imgfile, self.com)).start()
-                self.FileTrans.start(200)
-                self.file_transbar.setValue(0)
+                # sendser(self._imgfile, self.com)
             else:
                 self._term_ntrip()
                 ret = QMessageBox.warning(self, "Warning", f"Is this Evk support Blue-Tooth?",
@@ -838,8 +833,8 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 self.ser_open_btclik()
                 self._update_H = True
                 Thread(target=self.update_firm2, args=(self._imgfile, info, baudrate)).start()
-                self.FileTrans.start(200)
-                self.file_transbar.setValue(0)
+            self.FileTrans.start(200)
+            self.file_transbar.setValue(0)
 
     def ShowFilepBarr(self):
         # print(SERIAL_WRITE_MUTEX)

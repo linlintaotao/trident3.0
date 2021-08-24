@@ -30,13 +30,20 @@ class FMIConfig:
         self.config.beginGroup(group)
         self.config.setValue(key, value)
         self.config.endGroup()
-        pass
 
     def getValue(self, group, key):
         self.config.beginGroup(group)
         value = self.config.value(key, "")
         self.config.endGroup()
         return value
+
+    def getValueArray(self, group, keyList):
+        values = []
+        self.config.beginGroup(group)
+        for key in keyList:
+            values.append(self.config.value(key, ""))
+        self.config.endGroup()
+        return values
 
     def getGroupKeys(self, group):
         try:
@@ -50,10 +57,6 @@ class FMIConfig:
 
     def clear(self):
         self.config.clear()
-        pass
-
-    def close(self):
-        pass
 
     def getCmdComb(self, CMD):
         if "VEH_MODE" in CMD:
@@ -66,6 +69,6 @@ class FMIConfig:
 if __name__ == '__main__':
     fmiConfig = FMIConfig()
     NTRIP = "NRTRIP"
-    fmiConfig.saveNtripValue(NTRIP, "ntrip.feymani.cn2", "2102:Obs:feyman-user:123456")
-    fmiConfig.saveNtripValue(NTRIP, "ntrip.feymani.cn1", "2102:Obs:feyman-user:123451")
+    fmiConfig.saveNtripValue(NTRIP, "ntrip.py.feymani.cn2", "2102:Obs:feyman-user:123456")
+    fmiConfig.saveNtripValue(NTRIP, "ntrip.py.feymani.cn1", "2102:Obs:feyman-user:123451")
     print(fmiConfig.getGroupKeys(NTRIP))

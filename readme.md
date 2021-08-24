@@ -33,4 +33,4 @@ serial parameters then "Open" the serial port.
 
 - board info display
 
-pyuic5 -o mainwindow.py mainwindow.ui 
+pyuic5 -o *.py *.ui 
