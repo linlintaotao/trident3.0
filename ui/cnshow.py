@@ -41,7 +41,7 @@ class BarGraphView(QWidget):
         self.colorL5 = QColor(Qt.blue)
         self.colorL1 = QColor(Qt.green)
         self.colorInvalid = QColor(Qt.gray)
-        self.colorInvalid = QColor(Qt.gray)
+        self.colorInvalidL5 = QColor(Qt.lightGray)
 
     def setModel(self, model):
         self.model = model
@@ -62,7 +62,7 @@ class BarGraphView(QWidget):
             return
         self.painter.begin(self)
         self.painter.setPen(self.pen)
-        self.painter.setFont(QFont('KaiTi', 2))
+        self.painter.setFont(QFont('Microsoft JhengHei', 2))
         self.painter.setRenderHint(QPainter.Antialiasing)
 
         span = 60
@@ -73,7 +73,7 @@ class BarGraphView(QWidget):
         self.painter.drawText(start, 3, "L1")
         self.painter.fillRect(start + 14, 1, 4, 2, self.colorL5)
         self.painter.drawText(start + 10, 3, "L5")
-        self.painter.fillRect(start + 34, 1, 4, 2, self.colorInvalid)
+        self.painter.fillRect(start + 32, 1, 4, 2, self.colorInvalid)
         self.painter.drawText(start + 20, 3, "Invalid")
         self.painter.drawText(1, 5, "dBHz")
         for i in range(0, 6):
@@ -92,8 +92,11 @@ class BarGraphView(QWidget):
             y2 = self.getIndexValue(value, 1, 4, -1)
             if y1 > 0:
                 phase = self.getIndexValue(value, 0, 2)
-                if phase == 0:
-                    color1 = color2 = self.colorInvalid
+                color1 = color1 if phase != 0 else self.colorInvalid
+            if y2 > 0:
+                phase = self.getIndexValue(value, 1, 2)
+                color2 = color2 if phase != 0 else self.colorInvalidL5
+
             self.painter.fillRect(x, span - y1, BarGraphView.WIDTH - 4, y1, color1)
             if y2 != -1:
                 self.painter.fillRect(x + 2, span - y2, BarGraphView.WIDTH - 8, y2, color2)
