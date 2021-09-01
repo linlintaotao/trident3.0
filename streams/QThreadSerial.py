@@ -85,7 +85,7 @@ class SerialThread(QThread):
 
                 if data is not None and len(data) > 0:
                     self.signal.emit(data)
-                    print(data)
+                    # print(data)
                     self.writeReadData(data)
 
                 if self._coldStart and (b'You Can Reset Now' in data or b'Extract Success,Please Reset' in data):
