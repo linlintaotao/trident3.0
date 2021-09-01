@@ -40,6 +40,7 @@ class BarGraphView(QWidget):
         self.painter = QPainter(self)
         self.colorL5 = QColor(Qt.blue)
         self.colorL1 = QColor(Qt.cyan)
+        self.colorInvalid = QColor(Qt.gray)
 
     def setModel(self, model):
         self.model = model
@@ -58,7 +59,6 @@ class BarGraphView(QWidget):
     def paintEvent(self, event):
         if self.model is None:
             return
-        print('===================')
         self.painter.begin(self)
         self.painter.setPen(self.pen)
         self.painter.setFont(QFont('KaiTi', 2))

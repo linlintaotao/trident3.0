@@ -34,8 +34,6 @@ class RtcmParse(QObject):
     def decode(self, _data):
         for byte in _data:
             if self._nbyte == 0:
-                # resv = _data[1]
-                # if (byte != RTCM3_PREAM) or ((resv & RTCM3_RESVMASK) != 0x0):
                 if byte != RTCM3_PREAM:
                     continue
                 self._binstr += format(byte, '08b')
@@ -147,21 +145,22 @@ class RtcmParse(QObject):
 
             # get number of cells of each frame
             i += 32
-            cellMask = [self.getbitu(j, 1) for j in range(i, i + nsats * len(siglist))]
+            signalSize = len(siglist)
+            cellMask = [self.getbitu(j, 1) for j in range(i, i + nsats * signalSize)]
             ncells = sum(cellMask)
 
             # get CN0 、（pseudorange、phaserange)msm7 of each cell
             if msgtype == 4:
-                i += nsats * len(siglist) + nsats * 18 + ncells * 42
+                i += nsats * signalSize + nsats * 18 + ncells * 42
                 cnos = [self.getbitu(j, 6) for j in range(i, i + ncells * 6, 6)]
             elif msgtype == 5:
-                i += nsats * len(siglist) + nsats * 36 + ncells * 42
+                i += nsats * signalSize + nsats * 36 + ncells * 42
                 cnos = [self.getbitu(j, 6) for j in range(i, i + ncells * 6, 6)]
             elif msgtype == 6:
-                i += nsats * len(siglist) + nsats * 18 + ncells * 55
+                i += nsats * signalSize + nsats * 18 + ncells * 55
                 cnos = [self.getbitu(j, 10) * 0.0625 for j in range(i, i + ncells * 10, 10)]
             elif msgtype == 7:
-                i += nsats * len(siglist)
+                i += nsats * signalSize
                 # range
                 satsrange = [self.getbitu(j, 8) * RANGE_MS if self.getbitu(j, 8) != 255 else 0 for j in
                              range(i, i + nsats * 8, 8)]
@@ -174,11 +173,10 @@ class RtcmParse(QObject):
                       range(i, i + nsats * 14, 14)]
                 i += nsats * 14
                 # pseudorange
-                pr = [(self.getbits(j, 20) * RANGE_MS * P2_29) if j != -524288 else 0 for j in
+                pr = [(self.getbits(j, 20) * RANGE_MS * P2_29) if self.getbits(j, 20) != -524288 else -1e16 for j in
                       range(i, i + ncells * 20, 20)]
-
                 i += ncells * 20
-                cp = [(self.getbits(j, 24) * RANGE_MS * P2_31) if j != -8388608 else 0 for j in
+                cp = [(self.getbits(j, 24) * RANGE_MS * P2_31) if self.getbits(j, 24) != -8388608 else -1e16 for j in
                       range(i, i + ncells * 24, 24)]
                 i += ncells * 24
                 lock = [self.getbitu(j, 10) for j in range(i, i + ncells * 10, 10)]
@@ -187,7 +185,7 @@ class RtcmParse(QObject):
                 i += ncells * 1
                 cnos = [self.getbitu(j, 10) * 0.0625 for j in range(i, i + ncells * 10, 10)]
                 i += ncells * 10
-                rrf = [self.getbits(j, 15) * 0.0001 if self.getbitu(j, 15) != -16384 else 0 for j in
+                rrf = [self.getbits(j, 15) * 0.0001 if self.getbitu(j, 15) != -16384 else -1e16 for j in
                        range(i, i + ncells * 15, 15)]
                 index = 0
                 j = 0
@@ -197,8 +195,8 @@ class RtcmParse(QObject):
                         if len(satId) <= 0:
                             continue
                         info = []
-                        for k in range(len(siglist)):
-                            if not cellMask[k + index * len(siglist)]: continue
+                        for k in range(signalSize):
+                            if not cellMask[k + index * signalSize]: continue
                             idx, freq = code2freq[self._sys](siglist[k])
                             psed = phase = 0
                             if idx < 0: continue
@@ -212,7 +210,7 @@ class RtcmParse(QObject):
                             j += 1
                         if 'R' not in satId:
                             self.obs.addSatInfo(satId, info)
-                        # print(satId, info)
+                        print(satId, info)
                         index += 1
             else:
                 cnos = [-1]
@@ -274,11 +272,15 @@ def test(filepath):
 
 
 if __name__ == '__main__':
-    import serial
-
-    # _entity = serial.Serial("/dev/cu.usbserial-1420", 115200, timeout=1)
-    rtcmParsce = RtcmParse()
-
-    with open('../NMEA/cu.usbserial-1420_20210827_150226.nmea', 'rb') as rf:
-        for line in rf.readlines():
-            rtcmParsce.decode(line)
+    # import serial
+    #
+    # # _entity = serial.Serial("/dev/cu.usbserial-1420", 115200, timeout=1)
+    # rtcmParsce = RtcmParse()
+    #
+    # with open('../NMEA/cu.usbserial-1420_20210827_150226.nmea', 'rb') as rf:
+    #     for line in rf.readlines():
+    #         rtcmParsce.decode(line)
+    array = [1, 2, 3, 4, 5, 6, 7]
+    ara = [array[j] + 2 if array[j] > 2 else 0 for j in range(3)]
+    ara = [n + 2 if n > 2 else 0 ]
+    print(ara)
