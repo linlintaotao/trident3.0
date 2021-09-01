@@ -34,3 +34,5 @@ serial parameters then "Open" the serial port.
 - board info display
 
 pyuic5 -o *.py *.ui 
+pyrcc5 title.qrc -o icon.py
+

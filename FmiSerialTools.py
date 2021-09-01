@@ -57,9 +57,13 @@ NTRIP = [None]
 
 LAT_LON = [40, 116]
 
-VERSION = "2.5.1"
+VERSION = "2.6.0"
 
 NTRIP_CONFIG = 'NTRIP'
+
+name = "Trident"
+
+import gui.icon
 
 
 ###################################################################
@@ -287,8 +291,8 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
 
     def __init__(self, parent=None):
         super(NtripSerialTool, self).__init__(parent)
-        self.setWindowIcon(QIcon("./gui/i.svg"))
-        self.setWindowTitle(f"Trident %s" % VERSION)
+        self.setWindowIcon(QIcon(":/trident.png"))
+        self.setWindowTitle(f"%s %s" % (name, VERSION))
         self._imgfile = None
         self._nmeaf = None
         self._fn = ''
@@ -323,6 +327,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self.wait_para = False
         self.loadConfig()
         self.form = None
+        self.rtcmDialog = None
 
     def loadConfig(self):
         self.config = FMIConfig()
@@ -331,6 +336,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             return
         comBoxList = [self.comboBox_caster.itemText(i)
                       for i in range(self.comboBox_caster.count())]
+
         for ip in ntripIps:
             if ip not in comBoxList:
                 self.comboBox_caster.addItem(ip)
@@ -427,9 +433,10 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self.textEdit_recv.textChanged.connect(self.text_recv_changed)
         # save nmea、Cors
         self.checkBox_savenmea.clicked.connect(self.save_nmea)
-        # self.checkBox_logcos.clicked.connect(self.save_cors)
         self.comboBox_caster.editTextChanged.connect(self.caster_change)
         self.rtcm_analysis.clicked.connect(self.analysis_rtcm)
+        self.raw_analysis.clicked.connect(self.analysis_raw)
+
         self.queryDirection.clicked.connect(self.sendOrder)
 
     def sendOrder(self):
@@ -443,29 +450,18 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             self.statusbar.showMessage("")
 
     def analysis_rtcm(self):
-
-        messageBox = QMessageBox()
-        messageBox.setWindowTitle('Notice')
-        messageBox.setText('please choose input data type')
-        messageBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        buttonY = messageBox.button(QMessageBox.Yes)
-        buttonY.setText('Ntrip')
-        buttonN = messageBox.button(QMessageBox.No)
-        buttonN.setText('Serial')
-        messageBox.exec_()
-        if messageBox.clickedButton() == buttonY:
-            if self.ntrip is not None and self.ntrip.isRunning():
-                rtcmDialog = RtcmDialog(self)
-                rtcmDialog.show()
-            else:
-                QMessageBox.warning(self, "Warning", f"Ntrip is not Running!!!")
-
-        elif messageBox.clickedButton() == buttonN:
-            self.form = MainForm(self)
-            self.form.resize(900, 320)
-            self.form.show()
+        if self.ntrip is not None and self.ntrip.isRunning():
+            self.rtcmDialog = RtcmDialog(self)
+            self.rtcmDialog.show()
         else:
-            pass
+            QMessageBox.warning(self, "Warning", f"Ntrip is not Running!!!")
+
+    def analysis_raw(self):
+        if self.com is not None and self.com.is_running():
+            self.com.send_data("AT+OBS=UART1,1\r\n")
+        self.form = MainForm(self)
+        self.form.resize(1000, 320)
+        self.form.show()
 
     def caster_change(self):
         casterStr = self.comboBox_caster.currentText()
@@ -483,10 +479,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     def save_nmea(self):
         if self.com is not None:
             self.com.setFile(self.checkBox_savenmea.isChecked())
-
-    # def save_cors(self):
-    #     if self.ntrip is not None and self.ntrip.isRunning():
-    #         self.ntrip.setLogFile(self.checkBox_logcos.isChecked())
 
     def ser_refresh(self):
         """
@@ -634,27 +626,24 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                         if self.ntrip is not None:
                             self.ntrip.setPosition(lat=a, lon=o)
                         latdm, londm = "%.7f" % a, "%.7f" % o
+            self.set_lebf_color(COLOR_TAB[solstat], 'white')
+            self.lineEdit_rovlat.setText(latdm)
+            self.lineEdit_rovlon.setText(londm)
 
-                self.set_lebf_color(COLOR_TAB[solstat], 'white')
-                self.lineEdit_rovlat.setText(latdm)
-                self.lineEdit_rovlon.setText(londm)
-
-                self.lineEdit_rovhgt.setText(hgt)
-                self.lineEdit_solstat.setText(solstat)
-                self.lineEdit_sats.setText(nsats)
-                self.lineEdit_time.setText(now)
-                self.lineEdit_dage.setText(dage)
-                dage = dage if dage != '' else '0'
-                if float(dage) > 30:
-                    self.lineEdit_dage.setStyleSheet('background-color:#ff557f;color:white')
-                else:
-                    self.lineEdit_dage.setStyleSheet('background-color:white;color:black')
-                if int(nsats) < 5:
-                    self.lineEdit_sats.setStyleSheet('background-color:#ff5500;color:white')
-                else:
-                    self.lineEdit_sats.setStyleSheet('background-color:white;color:black')
+            self.lineEdit_rovhgt.setText(hgt)
+            self.lineEdit_solstat.setText(solstat)
+            self.lineEdit_sats.setText(nsats)
+            self.lineEdit_time.setText(now)
+            self.lineEdit_dage.setText(dage)
+            dage = dage if dage != '' else '0'
+            if float(dage) > 30:
+                self.lineEdit_dage.setStyleSheet('background-color:#ff557f;color:white')
             else:
-                pass  # lat, lon not a float string
+                self.lineEdit_dage.setStyleSheet('background-color:white;color:black')
+            if int(nsats) < 5:
+                self.lineEdit_sats.setStyleSheet('background-color:#ff5500;color:white')
+            else:
+                self.lineEdit_sats.setStyleSheet('background-color:white;color:black')
 
     def disp_fmi(self, data):
         seg = data.strip("\r\n").split(",")
@@ -711,7 +700,8 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 return
 
             caster = self.comboBox_caster.currentText()
-            port = int(self.comboBox_port.currentText())
+
+            port = int(self.comboBox_port.currentText()) if len(self.comboBox_port.currentText()) > 0 else 0
             mount = self.comboBox_mount.currentText()
             if self.lineEdit_user.text() == '' or self.lineEdit_pwd.text() == '':
                 user, passwd = 'feyman-user', '123456'
@@ -729,8 +719,8 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             NTRIP[0] = self.ntrip
             for entity in SERIAL_SET:
                 self.ntrip.register(entity)
-            # if self.rtcmDialog is not None:
-            #     self.rtcmDialog.startParse()
+            if self.rtcmDialog is not None:
+                self.rtcmDialog.startParse()
             self.set_ntrip_params(False)
             self.ntripDataTimer.start(1200)
             self.pushButton_conn.setText(DISCONNECT)
@@ -1024,9 +1014,9 @@ class RtcmDialog(QDialog, Ui_Dialog):
 
 
 if __name__ == '__main__':
-    # sys.excepthook = my_excepthook
-    # error = Error()
-    # error.signal.connect(showDialog)
+    sys.excepthook = my_excepthook
+    error = Error()
+    error.signal.connect(showDialog)
 
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     app = QApplication(argv)

@@ -15,7 +15,7 @@ class Ui_Trident(object):
     def setupUi(self, Trident):
         Trident.setObjectName("Trident")
         Trident.setWindowModality(QtCore.Qt.WindowModal)
-        Trident.resize(803, 682)
+        Trident.resize(789, 677)
         self.centralwidget = QtWidgets.QWidget(Trident)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_7 = QtWidgets.QGridLayout(self.centralwidget)
@@ -339,7 +339,7 @@ class Ui_Trident(object):
         self.verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetMaximumSize)
         self.verticalLayout.setObjectName("verticalLayout")
         self.Serial = QtWidgets.QGroupBox(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.Serial.sizePolicy().hasHeightForWidth())
@@ -412,7 +412,7 @@ class Ui_Trident(object):
         self.gridLayout_4.addWidget(self.pushButton_open, 3, 1, 1, 2)
         self.verticalLayout.addWidget(self.Serial)
         self.Ntrip = QtWidgets.QGroupBox(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(2)
         sizePolicy.setHeightForWidth(self.Ntrip.sizePolicy().hasHeightForWidth())
@@ -502,7 +502,7 @@ class Ui_Trident(object):
         self.gridLayout_2.addWidget(self.lnmount, 2, 0, 1, 1)
         self.verticalLayout.addWidget(self.Ntrip)
         self.ATCmd = QtWidgets.QGroupBox(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.ATCmd.sizePolicy().hasHeightForWidth())
@@ -612,6 +612,9 @@ class Ui_Trident(object):
         self.rtcm_analysis.setObjectName("rtcm_analysis")
         self.horizontalLayout_3.addWidget(self.rtcm_analysis)
         self.verticalLayout.addLayout(self.horizontalLayout_3)
+        self.raw_analysis = QtWidgets.QPushButton(self.centralwidget)
+        self.raw_analysis.setObjectName("raw_analysis")
+        self.verticalLayout.addWidget(self.raw_analysis)
         spacerItem = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.widget_2 = QtWidgets.QWidget(self.centralwidget)
@@ -678,27 +681,26 @@ class Ui_Trident(object):
 "</style></head><body style=\" font-family:\'Calibri\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Trident a FMI ntrip serial tool</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">i. Serial</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">I. Serial</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  -Click &quot;Refresh&quot; button all valid com ports connected to your PC lists in &quot;Port&quot; comb box</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  -Set proper baud rate and attributes(in Databits/Parity/Stopbits) </p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  -Click &quot;Open&quot; Button and Serial received data shows in this area.</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  -For multi serial interface, click &quot;...&quot; under the &quot;COM&quot; Spinner.</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">ii. Ntrip</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">II. Ntrip</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  -Set ntrip caster host, port, mount point, user id and password.</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  -If you do not know the mount point click &quot;Connect&quot; first, all monut points will list in &quot;Mnt&quot; comb box.</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  -Support Ntrip parameter local record</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">iii. Cmd</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  -Support FMI AT command and H $J cmd.</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">III. Cmd</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  -Support AT command.</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  -FMI Px series board firmware upgrade.</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  -Add AT+VEH_MODE and AT+UAV_MODE cmd</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  -Click &quot;Return&quot; can send cmd order also</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">iv. Extools</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">IV. Extools</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  -Only support NMEA or $GPFMI to .kml in standard version.</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">  </p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Any bugs or issues feel free to contact <span style=\" text-decoration: underline;\">fmi@feyman.cn</span></p></body></html>"))
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Any bugs or issues feel free to contact us.</p></body></html>"))
         self.Infos.setAccessibleName(_translate("Trident", "groupInfos"))
         self.Infos.setTitle(_translate("Trident", "States"))
         self.label.setText(_translate("Trident", "Time"))
@@ -755,20 +757,20 @@ class Ui_Trident(object):
         self.lnuser.setText(_translate("Trident", "User"))
         self.comboBox_caster.setItemText(0, _translate("Trident", "ntrips.feymani.cn"))
         self.comboBox_caster.setItemText(1, _translate("Trident", "lab.ntrip.qxwz.com"))
-        self.comboBox_caster.setItemText(2, _translate("Trident", "vrs.sixents.com"))
-        self.comboBox_caster.setItemText(3, _translate("Trident", "ntrip.mliyadong.com"))
-        self.comboBox_caster.setItemText(4, _translate("Trident", "219.142.87.107"))
+        self.comboBox_caster.setItemText(2, _translate("Trident", "sdk.pnt.10086.cn"))
+        self.comboBox_caster.setItemText(3, _translate("Trident", "219.142.87.107"))
+        self.comboBox_caster.setItemText(4, _translate("Trident", "vrs.sixents.com"))
         self.comboBox_caster.setItemText(5, _translate("Trident", "219.142.87.73"))
         self.lnport.setText(_translate("Trident", "Port"))
         self.lineEdit_user.setToolTip(_translate("Trident", "<html><head/><body><p>Cause this is a Feynman Innovation ntrip serial tool, default user is feyman-user ofcourse</p></body></html>"))
         self.lineEdit_user.setText(_translate("Trident", "feyman-user"))
         self.lnpwd.setText(_translate("Trident", "Passwd"))
         self.comboBox_port.setItemText(0, _translate("Trident", "2102"))
-        self.comboBox_port.setItemText(1, _translate("Trident", "2101"))
-        self.comboBox_port.setItemText(2, _translate("Trident", "8001"))
-        self.comboBox_port.setItemText(3, _translate("Trident", "8002"))
-        self.comboBox_port.setItemText(4, _translate("Trident", "8003"))
-        self.comboBox_port.setItemText(5, _translate("Trident", "81"))
+        self.comboBox_port.setItemText(1, _translate("Trident", "81"))
+        self.comboBox_port.setItemText(2, _translate("Trident", "2101"))
+        self.comboBox_port.setItemText(3, _translate("Trident", "8001"))
+        self.comboBox_port.setItemText(4, _translate("Trident", "8002"))
+        self.comboBox_port.setItemText(5, _translate("Trident", "8003"))
         self.lncaster.setText(_translate("Trident", "Caster"))
         self.comboBox_mount.setToolTip(_translate("Trident", "<html><head/><body><p>drop and click to get mount point</p></body></html>"))
         self.comboBox_mount.setItemText(0, _translate("Trident", "Source Table"))
@@ -810,7 +812,8 @@ class Ui_Trident(object):
         self.comboBox_extools.setItemText(2, _translate("Trident", "3 - Convert  U To GGA"))
         self.comboBox_extools.setItemText(3, _translate("Trident", "4 - Convert LOG to .kml"))
         self.queryDirection.setText(_translate("Trident", "Query Direction"))
-        self.rtcm_analysis.setText(_translate("Trident", "Analysis RTCM"))
+        self.rtcm_analysis.setText(_translate("Trident", "Analysis Ntrip"))
+        self.raw_analysis.setText(_translate("Trident", "Analysis Raw"))
         self.checkBox_savenmea.setToolTip(_translate("Trident", "<html><head/><body><p>record all serial received data in NMEA/*.log</p></body></html>"))
         self.checkBox_savenmea.setText(_translate("Trident", "SAVE"))
         self.checkBox_ggafmt.setToolTip(_translate("Trident", "lat lon in degree format"))

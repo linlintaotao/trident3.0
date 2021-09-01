@@ -39,13 +39,14 @@ class BarGraphView(QWidget):
         self.model = None
         self.painter = QPainter(self)
         self.colorL5 = QColor(Qt.blue)
-        self.colorL1 = QColor(Qt.cyan)
+        self.colorL1 = QColor(Qt.green)
+        self.colorInvalid = QColor(Qt.gray)
         self.colorInvalid = QColor(Qt.gray)
 
     def setModel(self, model):
         self.model = model
         self.model.dataChanged.connect(self.update)
-        self.pen = QPen(Qt.cyan, 0.1, Qt.SolidLine)
+        self.pen = QPen(Qt.black, 0.1, Qt.SolidLine)
 
     def sizeHint(self):
         return self.minimumSizeHint()
@@ -67,36 +68,46 @@ class BarGraphView(QWidget):
         span = 60
         length = self.model.len() if self.model.len() >= 10 else 10
         self.painter.setWindow(0, 0, BarGraphView.WIDTH * length + 12, span + 6)
-        self.painter.fillRect(12, 0, 4, 2, self.colorL1)
-        self.painter.drawText(8, 2, "L1")
-        self.painter.fillRect(22, 0, 4, 2, self.colorL5)
-        self.painter.drawText(18, 2, "L5")
+        start = 16
+        self.painter.fillRect(start + 4, 1, 4, 2, self.colorL1)
+        self.painter.drawText(start, 3, "L1")
+        self.painter.fillRect(start + 14, 1, 4, 2, self.colorL5)
+        self.painter.drawText(start + 10, 3, "L5")
+        self.painter.fillRect(start + 34, 1, 4, 2, self.colorInvalid)
+        self.painter.drawText(start + 20, 3, "Invalid")
         self.painter.drawText(1, 5, "dBHz")
         for i in range(0, 6):
             if i != 0:
                 self.painter.drawText(2, i * 10 + 1.5, str(60 - i * 10))
-            self.painter.drawLine(6, i * 10, BarGraphView.WIDTH * length + 10, i * 10)
+            self.painter.drawLine(6, i * 10, BarGraphView.WIDTH * length + 6, i * 10)
 
         row = 0
+
         for value in self.model.data():
             x = row * BarGraphView.WIDTH + 8
             if len(value) <= 0: continue
-            y1 = self.getIndexValue(value, 0)
-            y2 = self.getIndexValue(value, 1, -1)
-            self.painter.fillRect(x, span - y1, BarGraphView.WIDTH - 4, y1, self.colorL1)
+            color1 = self.colorL1
+            color2 = self.colorL5
+            y1 = self.getIndexValue(value, 0, 4)
+            y2 = self.getIndexValue(value, 1, 4, -1)
+            if y1 > 0:
+                phase = self.getIndexValue(value, 0, 2)
+                if phase == 0:
+                    color1 = color2 = self.colorInvalid
+            self.painter.fillRect(x, span - y1, BarGraphView.WIDTH - 4, y1, color1)
             if y2 != -1:
-                self.painter.fillRect(x + 2, span - y2, BarGraphView.WIDTH - 8, y2, self.colorL5)
+                self.painter.fillRect(x + 2, span - y2, BarGraphView.WIDTH - 8, y2, color2)
             self.painter.drawText(x + 2, span + 4, value[0])
             row += 1
 
         self.painter.end()
 
     @staticmethod
-    def getIndexValue(valuseList, index, defaultValue=0):
+    def getIndexValue(valuseList, index, num, defaultValue=0):
         v = defaultValue
         try:
             if len(valuseList[index]) > 1:
-                v = valuseList[1][index][4]
+                v = valuseList[1][index][num]
         except Exception as e:
             pass
         return v

@@ -179,9 +179,9 @@ class RtcmParse(QObject):
                 cp = [(self.getbits(j, 24) * RANGE_MS * P2_31) if self.getbits(j, 24) != -8388608 else -1e16 for j in
                       range(i, i + ncells * 24, 24)]
                 i += ncells * 24
-                lock = [self.getbitu(j, 10) for j in range(i, i + ncells * 10, 10)]
+                # lock = [self.getbitu(j, 10) for j in range(i, i + ncells * 10, 10)]
                 i += ncells * 10
-                half = [self.getbitu(j, 10) for j in range(i, i + ncells * 1, 1)]
+                # half = [self.getbitu(j, 10) for j in range(i, i + ncells * 1, 1)]
                 i += ncells * 1
                 cnos = [self.getbitu(j, 10) * 0.0625 for j in range(i, i + ncells * 10, 10)]
                 i += ncells * 10
