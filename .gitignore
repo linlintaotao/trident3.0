@@ -4,3 +4,9 @@ streams/__pycache__
 gui/__pycache__
 /venv/
 dist/
+
+.DS_Store
+*.ini
+*/.DS_Store
+NMEA/*
+*/__pycache__/
