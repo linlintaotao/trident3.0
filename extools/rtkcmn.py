@@ -161,6 +161,18 @@ def code2freq_GPS(code):
 
 
 def code2freq_GLO(code):
+    # todo fcn =1 is not true value
+    fcn = 1
+    if code[0] is '1':
+        return 0, FREQ1_GLO + DFRQ1_GLO * fcn
+    elif code[0] is '2':
+        return 1, FRQ2_GLO + DFRQ2_GLO * fcn
+    elif code[0] is '3':
+        return 2, FREQ3_GLO
+    elif code[0] is '4':
+        return 3, FREQ1a_GLO
+    elif code[0] is '6':
+        return 4, FREQ2a_GLO
     return -1, 0
 
 

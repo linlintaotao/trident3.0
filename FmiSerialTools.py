@@ -51,13 +51,14 @@ SERIAL_SET = [None, None, None, None]
 LABEL_SHOW_LIST = [None, None, None, None]
 FIRM_UPDATE_LIST = [False, False, False, False]
 
-COLOR_TAB = {'0': 'gray', '1': 'red', '2': '#55aaff', '3': 'black', '4': 'green', '5': 'blue', '6': '#ff55ff'}
+COLOR_TAB = {'': 'gray', '0': 'gray', '1': 'red', '2': '#55aaff', '3': 'black', '4': 'green', '5': 'blue',
+             '6': '#ff55ff'}
 
 NTRIP = [None]
 
 LAT_LON = [40, 116]
 
-VERSION = "2.6.0"
+VERSION = "2.6.2"
 
 NTRIP_CONFIG = 'NTRIP'
 
@@ -310,6 +311,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self.ntrip = None
         self._ggacnt = 0
         self._cold_resets = 0
+        self.timer = None
 
         self._cold_reset_cnt = 0
         self.upgrade = None
@@ -389,6 +391,11 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self.FileTrans = QTimer(self)
         self.FileTrans.timeout.connect(self.ShowFilepBarr)
 
+        # 初始化一个定时器
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.reset_label)
+        self.timer.setSingleShot(True)
+
     def ntp_state(self):
         if not SERIAL_WRITE_MUTEX:
             if self.ntrip.isRunning():
@@ -459,8 +466,8 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     def analysis_raw(self):
         if self.com is not None and self.com.is_running():
             self.com.send_data("AT+OBS=UART1,1\r\n")
-        self.form = MainForm(self)
-        self.form.resize(1000, 320)
+        self.form = MainForm(self, self.com)
+        self.form.resize(700, 300)
         self.form.show()
 
     def caster_change(self):
@@ -636,6 +643,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             self.lineEdit_time.setText(now)
             self.lineEdit_dage.setText(dage)
             dage = dage if dage != '' else '0'
+            nsats = nsats if nsats != '' else '0'
             if float(dage) > 30:
                 self.lineEdit_dage.setStyleSheet('background-color:#ff557f;color:white')
             else:
@@ -772,10 +780,22 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                             QThread.msleep(100)
                     else:
                         self.com.send_data(cmd.encode("utf-8", "ignore"))
+                        if 'RESET' in cmd:
+                            self.timer.start(1000)
                 else:
                     QMessageBox.warning(self, "Warning", "Open serial port first! ")
         else:
             QMessageBox.information(self, "Info", "Firmware updating......")
+
+    def reset_label(self):
+        self.set_lebf_color(COLOR_TAB['0'], 'white')
+        self.lineEdit_rovlat.setText('0')
+        self.lineEdit_rovlon.setText('0')
+        self.lineEdit_rovhgt.setText('0')
+        self.lineEdit_solstat.setText('0')
+        self.lineEdit_sats.setText('0')
+        self.lineEdit_time.setText('0')
+        self.lineEdit_dage.setText('0')
 
     def serecv_clear_btclik(self):
         self._srxbs = 0
@@ -839,6 +859,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 elif ret == QMessageBox.Yes:
                     pass
                 else:
+                    QMessageBox.warning(self, "Warning", f"select baudrate not support")
                     return
                 self.ser_open_btclik()
                 self._update_H = True

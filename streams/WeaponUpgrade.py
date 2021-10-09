@@ -137,7 +137,7 @@ class UpgradeManager(QThread):
             self.signal.emit(False, b'Oops! update failed... ', self._sendByteLen)
             self._serial.close()
             return
-        if len(response) <= 3: return
+        if len(response) < 5: return
         for i in range(len(response) - 3):
             if response[i] == 0x55 and response[i + 1] == 0xAA and response[i + 2] == 0x10:
                 frame = response[i + 3:]

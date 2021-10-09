@@ -60,14 +60,13 @@ class BarGraphView(QWidget):
     def paintEvent(self, event):
         if self.model is None:
             return
+        span = 60
         self.painter.begin(self)
+        length = self.model.len() if self.model.len() >= 10 else 10
+        self.painter.setWindow(0, 0, BarGraphView.WIDTH * length + 12, span + 6)
         self.painter.setPen(self.pen)
         self.painter.setFont(QFont('Microsoft JhengHei', 2))
         self.painter.setRenderHint(QPainter.Antialiasing)
-
-        span = 60
-        length = self.model.len() if self.model.len() >= 10 else 10
-        self.painter.setWindow(0, 0, BarGraphView.WIDTH * length + 12, span + 6)
         start = 16
         self.painter.fillRect(start + 4, 1, 4, 2, self.colorL1)
         self.painter.drawText(start, 3, "L1")
@@ -118,7 +117,7 @@ class BarGraphView(QWidget):
 
 class MainForm(QDialog):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, serial=None):
         super(MainForm, self).__init__(parent)
         self.model = BarGraphModel()
         self.barGraphView = BarGraphView()
@@ -130,6 +129,7 @@ class MainForm(QDialog):
         self.isStart = True
         self.rtcmParse = RtcmParse()
         self.rtcmParse.msmSingnal.connect(self.updateMsg)
+        self._serial = serial
 
     def loadData(self, data):
         if self.isStart:
@@ -143,6 +143,8 @@ class MainForm(QDialog):
             self.model.update()
 
     def closeEvent(self, QCloseEvent):
+        if self._serial is not None and self._serial.isRunning():
+            self._serial.send_data("AT+OBS=UART1,0\r\n")
         self.isStart = False
 
     def isWorking(self):

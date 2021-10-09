@@ -44,6 +44,7 @@ class RtcmParse(QObject):
 
             if self._nbyte == 3:
                 self._len = self.getbitu(14, 10) + 3
+
             if self._nbyte < 3 or self._nbyte < (self._len + 3):
                 continue
 
@@ -169,12 +170,12 @@ class RtcmParse(QObject):
                                for j in range(i, i + nsats * 10, 10)]
                 satsrange = [(satsrange[j] + satsRange_m[j]) if satsrange[j] != 0 else 0 for j in range(nsats)]
                 i += nsats * 10
-                rr = [self.getbits(j, 14) * 1.0 if self.getbits(j, 14) != -8192 else 0 for j in
-                      range(i, i + nsats * 14, 14)]
+                # rr = [self.getbits(j, 14) * 1.0 if self.getbits(j, 14) != -8192 else 0 for j in
+                #       range(i, i + nsats * 14, 14)]
                 i += nsats * 14
-                # pseudorange
-                pr = [(self.getbits(j, 20) * RANGE_MS * P2_29) if self.getbits(j, 20) != -524288 else -1e16 for j in
-                      range(i, i + ncells * 20, 20)]
+                # # pseudorange
+                # pr = [(self.getbits(j, 20) * RANGE_MS * P2_29) if self.getbits(j, 20) != -524288 else -1e16 for j in
+                #       range(i, i + ncells * 20, 20)]
                 i += ncells * 20
                 cp = [(self.getbits(j, 24) * RANGE_MS * P2_31) if self.getbits(j, 24) != -8388608 else -1e16 for j in
                       range(i, i + ncells * 24, 24)]
@@ -185,8 +186,8 @@ class RtcmParse(QObject):
                 i += ncells * 1
                 cnos = [self.getbitu(j, 10) * 0.0625 for j in range(i, i + ncells * 10, 10)]
                 i += ncells * 10
-                rrf = [self.getbits(j, 15) * 0.0001 if self.getbitu(j, 15) != -16384 else -1e16 for j in
-                       range(i, i + ncells * 15, 15)]
+                # rrf = [self.getbits(j, 15) * 0.0001 if self.getbitu(j, 15) != -16384 else -1e16 for j in
+                #        range(i, i + ncells * 15, 15)]
                 index = 0
                 j = 0
                 for prn, sat in enumerate(satList, 1):
@@ -198,19 +199,19 @@ class RtcmParse(QObject):
                         for k in range(signalSize):
                             if not cellMask[k + index * signalSize]: continue
                             idx, freq = code2freq[self._sys](siglist[k])
-                            psed = phase = 0
+                            psed = phase = dloper = 0
                             if idx < 0: continue
-                            if satsrange[index] != 0 and pr[j] > -1E12:
-                                psed = satsrange[index] + pr[j]
+                            # if satsrange[index] != 0 and pr[j] > -1E12:
+                            #     psed = satsrange[index] + pr[j]
                             if satsrange[index] != 0 and cp[j] > -1E12:
                                 phase = (satsrange[index] + cp[j]) * freq / CLIGHT
-                            dloper = -(rr[index] + rrf[j]) * freq / CLIGHT
+                            # dloper = -(rr[index] + rrf[j]) * freq / CLIGHT
                             cnr = round(cnos[j])
                             info.append([siglist[k], psed, phase, dloper, cnr])
                             j += 1
-                        if 'R' not in satId:
-                            self.obs.addSatInfo(satId, info)
-                        print(satId, info)
+                        # if 'R' not in satId:
+                        self.obs.addSatInfo(satId, info)
+                        # print(satId, info)
                         index += 1
             else:
                 cnos = [-1]
@@ -219,13 +220,13 @@ class RtcmParse(QObject):
 
             # developer should show this info in GUI program, these are satellites/signals of each msm messages
             sigStr = ",".join(f'%3s' % x for x in siglist)
-            print(f'%s, tow %s, sync %2d, sats %2d, cno mean %2d, sigs [%3s]' %
-                  (self._msg_type, self._tow, sync, nsats, mean_cno, sigStr))
+            # print(f'%s, tow %s, sync %2d, sats %2d, cno mean %2d, sigs [%3s]' %
+            #       (self._msg_type, self._tow, sync, nsats, mean_cno, sigStr))
             self.signal.emit(f'%s, tow %s, sync %2d, sats %2d, cno mean %2d, sigs [%3s]' %
                              (self._msg_type, self._tow, sync, nsats, mean_cno, sigStr))
             if sync == 0:
                 self.obs.time = self._tow
-                # if int(self._tow) % 1000 == 0:
+                # if float(self.obs.time) % 1000 == 0:
                 self.msmSingnal.emit(self.obs)
                 self.obs.clear()
                 self.signal.emit("\n")
@@ -275,12 +276,8 @@ if __name__ == '__main__':
     # import serial
     #
     # # _entity = serial.Serial("/dev/cu.usbserial-1420", 115200, timeout=1)
-    # rtcmParsce = RtcmParse()
-    #
-    # with open('../NMEA/cu.usbserial-1420_20210827_150226.nmea', 'rb') as rf:
-    #     for line in rf.readlines():
-    #         rtcmParsce.decode(line)
-    array = [1, 2, 3, 4, 5, 6, 7]
-    ara = [array[j] + 2 if array[j] > 2 else 0 for j in range(3)]
-    ara = [n + 2 if n > 2 else 0 ]
-    print(ara)
+    rtcmParsce = RtcmParse()
+
+    with open('../NMEA/COM11_20210907_181825.nmea', 'rb') as rf:
+        for line in rf.readlines():
+            rtcmParsce.decode(line)
