@@ -233,6 +233,7 @@ class MultiSerial(QMainWindow, Multiser_Ui_widget):
         """
         if data.startswith(('$GNGGA', '$GPGGA')) and data.endswith("\r\n"):
             seg = data.strip("\r\n").split(",")
+
             if len(seg) < 14: return
             now, latdm = seg[1:3]
             londm = seg[4]
