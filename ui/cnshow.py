@@ -130,8 +130,15 @@ class MainForm(QDialog):
         self.rtcmParse = RtcmParse()
         self.rtcmParse.msmSingnal.connect(self.updateMsg)
         self._serial = serial
+        self.uart = 0
 
     def loadData(self, data):
+        if self.uart == 0 and b'This Port is' in data:
+            if b'Uart1' in data:
+                self.uart = 1
+            elif b'Uart2' in data:
+                self.uart = 2
+            self._serial.send_data(f"AT+OBS=UART%d,1" % self.uart)
         if self.isStart:
             self.rtcmParse.decode(data)
 
@@ -144,7 +151,7 @@ class MainForm(QDialog):
 
     def closeEvent(self, QCloseEvent):
         if self._serial is not None and self._serial.isRunning():
-            self._serial.send_data("AT+OBS=UART1,0\r\n")
+            self._serial.send_data(f"AT+OBS=UART%d,0\r\n" % self.uart)
         self.isStart = False
 
     def isWorking(self):

@@ -31,6 +31,9 @@ from streams.QThreadSerial import SerialThread
 from streams.WeaponUpgrade import UpgradeManager
 from ui.ntriptool import NtripTool
 from ui.cnshow import *
+from ui.FmiPlot import Fmiplot
+
+from extools import NmeaParser
 
 ###################################################################
 DIR = 'NMEA/'
@@ -331,6 +334,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self.loadConfig()
         self.form = None
         self.rtcmDialog = None
+        self.plotDialog = None
 
     def loadConfig(self):
         self.config = FMIConfig()
@@ -464,12 +468,15 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         else:
             QMessageBox.warning(self, "Warning", f"Ntrip is not Running!!!")
 
+        # self.plotDialog = Fmiplot(self)
+        # self.plotDialog.show()
+
     def analysis_raw(self):
-        if self.com is not None and self.com.is_running():
-            self.com.send_data("AT+OBS=UART1,1\r\n")
         self.form = MainForm(self, self.com)
         self.form.resize(700, 300)
         self.form.show()
+        if self.com is not None and self.com.is_running():
+            self.com.send_data("AT+THIS_PORT\r\n")
 
     def caster_change(self):
         casterStr = self.comboBox_caster.currentText()
@@ -582,7 +589,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         accX, accY, accZ = splitData[2:5]
         self.statusbar.showMessage(
             f'  Direction : x %s    y %s    z %s ' % (self.getAccD(accX), self.getAccD(accY), self.getAccD(accZ)))
-        # print(f'x %s    y %s    z %s ' % (self.getAccD(accX), self.getAccD(accY), self.getAccD(accZ)))
 
     def getAccD(self, accData):
         acc = float(accData)
@@ -608,35 +614,23 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         """
         index = data.index('$G')
         data = data[index:]
-        if data.endswith("\r\n"):
-
+        if NmeaParser.checkSum(data):
             seg = data.strip("\r\n").split(",")
-            if len(seg) < 15:
-                return
-
             now, latdm = seg[1:3]
             londm = seg[4]
             solstat, nsats, dop, hgt = seg[6:10]
             dage = seg[-2]
-
             if latdm != '' and londm != '':
                 if self.checkBox_ggafmt.isChecked():
-                    try:
-                        lat_deg = float(latdm)
-                        lon_deg = float(londm)
-                    except TypeError as e:
-                        return
-                    else:
-                        a = int(lat_deg / 100) + (lat_deg % 100) / 60
-                        o = int(lon_deg / 100) + (lon_deg % 100) / 60
-                        LAT_LON[0] = a
-                        LAT_LON[1] = o
-                        if self.ntrip is not None:
-                            self.ntrip.setPosition(lat=a, lon=o)
-                        latdm, londm = "%.7f" % a, "%.7f" % o
+                    latd = NmeaParser.dformate(float(latdm))
+                    lond = NmeaParser.dformate(float(londm))
+                    LAT_LON[0] = latd
+                    LAT_LON[1] = lond
+                    if self.ntrip is not None:
+                        self.ntrip.setPosition(lat=latd, lon=lond)
             self.set_lebf_color(COLOR_TAB[solstat], 'white')
-            self.lineEdit_rovlat.setText(latdm)
-            self.lineEdit_rovlon.setText(londm)
+            self.lineEdit_rovlat.setText("%.8f" % latd)
+            self.lineEdit_rovlon.setText("%.8f" % lond)
 
             self.lineEdit_rovhgt.setText(hgt)
             self.lineEdit_solstat.setText(solstat)
@@ -757,7 +751,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 _cmd, _port = cmd.strip("\r\n").split('>')
                 _cmd = _cmd.strip() + "\r\n"
                 _port = _port.strip().lower().split(',')
-
                 if _port[0] == 'all':
                     _s = [s.port for s in SERIAL_SET if s is not None and s.isOpen]
                     _ss = ', '.join(_s)
