@@ -304,7 +304,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self._cold_reseted = False
         self._mnt_updated = False
         self._getmnt = b''
-        self._curgga = b''
         self._caster = ''
         self._port = 0
         self._srxbs = 0
@@ -462,14 +461,14 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             self.statusbar.showMessage("")
 
     def analysis_rtcm(self):
-        if self.ntrip is not None and self.ntrip.isRunning():
-            self.rtcmDialog = RtcmDialog(self)
-            self.rtcmDialog.show()
-        else:
-            QMessageBox.warning(self, "Warning", f"Ntrip is not Running!!!")
+        # if self.ntrip is not None and self.ntrip.isRunning():
+        #     self.rtcmDialog = RtcmDialog(self)
+        #     self.rtcmDialog.show()
+        # else:
+        #     QMessageBox.warning(self, "Warning", f"Ntrip is not Running!!!")
 
-        # self.plotDialog = Fmiplot(self)
-        # self.plotDialog.show()
+        self.plotDialog = Fmiplot(self)
+        self.plotDialog.show()
 
     def analysis_raw(self):
         self.form = MainForm(self, self.com)
@@ -553,7 +552,6 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         :return:
         """
         if data != b'':
-            self._curgga = data
             self.clearLimit -= 1
             if self.clearLimit == 0:
                 self.textEdit_recv.clear()
@@ -620,18 +618,18 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             londm = seg[4]
             solstat, nsats, dop, hgt = seg[6:10]
             dage = seg[-2]
+            latd, lond = 0, 0
             if latdm != '' and londm != '':
                 if self.checkBox_ggafmt.isChecked():
                     latd = NmeaParser.dformate(float(latdm))
                     lond = NmeaParser.dformate(float(londm))
                     LAT_LON[0] = latd
                     LAT_LON[1] = lond
-                    if self.ntrip is not None:
+                    if self.ntrip is not None and latd != 0:
                         self.ntrip.setPosition(lat=latd, lon=lond)
             self.set_lebf_color(COLOR_TAB[solstat], 'white')
             self.lineEdit_rovlat.setText("%.8f" % latd)
             self.lineEdit_rovlon.setText("%.8f" % lond)
-
             self.lineEdit_rovhgt.setText(hgt)
             self.lineEdit_solstat.setText(solstat)
             self.lineEdit_sats.setText(nsats)
@@ -647,6 +645,8 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 self.lineEdit_sats.setStyleSheet('background-color:#ff5500;color:white')
             else:
                 self.lineEdit_sats.setStyleSheet('background-color:white;color:black')
+            if self.plotDialog is not None and self.plotDialog.isRunning():
+                self.plotDialog.addPoint((latd, lond, int(solstat), int(nsats), float(hgt), float(dage), now))
 
     def disp_fmi(self, data):
         seg = data.strip("\r\n").split(",")

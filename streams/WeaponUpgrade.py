@@ -79,7 +79,6 @@ class UpgradeManager(QThread):
             self._serial.write(f'AT+UPDATE_MODE_H={self.updateBaudrate}\r\n'.encode())
         except Exception as e:
             self.signal.emit(False, b'serial port open failed! please check', 0)
-            print(e)
             return
         readtimes = 60
         while readtimes > 0:
@@ -131,7 +130,6 @@ class UpgradeManager(QThread):
         if response is None or len(response) <= 0:
             self.nothing_read_times -= 1
             return
-        # print('reponse ==>', ''.join(['%02X ' % b for b in bytes(response)]))
         if self.repeatTimes > 30 or self.nothing_read_times <= 0:
             self._isUpdating = False
             self.signal.emit(False, b'Oops! update failed... ', self._sendByteLen)
@@ -159,13 +157,10 @@ class UpgradeManager(QThread):
                     self._sendByteLen += SUBFRAME_LEN
                     for j in range(3):
                         self._serial.write(sendCompleteOrder)
-
                     self._serial.flush()
                     self.repeatTimes += 1
                     continue
-
                 else:
-                    # print(frame[0], '0: failed')
                     self.signal.emit(False, b'Oops! update failed...', self._sendByteLen)
                     self._isUpdating = False
                     self._serial.close()
