@@ -10,6 +10,7 @@ import datetime
 
 class SerialThread(QThread):
     signal = pyqtSignal(bytes)
+    signalStatus = pyqtSignal(bytes)
 
     def __init__(self, iport, baudRate=115200, coldStart=False, showLog=False):
         super().__init__()
@@ -75,7 +76,7 @@ class SerialThread(QThread):
             try:
                 self.open_serial()
             except Exception as e:
-                self.signal.emit(b'STOP SERIAL')
+                self.signalStatus.emit(b'STOP SERIAL')
                 print('serial_open', e)
                 return
         # times = 0
@@ -95,7 +96,7 @@ class SerialThread(QThread):
 
             except Exception as e:
                 print('serial_read', e)
-                self.signal.emit(b'READ STOP')
+                self.signalStatus.emit(b'READ STOP')
                 self._isRunning = False
                 continue
 

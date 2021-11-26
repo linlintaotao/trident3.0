@@ -57,7 +57,7 @@ def checkSum(data):
 
 def dformate(latlon):
     latlon = math.floor(latlon / 100) + (latlon % 100) / 60.0
-    return round(latlon, 8)
+    return round(latlon, 9)
 
 
 def drefomate(latlon):

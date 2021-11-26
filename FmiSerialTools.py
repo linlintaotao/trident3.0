@@ -516,6 +516,7 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
             self.com = SerialThread(iport=self.cbsport.currentText(),
                                     baudRate=int(self.cbsbaud.currentText()), coldStart=coldRestart)
             self.com.signal.connect(self.read_ser_data)
+            self.com.signalStatus.connect(self.readSerialStatus)
             self.com.start()
             if self.checkBox_savenmea.isChecked():
                 self.com.setFile(on=True)
@@ -532,21 +533,20 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
                 self.ntrip.unregister(self.com)
             self.set_ser_params(True)
 
-    def read_ser_data(self, data):
-        if self.form is not None and self.form.isWorking():
-            self.form.loadData(data)
+    def readSerialStatus(self, data):
         if 'STOP SERIAL' in str(data):
             self.set_ser_params(True)
             if self.ntrip is not None:
                 self.ntrip.unregister(self.com)
             QMessageBox.critical(self, "error", f"can not open serial {self.cbsport.currentText()}")
-            return
         elif 'READ STOP' in str(data):
             self.set_ser_params(True)
             if self.ntrip is not None:
                 self.ntrip.unregister(self.com)
-            return
 
+    def read_ser_data(self, data):
+        if self.form is not None and self.form.isWorking():
+            self.form.loadData(data)
         """
         serial port reading
         :return:
@@ -968,8 +968,8 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
     def mulser_control(self):
         # check  toolButton is valid
         if not ENABLE_TOOL_BTN: return
-        dialog = MultiSerial()
-        dialog.show()
+        self.mulDialog = MultiSerial()
+        self.mulDialog.show()
 
     def getNtrip(self):
         return self.ntrip
