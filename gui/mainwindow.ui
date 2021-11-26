@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>789</width>
-    <height>677</height>
+    <width>809</width>
+    <height>718</height>
    </rect>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -1389,9 +1389,9 @@ p, li { white-space: pre-wrap; }
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QRadioButton" name="queryDirection">
+           <widget class="QPushButton" name="queryDirection">
             <property name="text">
-             <string>Query Direction</string>
+             <string>PlotView</string>
             </property>
            </widget>
           </item>

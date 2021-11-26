@@ -3,7 +3,7 @@
 """
 import time
 
-from gui.plotdialog import Ui_Dialog
+from gui.plotdialog import Ui_PlotView
 from PyQt5.QtWidgets import QDialog, QGridLayout, QFileDialog
 import pyqtgraph as pg
 import numpy as np
@@ -21,7 +21,7 @@ COLOR_TUPLE = ['black', 'red', 'cyan', '', 'green', 'blue', 'yellow']
 TYPE = ['GndTrk', 'Position', 'State']
 
 
-class Fmiplot(QDialog, Ui_Dialog):
+class Fmiplot(QDialog, Ui_PlotView):
 
     def __init__(self, parent=None):
         super(Fmiplot, self).__init__(parent)

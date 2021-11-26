@@ -448,27 +448,18 @@ class NtripSerialTool(QMainWindow, Ui_Trident):
         self.rtcm_analysis.clicked.connect(self.analysis_rtcm)
         self.raw_analysis.clicked.connect(self.analysis_raw)
 
-        self.queryDirection.clicked.connect(self.sendOrder)
+        self.queryDirection.clicked.connect(self.showPlotView)
 
-    def sendOrder(self):
-        if self.com is None or not self.com.is_running():
-            QMessageBox.warning(self, "Warning", f"Please open serialport first !")
-            return
-        if self.queryDirection.isChecked():
-            self.com.send_data('AT+GPIMU=UART1,1\r\n')
-        else:
-            self.com.send_data('AT+GPIMU=UART1,0\r\n')
-            self.statusbar.showMessage("")
-
-    def analysis_rtcm(self):
-        # if self.ntrip is not None and self.ntrip.isRunning():
-        #     self.rtcmDialog = RtcmDialog(self)
-        #     self.rtcmDialog.show()
-        # else:
-        #     QMessageBox.warning(self, "Warning", f"Ntrip is not Running!!!")
-
+    def showPlotView(self):
         self.plotDialog = Fmiplot(self)
         self.plotDialog.show()
+
+    def analysis_rtcm(self):
+        if self.ntrip is not None and self.ntrip.isRunning():
+            self.rtcmDialog = RtcmDialog(self)
+            self.rtcmDialog.show()
+        else:
+            QMessageBox.warning(self, "Warning", f"Ntrip is not Running!!!")
 
     def analysis_raw(self):
         self.form = MainForm(self, self.com)

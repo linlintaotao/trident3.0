@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>PlotView</class>
+ <widget class="QDialog" name="PlotView">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>PlotView</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">
