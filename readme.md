@@ -36,3 +36,6 @@ serial parameters then "Open" the serial port.
 pyuic5 -o *.py *.ui 
 pyrcc5 title.qrc -o icon.py
 
+ pyinstaller -Fw --icon .\trident.ico .\FmiSerialTools.py
+
+

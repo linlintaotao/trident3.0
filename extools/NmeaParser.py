@@ -45,9 +45,9 @@ def checkSum(data):
             return False
         xsum_calc = 0
         for char in checkData:
-            if char is '$':
+            if char == '$':
                 continue
-            if char is '*':
+            if char == '*':
                 break
             xsum_calc = xsum_calc ^ ord(char)
         return ("%02X" % xsum_calc) == checkData[-2:]

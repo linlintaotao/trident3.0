@@ -93,7 +93,7 @@ class UpgradeManager(QThread):
                 return
 
         time.sleep(0.2)
-        if self.updateBaudrate is not 115200:
+        if self.updateBaudrate != 115200:
             self._serial.close()
             self._serial.baudrate = self.updateBaudrate
             self._serial.open()

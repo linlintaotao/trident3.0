@@ -17,7 +17,7 @@ from extools import NmeaParser
 import time
 from datetime import datetime, timedelta
 
-COLOR_TUPLE = ['black', 'red', 'cyan', '', 'green', 'blue', 'yellow']
+COLOR_TUPLE = ['gray', 'red', 'cyan', '', 'green', 'blue', 'orange']
 TYPE = ['GndTrk', 'Position', 'State']
 
 
@@ -83,21 +83,20 @@ class Fmiplot(QDialog, Ui_PlotView):
 
         self.pgPlot.addItem(self.scatter)
         self.pgPlot.showGrid(True, True)
-        self.pgPlot.setXRange(-0.5, 0.5)
-        self.pgPlot.setYRange(-0.5, 0.5)
+        self.pgPlot.setXRange(-0.05, 0.05)
+        self.pgPlot.setYRange(-0.05, 0.05)
         self.pgPlot.enableAutoRange(True)
 
     def initplotItems(self, supportNEU=True):
-
+        tai = TimeAxisItem(orientation='bottom')
         self.top = self.glw.addPlot(row=0, col=0)
         self.top.showGrid(True, True)
-        self.top.showAxes((True, False, False, False), showValues=(True, None, None, None))
+        self.top.showAxes((True, False, False, True), showValues=(True, None, None, False))
 
         self.mid = self.glw.addPlot(row=1, col=0)
         self.mid.setXLink(self.top)
         self.mid.showGrid(True, True)
-        self.mid.showAxes((True, False, False, False), showValues=(True, None, None, None))
-        tai = TimeAxisItem(orientation='bottom')
+        self.mid.showAxes((True, False, False, True), showValues=(True, None, None, False))
         self.bottom = self.glw.addPlot(row=2, col=0,
                                        axisItems={'bottom': tai})
         self.bottom.setXLink(self.top)
@@ -192,22 +191,23 @@ class Fmiplot(QDialog, Ui_PlotView):
         if self.threadAnalysis:
             self.threadAnalysis.clear()
         self.clearItem(destory=False)
+        self.reDraw()
 
     def clearItem(self, destory=True):
         if self.scatter is not None:
-            self.scatter.clear()
+            self.scatter.setData([])
             if destory:
                 self.scatter = None
         if self.itemTop is not None:
-            self.itemTop.clear()
+            self.itemTop.setData([])
             if destory:
                 self.itemTop = None
         if self.itemMid is not None:
-            self.itemMid.clear()
+            self.itemMid.setData([])
             if destory:
                 self.itemMid = None
         if self.itemBot is not None:
-            self.itemBot.clear()
+            self.itemBot.setData([])
             if destory:
                 self.itemBot = None
         if destory:
@@ -229,6 +229,8 @@ class Fmiplot(QDialog, Ui_PlotView):
             return
         if not self.realTime:
             self.loading = False
+        if len(data[8]) > 0:
+            data[8][-1] = 'black'
         if self.currentType == 0:
             self.scatter.setData(x=data[1], y=data[0], brush=data[8], pen=None, size=4)
         elif self.currentType == 1:
@@ -240,9 +242,9 @@ class Fmiplot(QDialog, Ui_PlotView):
         elif self.currentType == 2:
             if not self.itemTop:
                 return
-            self.itemTop.setData(x=data[-1], y=data[7], brush=data[8], pen=None)
-            self.itemMid.setData(x=data[-1], y=data[5], brush=data[8], pen=None)
-            self.itemBot.setData(x=data[-1], y=data[6], brush=data[8], pen=None)
+            self.itemTop.setData(x=data[-1], y=data[7], brush=data[8], pen=None, size=4)
+            self.itemMid.setData(x=data[-1], y=data[5], brush=data[8], pen=None, size=4)
+            self.itemBot.setData(x=data[-1], y=data[6], brush=data[8], pen=None, size=4)
         self.lock = False
 
     def deleteSameData(self, dataX, dataY):
@@ -421,15 +423,16 @@ class AnalysisThread(QThread):
                     self.colorList = self.colorList[startIndex:]
                     self.time = self.time[startIndex:]
                     startIndex = 0
+
             self.signal.emit(
                 [self.xList[startIndex:], self.yList[startIndex:], self.dataN[startIndex:], self.dataE[startIndex:],
                  self.dataU[startIndex:], self.satNum[startIndex:], self.dAge[startIndex:], self.fixState[startIndex:],
                  self.colorList[startIndex:], self.time[startIndex:]])
 
     def getData(self):
-        return [self.xList, self.yList, self.dataN, self.dataE,
-                self.dataU, self.satNum, self.dAge, self.fixState,
-                self.colorList, self.time]
+        return [self.xList[:], self.yList[:], self.dataN[:], self.dataE[:],
+                self.dataU[:], self.satNum[:], self.dAge[:], self.fixState[:],
+                self.colorList[:], self.time[:]]
 
     def readFile(self, path):
         self.clear()

@@ -152,11 +152,11 @@ obscodes = [
 
 
 def code2freq_GPS(code):
-    if code[0] is '1':
+    if code[0] == '1':
         return 0, FREQ1
-    elif code[0] is '2':
+    elif code[0] == '2':
         return 1, FREQ2
-    elif code[0] is '5':
+    elif code[0] == '5':
         return 2, FREQ5
     return -1, 0
 
@@ -164,41 +164,41 @@ def code2freq_GPS(code):
 def code2freq_GLO(code):
     # todo fcn =1 is not true value
     fcn = 1
-    if code[0] is '1':
+    if code[0] == '1':
         return 0, FREQ1_GLO + DFRQ1_GLO * fcn
-    elif code[0] is '2':
-        return 1, FRQ2_GLO + DFRQ2_GLO * fcn
-    elif code[0] is '3':
+    elif code[0] == '2':
+        return 1, FREQ2_GLO + DFRQ2_GLO * fcn
+    elif code[0] == '3':
         return 2, FREQ3_GLO
-    elif code[0] is '4':
+    elif code[0] == '4':
         return 3, FREQ1a_GLO
-    elif code[0] is '6':
+    elif code[0] == '6':
         return 4, FREQ2a_GLO
     return -1, 0
 
 
 def code2freq_GAL(code):
-    if code[0] is '1':
+    if code[0] == '1':
         return 0, FREQ1
-    elif code[0] is '7':
+    elif code[0] == '7':
         return 1, FREQ7
-    elif code[0] is '5':
+    elif code[0] == '5':
         return 2, FREQ5
-    elif code[0] is '6':
+    elif code[0] == '6':
         return 3, FREQ6
-    elif code[0] is '8':
+    elif code[0] == '8':
         return 4, FREQ8
     return -1, 0
 
 
 def code2freq_QZS(code):
-    if code[0] is '1':
+    if code[0] == '1':
         return 0, FREQ1
-    elif code[0] is '2':
+    elif code[0] == '2':
         return 1, FREQ2
-    elif code[0] is '5':
+    elif code[0] == '5':
         return 2, FREQ5
-    elif code[0] is '6':
+    elif code[0] == '6':
         return 3, FREQ6
     return -1, 0
 
@@ -206,17 +206,17 @@ def code2freq_QZS(code):
 def code2freq_BDS(code):
     if len(code) < 1:
         return -1, 0
-    if code[0] is '1':
+    if code[0] == '1':
         return 0, FREQ1
-    elif code[0] is '2':
+    elif code[0] == '2':
         return 0, FREQ1_CMP
-    elif code[0] is '7':
+    elif code[0] == '7':
         return 1, FREQ2_CMP
-    elif code[0] is '5':
+    elif code[0] == '5':
         return 2, FREQ5
-    elif code[0] is '6':
+    elif code[0] == '6':
         return 3, FREQ3_CMP
-    elif code[0] is '8':
+    elif code[0] == '8':
         return 4, FREQ8
     return -1, 0
 
@@ -254,7 +254,7 @@ def satno2Id(sys, prn):
 
 def obs2code(sig):
     for i in range(len(obscodes)):
-        if obscodes[i] is sig:
+        if obscodes[i] == sig:
             return i
     return -1
 
