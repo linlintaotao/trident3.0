@@ -34,6 +34,7 @@ from ui.cnshow import *
 from ui.FmiPlot import Fmiplot
 
 from extools import NmeaParser
+import gui.icon
 
 ###################################################################
 DIR = 'NMEA/'
@@ -67,7 +68,6 @@ NTRIP_CONFIG = 'NTRIP'
 
 name = "Trident"
 
-import gui.icon
 
 
 ###################################################################
