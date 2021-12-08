@@ -61,7 +61,7 @@ NTRIP = [None]
 
 LAT_LON = [40, 116]
 
-VERSION = "2.7.0"
+VERSION = "2.7.1"
 
 NTRIP_CONFIG = 'NTRIP'
 
@@ -73,6 +73,7 @@ import gui.icon
 ###################################################################
 
 def gettstr() -> str:
+
     """
     get current host time string
     :return:
